@@ -1,7 +1,7 @@
 # AI 레드팀 ERD 완전 정리 (테이블·컬럼·예시·기능)
 
 > **이 문서 = ERD 최종본의 모든 것.** 각 테이블이 뭔지 / 각 컬럼(한글명·물리명·타입)이 무슨 역할인지 / 실제 저장되는 예시값(JSON 포함) / 우리 프로젝트 **어느 기능에서 쓰는지**까지 전부 정리.
-> - 원본 ERD 이미지: [`assets/airedteam-erd.png`](./assets/airedteam-erd.png)
+> - 원본 ERD 이미지: [`assets/airedteam-erd.png`](../../assets/airedteam-erd.png)
 > - 정확 스키마: [`ERD.md`](./ERD.md) · 쉬운 개념: [`ERD-가이드.md`](./ERD-가이드.md)
 
 ## ⚠️ 최종본에서 바뀐 점 (이전 문서 대비)
@@ -302,4 +302,4 @@ done:     {"status":"done", "breached":2, "total_objectives":3}
 
 ---
 
-> 원본 ERD: [`assets/airedteam-erd.png`](./assets/airedteam-erd.png) · 관련: [ERD.md](./ERD.md) · [ERD-가이드.md](./ERD-가이드.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) · [API.md](./API.md)
+> 원본 ERD: [`assets/airedteam-erd.png`](../../assets/airedteam-erd.png) · 관련: [ERD.md](./ERD.md) · [ERD-가이드.md](./ERD-가이드.md) · [ARCHITECTURE.md](../architecture/ARCHITECTURE.md) · [API.md](../api/API.md)

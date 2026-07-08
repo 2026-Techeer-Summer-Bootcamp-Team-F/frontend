@@ -1,6 +1,6 @@
 # AI 레드팀 — API 명세 (Swagger/OpenAPI 기준)
 
-> **ERD 최종본([ERD-완전정리.md](./ERD-완전정리.md)) + 와이어프레임([assets/wireframe.png](./assets/wireframe.png)) 기준 API 설계.**
+> **ERD 최종본([ERD-완전정리.md](../database/ERD-완전정리.md)) + 와이어프레임([assets/wireframe.png](../../assets/wireframe.png)) 기준 API 설계.**
 > FastAPI로 구현하면 이 명세 그대로 `/docs`(Swagger UI)에 자동 노출됨.
 >
 > - **Base URL(PoC)**: `http://localhost:8000`
@@ -393,4 +393,4 @@ ATLAS 기법 마스터(atlas_techniques). 히트맵 라벨·기법 카드.
 
 ---
 
-> 관련: [ERD-완전정리.md](./ERD-완전정리.md) · [DESIGN-REF.md](./DESIGN-REF.md) · [ARCHITECTURE.md](./ARCHITECTURE.md) · (구) [API.md](./API.md)
+> 관련: [ERD-완전정리.md](../database/ERD-완전정리.md) · [DESIGN-REF.md](../architecture/DESIGN-REF.md) · [ARCHITECTURE.md](../architecture/ARCHITECTURE.md) · (구) [API.md](./API.md)

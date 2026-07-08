@@ -152,4 +152,4 @@ python3 corpus_ingest.py     # ③ 로컬3+HF 통합 적재 → corpus.db (오�
 - **dedup 방향**: 먼저 로드된 소스가 남고 뒤가 지워짐. "고유 기여"를 보려면 소스 로드 순서 기억.
 - **SQLite `atlas_techniques` PK는 `id`** (technique_id 아님). 조인 시 주의.
 
-> 관련: [벡터DB-적재계획.md](./벡터DB-적재계획.md)(왜), [ERD-완전정리.md](./ERD-완전정리.md)(정본 스키마), [../트러블슈팅.md](../트러블슈팅.md) #14.
+> 관련: [벡터DB-적재계획.md](./벡터DB-적재계획.md)(왜), [ERD-완전정리.md](../database/ERD-완전정리.md)(정본 스키마), [../트러블슈팅.md](./트러블슈팅.md) #14.

@@ -6,7 +6,7 @@
 - **URL**: https://www.figma.com/design/117A3LStS4zttMU5Lai8Fn/%EC%A0%9C%EB%AA%A9-%EC%97%86%EC%9D%8C?node-id=11-2
 - 페이지: **"AI Read Team"** (Page 1 하위)
 - 접근: 팀 계정 로그인 필요(무료 플랜). 확인일 2026-07-05.
-- **저장된 와이어프레임 이미지**: [`assets/wireframe.png`](./assets/wireframe.png) (2026-07-06 Figma export 저장)
+- **저장된 와이어프레임 이미지**: [`assets/wireframe.png`](../../assets/wireframe.png) (2026-07-06 Figma export 저장)
 
 ## 전체 무드 (확정 방향)
 **다크 테마 + 레드/코랄 포인트**의 "보안 회사 같은 프로" 느낌.
@@ -25,7 +25,7 @@
 5. **AI Red Teaming Analysis** (핵심 실행 화면) — 좌: **Attack Type 체크박스 13개**(Direct/Indirect Prompt Injection, Jailbreak, System Prompt Extraction, Prompt/Data/PII Leakage, Tool/Function Abuse, Tool Manipulation, Side-play/Persona, Encoding&Obfuscation, Hallucination, DoS) / 중: **Target Model 드롭다운**(GPT-4o/Claude/Current/Local LLM) + **Start Scan** + Progress바 + Current Attack(기법·상태) + **Live Analysis Log**(실시간) / 우: **Summary**(Completed 8/13, Success 5, Failed 3, Running 1).
 6. **결과 대시보드** — 상단 URL + **통계 숫자 4개**(예 68/121/41/14) + **MITRE ATLAS 히트맵**(색상 그리드) + **Top Findings** + 프로젝트 선택 대시보드.
 
-> API 매핑은 [API-명세.md](./API-명세.md) §화면↔API 표 참고. 공격유형 13개 → `GET /attack-types`, 실시간 → SSE(log/progress/finding), 통계 → `GET /scans/{id}/report`.
+> API 매핑은 [API-명세.md](../api/API-명세.md) §화면↔API 표 참고. 공격유형 13개 → `GET /attack-types`, 실시간 → SSE(log/progress/finding), 통계 → `GET /scans/{id}/report`.
 
 ## 마스코트 후보 (와이어프레임에 여러 안)
 빨간 블롭(현재 코드) / **너구리 해커(후드+노트북 초록터미널)** ✅확정방향 / 로봇 마법사 / RED TEAM·SECURE AI·TEST PROTECT 3캐릭터 세트. → 너구리로 확정, Claude로 생성 예정.
