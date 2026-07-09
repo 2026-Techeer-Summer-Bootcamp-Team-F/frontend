@@ -13,3 +13,6 @@ pnpm-debug.log*
 .claude/
 .codex/
 .remember/
+
+# Design tool exports (large bundled files)
+docs/assets/*.html
