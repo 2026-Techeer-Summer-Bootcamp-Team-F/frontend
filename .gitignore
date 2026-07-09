@@ -16,3 +16,6 @@ pnpm-debug.log*
 
 # Design tool exports (large bundled files)
 docs/assets/*.html
+
+# AI tool generated plans/specs
+docs/superpowers/
