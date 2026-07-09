@@ -6,11 +6,13 @@ import { RunScanPage } from '../pages/RunScanPage';
 import { DashboardPage } from '../pages/DashboardPage';
 
 export const router = createBrowserRouter([
+  // 로그인: AppLayout 없이 전체 화면
+  { path: '/', element: <LoginPage /> },
+
+  // 인증 후 앱: AppLayout 포함
   {
-    path: '/',
     element: <App />,
     children: [
-      { index: true, element: <LoginPage /> },
       { path: 'targets/new', element: <RegisterTargetPage /> },
       { path: 'scans/:targetId', element: <RunScanPage /> },
       { path: 'dashboard/:scanId', element: <DashboardPage /> },
