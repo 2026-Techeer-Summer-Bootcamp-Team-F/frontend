@@ -1,12 +1,15 @@
 import type { PropsWithChildren } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { logout } from '../../api/auth';
+import { removeToken } from '../../utils/auth';
 import styles from './AppLayout.module.css';
 
 export function AppLayout({ children }: PropsWithChildren) {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
+  const handleLogout = async () => {
+    try { await logout(); } catch { /* 무시 */ }
+    removeToken();
     navigate('/');
   };
 

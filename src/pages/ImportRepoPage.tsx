@@ -111,7 +111,7 @@ export function ImportRepoPage() {
                 <div>
                   <span className={styles.projectName}>{p.project_name}</span>
                   <span className={styles.projectMeta}>
-                    {p.actor_type.toUpperCase()} · {p.config.url}
+                    {p.actor_type.toUpperCase()}{p.config?.url ? ` · ${p.config.url}` : ''}
                   </span>
                 </div>
                 <div className={styles.projectActions}>

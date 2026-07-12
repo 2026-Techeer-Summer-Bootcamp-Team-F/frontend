@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createProject } from '../api/projects';
-import { makeMockProject } from '../api/mock';
 import styles from './RegisterTargetPage.module.css';
 
 export function RegisterTargetPage() {
@@ -49,9 +48,9 @@ export function RegisterTargetPage() {
     try {
       const project = await createProject(payload);
       navigate(`/analysis/${project.target_id}`);
-    } catch {
-      const project = makeMockProject(payload);
-      navigate(`/analysis/${project.target_id}`);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : '프로젝트 등록에 실패했습니다.';
+      setError(msg);
     } finally {
       setLoading(false);
     }

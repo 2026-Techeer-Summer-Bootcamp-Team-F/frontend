@@ -1,32 +1,33 @@
 import { apiClient } from './client';
 
 export interface ActorConfig {
-  url: string;
+  url?: string;
   method?: string;
   headers?: Record<string, string>;
   body_template?: string;
   response_path?: string;
   max_retries?: number;
+  actor_type?: string;
+  [key: string]: unknown;
 }
 
 export interface Project {
   target_id: number;
-  user_id: number;
   project_name: string;
-  actor_type: 'http' | 'browser';
-  config: ActorConfig;
-  purpose: string | null;
-  system_prompt: string | null;
-  repo_url: string | null;
-  model: string | null;
-  defences: string[];
-  tools: string[];
+  actor_type: string;
+  config?: ActorConfig;
+  purpose?: string | null;
+  system_prompt?: string | null;
+  repo_url?: string | null;
+  model?: string | null;
+  defences?: Record<string, unknown>;
+  tools?: Record<string, unknown>;
   created_at: string;
 }
 
 export interface CreateProjectPayload {
   project_name: string;
-  actor_type: 'http' | 'browser';
+  actor_type: string;
   config: ActorConfig;
   purpose?: string;
   system_prompt?: string;
@@ -39,8 +40,8 @@ export async function createProject(payload: CreateProjectPayload): Promise<Proj
 }
 
 export async function listProjects(): Promise<Project[]> {
-  const { data } = await apiClient.get<Project[]>('/projects');
-  return data;
+  const { data } = await apiClient.get<{ data: Project[] }>('/projects');
+  return data.data;
 }
 
 export async function getProject(id: number): Promise<Project> {
