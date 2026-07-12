@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { listAttackTypes, getProject, type AttackType, type Project } from '../api/projects';
 import { startScan, cancelScan, type ScanConfig } from '../api/scans';
+import { getMockProject, MOCK_ATTACK_TYPES, simulateScan } from '../api/mock';
 import styles from './RunScanPage.module.css';
 
 interface LogLine { id: number; msg: string; level: string }
@@ -37,6 +38,7 @@ export function RunScanPage() {
   const [loadingStart, setLoadingStart] = useState(false);
   const logEndRef = useRef<HTMLDivElement>(null);
   const esRef = useRef<EventSource | null>(null);
+  const cancelMockRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!projectId) return;
@@ -46,7 +48,12 @@ export function RunScanPage() {
         setAttackTypes(types);
         setSelected(new Set(types.map(t => t.key)));
       })
-      .catch(() => {});
+      .catch(() => {
+        const mockProject = getMockProject(Number(projectId));
+        if (mockProject) setProject(mockProject);
+        setAttackTypes(MOCK_ATTACK_TYPES);
+        setSelected(new Set(MOCK_ATTACK_TYPES.map(t => t.key)));
+      });
   }, [projectId]);
 
   useEffect(() => {
@@ -77,7 +84,18 @@ export function RunScanPage() {
       setLogs([{ id: 0, msg: 'Attack modules loading...', level: 'info' }]);
       subscribeSSE(result.scan_id);
     } catch {
-      setStatus('failed');
+      setStatus('running');
+      setLogs([{ id: 0, msg: 'Attack modules loading... (demo mode)', level: 'info' }]);
+      const mockScanId = 9999;
+      setScanId(mockScanId);
+      cancelMockRef.current = simulateScan({
+        onLog: (msg, level) =>
+          setLogs(prev => [...prev, { id: prev.length, msg, level }]),
+        onProgress: data => setProgress(data),
+        onDone: st => {
+          setStatus(st === 'done' ? 'done' : 'failed');
+        },
+      });
     } finally {
       setLoadingStart(false);
     }
@@ -103,9 +121,6 @@ export function RunScanPage() {
       const d = JSON.parse(e.data as string);
       setStatus(d.status === 'done' ? 'done' : 'failed');
       es.close();
-      if (d.status === 'done') {
-        setTimeout(() => navigate(`/report/${id}`), 1200);
-      }
     });
 
     es.onerror = () => { setStatus('failed'); es.close(); };
@@ -114,12 +129,14 @@ export function RunScanPage() {
   const handleCancel = async () => {
     if (!scanId) return;
     esRef.current?.close();
-    await cancelScan(scanId);
+    cancelMockRef.current?.();
+    try { await cancelScan(scanId); } catch { /* demo mode */ }
     setStatus('failed');
   };
 
   return (
     <div className={styles.page}>
+      {/* ── Header ── */}
       <div className={styles.header}>
         <p className={styles.label}>STEP 3 / 3 — AI RED TEAMING ANALYSIS</p>
         <h1 className={styles.title}>
@@ -129,148 +146,77 @@ export function RunScanPage() {
         </h1>
       </div>
 
-      <div className={styles.layout}>
-        {/* ── Left: config ── */}
-        <aside className={styles.sidebar}>
-          <section className={styles.card}>
-            <p className={styles.cardLabel}>ATTACK TYPES ({selected.size}/{attackTypes.length})</p>
-            <div className={styles.attackList}>
-              {attackTypes.map(at => (
-                <label key={at.key} className={`${styles.attackItem} ${selected.has(at.key) ? styles.checked : ''}`}>
-                  <input
-                    type="checkbox"
-                    className={styles.checkbox}
-                    checked={selected.has(at.key)}
-                    onChange={() => toggleAttack(at.key)}
-                    disabled={status !== 'idle'}
-                  />
-                  <span className={styles.attackLabel}>{at.label}</span>
-                  <span className={styles.atlasTag}>{at.atlas.split('.')[1]}</span>
-                </label>
-              ))}
-            </div>
-          </section>
-
-          <section className={styles.card}>
-            <p className={styles.cardLabel}>TARGET MODEL</p>
-            <select
-              className={styles.select}
-              value={targetModel}
-              onChange={e => setTargetModel(e.target.value)}
-              disabled={status !== 'idle'}
-            >
-              {TARGET_MODELS.map(m => (
-                <option key={m.value} value={m.value}>{m.label}</option>
-              ))}
-            </select>
-          </section>
-
-          {status === 'idle' && (
-            <button
-              className={styles.startBtn}
-              onClick={handleStart}
-              disabled={loadingStart || selected.size === 0}
-            >
-              {loadingStart ? '시작 중...' : '›_ Start Scan'}
-            </button>
-          )}
-          {status === 'running' && (
-            <button className={styles.cancelBtn} onClick={handleCancel}>
-              ▪ 스캔 취소
-            </button>
-          )}
-        </aside>
-
-        {/* ── Right: live feed ── */}
-        <div className={styles.liveArea}>
-          {/* Progress bar */}
-          {progress && (
-            <section className={styles.card}>
-              <p className={styles.cardLabel}>PROGRESS</p>
-              <div className={styles.progressInfo}>
-                <span>세대 {progress.generation}</span>
-                <span>평가 {progress.evaluated}개</span>
-                <span>최고 점수 {progress.best_score.toFixed(3)}</span>
-                <span className={styles.phase}>{progress.phase.toUpperCase()}</span>
-              </div>
-              <div className={styles.progressBar}>
-                <div
-                  className={styles.progressFill}
-                  style={{ width: `${Math.min(progress.best_score * 100, 100)}%` }}
-                />
-              </div>
-              {progress.current_attack && (
-                <p className={styles.currentAttack}>
-                  <span className={styles.attackDot}>▶</span>
-                  {progress.current_attack.name}
-                  <span className={styles.atlasInline}> {progress.current_attack.atlas}</span>
-                  <span className={styles.attackStatus}> {progress.current_attack.status}</span>
-                </p>
-              )}
-            </section>
-          )}
-
-          {/* Summary */}
-          {progress?.summary && (
-            <section className={styles.card}>
-              <p className={styles.cardLabel}>SUMMARY</p>
-              <div className={styles.summaryGrid}>
-                <div className={styles.summaryItem}>
-                  <span className={styles.summaryNum}>{progress.summary.completed}</span>
-                  <span className={styles.summaryKey}>완료 / {progress.summary.total}</span>
-                </div>
-                <div className={styles.summaryItem}>
-                  <span className={`${styles.summaryNum} ${styles.red}`}>{progress.summary.success}</span>
-                  <span className={styles.summaryKey}>침투 성공</span>
-                </div>
-                <div className={styles.summaryItem}>
-                  <span className={styles.summaryNum}>{progress.summary.failed}</span>
-                  <span className={styles.summaryKey}>실패</span>
-                </div>
-                <div className={styles.summaryItem}>
-                  <span className={`${styles.summaryNum} ${styles.orange}`}>{progress.summary.running}</span>
-                  <span className={styles.summaryKey}>진행 중</span>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Live log terminal */}
-          <section className={styles.terminal}>
-            <div className={styles.termTitle}>
-              <div className={styles.dots}>
-                <span className={`${styles.dot} ${styles.g}`} />
-                <span className={`${styles.dot} ${styles.y}`} />
-                <span className={`${styles.dot} ${styles.gr}`} />
-              </div>
-              <span>redi@console — Live Analysis Log</span>
-              {status === 'idle' && <span className={styles.waiting}>대기 중</span>}
-            </div>
-            <div className={styles.termBody}>
-              {logs.length === 0 && (
-                <p className={styles.termEmpty}>스캔을 시작하면 실시간 로그가 표시됩니다.</p>
-              )}
-              {logs.map(line => (
-                <p key={line.id} className={`${styles.logLine} ${styles[line.level] ?? ''}`}>
-                  <span className={styles.logPrompt}>›</span> {line.msg}
-                </p>
-              ))}
-              {status === 'running' && (
-                <p className={styles.logLine}>
-                  <span className={styles.logPrompt}>›</span>
-                  <span className={styles.cursor} />
-                </p>
-              )}
-              {status === 'done' && (
-                <p className={`${styles.logLine} ${styles.done}`}>
-                  ✓ 스캔 완료 — 리포트 페이지로 이동합니다...
-                </p>
-              )}
-              <div ref={logEndRef} />
-            </div>
-          </section>
+      {/* ── Hero: gif + button (centered top) ── */}
+      <div className={styles.hero}>
+        <div className={styles.hackieWrap}>
+          <img
+            src="/hackie.gif"
+            alt="Hackie"
+            className={`${styles.hackie} ${status === 'running' ? styles.hackieRunning : ''}`}
+          />
+          {status === 'done' && <p className={styles.hackieDone}>✓ 스캔 완료</p>}
         </div>
+
+        {status === 'idle' && (
+          <button
+            className={styles.startBtn}
+            onClick={handleStart}
+            disabled={loadingStart || selected.size === 0}
+          >
+            {loadingStart ? '시작 중...' : '›_ Start Scan'}
+          </button>
+        )}
+        {status === 'running' && (
+          <button className={styles.cancelBtn} onClick={handleCancel}>
+            ▪ 스캔 취소
+          </button>
+        )}
+        {status === 'done' && (
+          <button className={styles.reportBtn} onClick={() => navigate(`/report/${scanId}`)}>
+            ›_ 스캔 결과 리포트 보기
+          </button>
+        )}
       </div>
+
+      {/* ── Live log (fixed height, scrollable) ── */}
+      <section className={styles.terminal}>
+        <div className={styles.termTitle}>
+          <div className={styles.dots}>
+            <span className={`${styles.dot} ${styles.g}`} />
+            <span className={`${styles.dot} ${styles.y}`} />
+            <span className={`${styles.dot} ${styles.gr}`} />
+          </div>
+          <span>redi@console — Live Analysis Log</span>
+          {status === 'idle' && <span className={styles.waiting}>대기 중</span>}
+          {status === 'running' && (
+            <span className={styles.analyzing}>
+              <span className={styles.blink}>█</span> 분석 중...
+            </span>
+          )}
+        </div>
+        <div className={styles.termBody}>
+          {logs.length === 0 && (
+            <p className={styles.termEmpty}>스캔을 시작하면 실시간 로그가 표시됩니다.</p>
+          )}
+          {logs.map(line => (
+            <p key={line.id} className={`${styles.logLine} ${styles[line.level] ?? ''}`}>
+              <span className={styles.logPrompt}>›</span> {line.msg}
+            </p>
+          ))}
+          {status === 'running' && (
+            <p className={styles.logLine}>
+              <span className={styles.logPrompt}>›</span>
+              <span className={styles.cursor} />
+            </p>
+          )}
+          {status === 'done' && (
+            <p className={`${styles.logLine} ${styles.done}`}>
+              ✓ 스캔 완료
+            </p>
+          )}
+          <div ref={logEndRef} />
+        </div>
+      </section>
     </div>
   );
 }

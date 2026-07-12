@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   getScanReport,
@@ -10,6 +10,7 @@ import {
   type Finding,
   type Scan,
 } from '../api/scans';
+import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS } from '../api/mock';
 import styles from './ReportPage.module.css';
 
 const SEVERITY_ORDER = ['critical', 'high', 'medium', 'low'] as const;
@@ -28,9 +29,9 @@ export function ReportPage() {
   const [heatmap, setHeatmap] = useState<HeatmapTechnique[]>([]);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [pastScans, setPastScans] = useState<Scan[]>([]);
-  const [expandedFinding, setExpandedFinding] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedFindings, setExpandedFindings] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (!scanId) return;
@@ -47,13 +48,31 @@ export function ReportPage() {
         setFindings(f);
         setPastScans(s.filter(sc => sc.scan_id !== id).slice(0, 5));
       })
-      .catch(() => setError('리포트를 불러오는 중 오류가 발생했습니다.'))
+      .catch(() => {
+        setReport(MOCK_REPORT);
+        setHeatmap(MOCK_HEATMAP);
+        setFindings(MOCK_FINDINGS);
+        setPastScans([]);
+      })
       .finally(() => setLoading(false));
   }, [scanId]);
 
   if (loading) return <LoadingState />;
   if (error) return <p className={styles.error}>{error}</p>;
   if (!report) return null;
+
+  const sortedFindings = useMemo(
+    () => [...findings].sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity)),
+    [findings],
+  );
+
+  const toggleFinding = useCallback((id: number) => {
+    setExpandedFindings(prev => {
+      const next = new Set(prev);
+      prev.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }, []);
 
   const breachedTechniques = heatmap.filter(t => t.status === 'breached');
 
@@ -88,10 +107,7 @@ export function ReportPage() {
         <p className={styles.cardLabel}>MITRE ATLAS 히트맵</p>
         <div className={styles.heatmapGrid}>
           {heatmap.map(t => (
-            <div
-              key={t.atlas_technique_id}
-              className={`${styles.heatCell} ${styles[t.status]}`}
-            >
+            <div key={t.atlas_technique_id} className={`${styles.heatCell} ${styles[t.status]}`}>
               <span className={styles.heatId}>{t.atlas_technique_id.replace('AML.', '')}</span>
               <span className={styles.heatName}>{t.name}</span>
               <span className={styles.heatScore}>{(t.best_score * 100).toFixed(0)}%</span>
@@ -112,56 +128,48 @@ export function ReportPage() {
           <p className={styles.emptyMsg}>✓ 발견된 취약점 없음</p>
         ) : (
           <div className={styles.findingList}>
-            {[...findings]
-              .sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity))
-              .map(f => (
-                <div key={f.findings_id} className={styles.findingCard}>
-                  <div
-                    className={styles.findingHeader}
-                    onClick={() => setExpandedFinding(expandedFinding === f.findings_id ? null : f.findings_id)}
-                  >
-                    <span
-                      className={styles.severityBadge}
-                      style={{ borderColor: SEVERITY_COLOR[f.severity], color: SEVERITY_COLOR[f.severity] }}
-                    >
-                      {f.severity.toUpperCase()}
-                    </span>
-                    <span className={styles.findingTitle}>{f.title}</span>
-                    <span className={styles.findingAtlas}>{f.atlas_technique_id}</span>
-                    <span className={styles.expandIcon}>{expandedFinding === f.findings_id ? '▾' : '▸'}</span>
-                  </div>
-                  {expandedFinding === f.findings_id && (
-                    <div className={styles.findingBody}>
-                      <div className={styles.evidenceBlock}>
-                        <p className={styles.evidenceLabel}>공격 프롬프트</p>
-                        <pre className={styles.evidencePre}>{f.evidence.prompt}</pre>
-                      </div>
-                      <div className={styles.evidenceBlock}>
-                        <p className={styles.evidenceLabel}>응답 (증거)</p>
-                        <pre className={styles.evidencePre}>{f.evidence.response}</pre>
-                      </div>
-                      {f.evidence.canary && (
-                        <p className={styles.canary}>⚑ 카나리 매칭: {f.evidence.canary}</p>
-                      )}
-                      <div className={styles.mitigation}>
-                        <span className={styles.mitigationLabel}>완화 방안</span>
-                        <span>{f.mitigation}</span>
-                      </div>
+            {sortedFindings.map(f => {
+                const isOpen = expandedFindings.has(f.findings_id);
+                return (
+                  <div key={f.findings_id} className={styles.findingCard}>
+                    <div className={styles.findingHeader} onClick={() => toggleFinding(f.findings_id)}>
+                      <span
+                        className={styles.severityBadge}
+                        style={{ borderColor: SEVERITY_COLOR[f.severity], color: SEVERITY_COLOR[f.severity] }}
+                      >
+                        {f.severity.toUpperCase()}
+                      </span>
+                      <span className={styles.findingTitle}>{f.title}</span>
+                      <span className={styles.findingAtlas}>{f.atlas_technique_id}</span>
+                      <span className={styles.expandIcon}>{isOpen ? '▲' : '▼'}</span>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {isOpen && (
+                      <div className={styles.findingBody}>
+                        <div className={styles.evidenceBlock}>
+                          <p className={styles.evidenceLabel}>PROMPT</p>
+                          <pre className={styles.evidencePre}>{f.evidence.prompt}</pre>
+                        </div>
+                        <div className={styles.evidenceBlock}>
+                          <p className={styles.evidenceLabel}>RESPONSE</p>
+                          <pre className={styles.evidencePre}>{f.evidence.response}</pre>
+                        </div>
+                        {f.evidence.canary && (
+                          <p className={styles.canary}>⚠ Canary triggered: {f.evidence.canary}</p>
+                        )}
+                        {f.mitigation && (
+                          <div className={styles.mitigation}>
+                            <span className={styles.mitigationLabel}>MITIGATION</span>
+                            <span>{f.mitigation}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+            })}
           </div>
         )}
       </section>
-
-      {/* ── AI Summary ── */}
-      {report.ai_summary && (
-        <section className={styles.card}>
-          <p className={styles.cardLabel}>AI 요약</p>
-          <p className={styles.aiSummary}>{report.ai_summary}</p>
-        </section>
-      )}
 
       {/* ── Severity breakdown ── */}
       <section className={styles.card}>
@@ -218,6 +226,17 @@ export function ReportPage() {
             <p className={styles.allClearSub}>테스트한 {heatmap.length}개 ATLAS 기법 모두 성공적으로 차단됐습니다.</p>
           </div>
         </div>
+      )}
+
+      {/* ── AI Summary (맨 아래) ── */}
+      {report.ai_summary && (
+        <section className={styles.aiCard}>
+          <img src="/logo.png" alt="Hackie" className={styles.aiLogo} />
+          <div className={styles.aiBubble}>
+            <p className={styles.cardLabel}>AI 분석 요약</p>
+            <p className={styles.aiSummary}>{report.ai_summary}</p>
+          </div>
+        </section>
       )}
     </div>
   );

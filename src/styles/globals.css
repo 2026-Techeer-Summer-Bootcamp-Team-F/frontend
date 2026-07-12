@@ -9,8 +9,8 @@
   --text-muted:    rgba(240, 244, 242, 0.55);
   --red:           #e05252;
   --orange:        #e0a452;
-  --font-display:  'Black Han Sans', 'Noto Sans KR', sans-serif;
-  --font-ui:       'Noto Sans KR', sans-serif;
+  --font-display:  'Plus Jakarta Sans', 'Pretendard', sans-serif;
+  --font-ui:       'Pretendard', 'Plus Jakarta Sans', sans-serif;
   --font-mono:     'JetBrains Mono', 'Courier New', monospace;
 
   color: var(--text);

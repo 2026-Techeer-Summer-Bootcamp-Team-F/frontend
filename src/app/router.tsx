@@ -1,14 +1,16 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import { LoginPage } from '../pages/LoginPage';
+import { GitHubLoginPage } from '../pages/GitHubLoginPage';
 import { ImportRepoPage } from '../pages/ImportRepoPage';
+import { AgreementPage } from '../pages/AgreementPage';
 import { RegisterTargetPage } from '../pages/RegisterTargetPage';
 import { RunScanPage } from '../pages/RunScanPage';
 import { ReportPage } from '../pages/ReportPage';
 
 export const router = createBrowserRouter([
-  // 랜딩 + 로그인: AppLayout 없이 전체 화면
   { path: '/', element: <LoginPage /> },
+  { path: '/login/github', element: <GitHubLoginPage /> },
 
   // 인증 후 앱: AppLayout(다크 셸) 포함
   {
@@ -16,7 +18,7 @@ export const router = createBrowserRouter([
     children: [
       // ③ Import Git Repository
       { path: 'repos', element: <ImportRepoPage /> },
-      // ④ 동의 + 액터 구성
+      { path: 'agreement', element: <AgreementPage /> },
       { path: 'projects/new', element: <RegisterTargetPage /> },
       // ⑤ AI Red Teaming Analysis (스캔 실행 + SSE)
       { path: 'analysis/:projectId', element: <RunScanPage /> },

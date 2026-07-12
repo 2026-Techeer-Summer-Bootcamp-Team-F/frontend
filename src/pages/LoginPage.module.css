@@ -141,10 +141,10 @@
   padding: 14px 32px;
   background: var(--accent);
   color: #0e1a14;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   text-decoration: none;
   border-radius: 6px;
   transition: background 0.18s, transform 0.12s, box-shadow 0.18s;
@@ -161,8 +161,10 @@
   transform: translateY(0);
 }
 
-.ctaPrompt {
-  opacity: 0.7;
+.ctaIcon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 /* ═══════════════════════════════════════

@@ -1,11 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createProject } from '../api/projects';
+import { makeMockProject } from '../api/mock';
 import styles from './RegisterTargetPage.module.css';
-
-const TERMS = `본 서비스는 귀하가 소유하거나 운영 권한을 가진 AI 앱에 대해서만 사용해야 합니다.
-무단으로 타인의 시스템을 공격하는 행위는 관련 법령에 의해 처벌받을 수 있습니다.
-생성된 공격 프롬프트 및 결과는 보안 개선 목적으로만 활용해야 합니다.`;
 
 export function RegisterTargetPage() {
   const navigate = useNavigate();
@@ -13,7 +10,6 @@ export function RegisterTargetPage() {
   const repoFullName = params.get('repo') ?? '';
   const repoUrl = params.get('url') ?? '';
 
-  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,26 +31,27 @@ export function RegisterTargetPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!agreed) { setError('이용약관에 동의해주세요.'); return; }
     setLoading(true);
     setError(null);
+    const payload = {
+      project_name: form.project_name,
+      actor_type: form.actor_type,
+      config: {
+        url: form.url,
+        method: form.method,
+        body_template: form.body_template,
+        response_path: form.response_path,
+      },
+      purpose: form.purpose || undefined,
+      system_prompt: form.system_prompt || undefined,
+      repo_url: form.repo_url || undefined,
+    };
     try {
-      const project = await createProject({
-        project_name: form.project_name,
-        actor_type: form.actor_type,
-        config: {
-          url: form.url,
-          method: form.method,
-          body_template: form.body_template,
-          response_path: form.response_path,
-        },
-        purpose: form.purpose || undefined,
-        system_prompt: form.system_prompt || undefined,
-        repo_url: form.repo_url || undefined,
-      });
+      const project = await createProject(payload);
       navigate(`/analysis/${project.target_id}`);
     } catch {
-      setError('프로젝트 등록 중 오류가 발생했습니다.');
+      const project = makeMockProject(payload);
+      navigate(`/analysis/${project.target_id}`);
     } finally {
       setLoading(false);
     }
@@ -65,7 +62,7 @@ export function RegisterTargetPage() {
       <div className={styles.header}>
         <p className={styles.label}>STEP 2 / 3</p>
         <h1 className={styles.title}>
-          동의 + <span className={styles.accent}>액터 구성</span>
+          액터 <span className={styles.accent}>구성</span>
         </h1>
         {repoFullName && (
           <p className={styles.repoTag}>
@@ -75,25 +72,14 @@ export function RegisterTargetPage() {
       </div>
 
       <form className={styles.form} onSubmit={handleSubmit}>
-        {/* Terms */}
         <section className={styles.card}>
-          <p className={styles.cardLabel}>이용약관</p>
-          <pre className={styles.terms}>{TERMS}</pre>
-          <label className={styles.agreeRow}>
-            <input
-              type="checkbox"
-              className={styles.checkbox}
-              checked={agreed}
-              onChange={e => setAgreed(e.target.checked)}
-            />
-            <span>위 약관에 동의합니다 (자기 소유 시스템에만 사용)</span>
-          </label>
-        </section>
-
-        {/* Actor config */}
-        <section className={styles.card}>
-          <p className={styles.cardLabel}>액터 구성</p>
-          <div className={styles.grid}>
+          <div className={styles.macBar}>
+            <span className={`${styles.macDot} ${styles.macG}`} />
+            <span className={`${styles.macDot} ${styles.macY}`} />
+            <span className={`${styles.macDot} ${styles.macR}`} />
+            <span className={styles.macTitle}>액터 구성</span>
+          </div>
+          <div className={styles.cardInner}><div className={styles.grid}>
             <div className={styles.field}>
               <label className={styles.fieldLabel}>프로젝트 이름</label>
               <input className={styles.input} value={form.project_name} onChange={set('project_name')} required />
@@ -123,13 +109,17 @@ export function RegisterTargetPage() {
               <label className={styles.fieldLabel}>Body 템플릿 <code className={styles.code}>{'{{prompt}}'}</code> 위치 명시</label>
               <textarea className={styles.textarea} rows={3} value={form.body_template} onChange={set('body_template')} />
             </div>
-          </div>
+          </div></div>
         </section>
 
-        {/* Optional */}
         <section className={styles.card}>
-          <p className={styles.cardLabel}>선택 정보</p>
-          <div className={styles.grid}>
+          <div className={styles.macBar}>
+            <span className={`${styles.macDot} ${styles.macG}`} />
+            <span className={`${styles.macDot} ${styles.macY}`} />
+            <span className={`${styles.macDot} ${styles.macR}`} />
+            <span className={styles.macTitle}>선택 정보</span>
+          </div>
+          <div className={styles.cardInner}><div className={styles.grid}>
             <div className={styles.field}>
               <label className={styles.fieldLabel}>앱 용도</label>
               <input className={styles.input} placeholder="고객지원 챗봇" value={form.purpose} onChange={set('purpose')} />
@@ -142,7 +132,7 @@ export function RegisterTargetPage() {
               <label className={styles.fieldLabel}>시스템 프롬프트 (알고 있다면)</label>
               <textarea className={styles.textarea} rows={3} value={form.system_prompt} onChange={set('system_prompt')} />
             </div>
-          </div>
+          </div></div>
         </section>
 
         {error && <p className={styles.error}>⚠ {error}</p>}

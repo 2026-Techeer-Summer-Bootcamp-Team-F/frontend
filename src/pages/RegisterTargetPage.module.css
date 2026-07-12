@@ -1,4 +1,4 @@
-.page { display: flex; flex-direction: column; gap: 28px; max-width: 760px; }
+.page { display: flex; flex-direction: column; gap: 28px; max-width: 760px; margin: 0 auto; width: 100%; }
 
 .header { display: flex; flex-direction: column; gap: 8px; }
 
@@ -40,18 +40,41 @@
   background: var(--bg-card);
   border: 1px solid var(--accent-border);
   border-radius: 10px;
-  padding: 24px;
+  overflow: hidden;
+}
+
+.macBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--bg-title);
+  border-bottom: 1px solid var(--accent-border);
+}
+
+.macDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.macG { background: #28c840; }
+.macY { background: #febc2e; }
+.macR { background: #3a3a3a; }
+
+.macTitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 6px;
+  letter-spacing: 0.04em;
+}
+
+.cardInner {
+  padding: 20px 24px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.cardLabel {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.15em;
-  color: var(--accent);
-  margin: 0;
 }
 
 .terms {
@@ -67,14 +90,57 @@
   margin: 0;
 }
 
+.agreeDivider {
+  border-top: 1px solid var(--accent-border);
+  padding-top: 14px;
+}
+
+.agreeDividerLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+
+.checkList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .agreeRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text);
+  font-size: 12px;
+  color: var(--text-muted);
   cursor: pointer;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  line-height: 1.6;
+}
+
+.agreeRow:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent-border);
+}
+
+.agreeChecked {
+  color: var(--text);
+  border-color: var(--accent-border);
+  background: var(--accent-dim);
+}
+
+.agreeNote {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  border-left: 2px solid var(--accent);
+  padding-left: 10px;
+  margin: 4px 0 0;
 }
 
 .checkbox {
@@ -91,7 +157,7 @@
 .field { display: flex; flex-direction: column; gap: 6px; }
 
 .fieldLabel {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -112,7 +178,7 @@
   border: 1px solid var(--accent-border);
   border-radius: 6px;
   padding: 9px 12px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 13px;
   color: var(--text);
   outline: none;
@@ -134,7 +200,7 @@
   padding: 13px 32px;
   background: var(--accent);
   color: #0e1a14;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 700;
   border: none;

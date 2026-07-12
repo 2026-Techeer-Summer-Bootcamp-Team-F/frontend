@@ -1,0 +1,140 @@
+.page { display: flex; flex-direction: column; gap: 24px; max-width: 760px; margin: 0 auto; width: 100%; }
+
+.header { display: flex; flex-direction: column; gap: 8px; }
+
+.label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 900;
+  margin: 0;
+}
+.accent { color: var(--accent); }
+
+.repoTag {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+.repoIcon { margin-right: 6px; color: var(--accent); }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.macBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--bg-title);
+  border-bottom: 1px solid var(--accent-border);
+}
+
+.macDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.macG { background: #28c840; }
+.macY { background: #febc2e; }
+.macR { background: #3a3a3a; }
+
+.macTitle {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: 6px;
+  letter-spacing: 0.04em;
+}
+
+.cardInner {
+  padding: 20px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.terms {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  background: var(--bg-title);
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  padding: 16px;
+  margin: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.agreeDivider {
+  border-top: 1px solid var(--accent-border);
+  padding-top: 14px;
+}
+.agreeDividerLabel {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.checkList { display: flex; flex-direction: column; gap: 10px; }
+
+.agreeRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  line-height: 1.6;
+}
+.agreeRow:hover { background: var(--accent-dim); border-color: var(--accent-border); }
+.agreeChecked { color: var(--text); border-color: var(--accent-border); background: var(--accent-dim); }
+
+.checkbox { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+
+.agreeNote {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-muted);
+  border-left: 2px solid var(--accent);
+  padding-left: 10px;
+  margin: 0;
+}
+
+.nextBtn {
+  width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  color: #0e1a14;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.nextBtn:hover:not(:disabled) { background: #72d99b; }
+.nextBtn:disabled { opacity: 0.4; cursor: not-allowed; }

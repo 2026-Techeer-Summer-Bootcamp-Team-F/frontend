@@ -51,9 +51,8 @@
 }
 
 .statLabel {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.1em;
+  font-family: var(--font-ui);
+  font-size: 13px;
   color: var(--text-muted);
 }
 
@@ -69,9 +68,9 @@
 }
 
 .cardLabel {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.18em;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
   color: var(--accent);
   margin: 0;
 }
@@ -127,8 +126,8 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font-family: var(--font-ui);
+  font-size: 12px;
   color: var(--text-muted);
 }
 .legendDot {
@@ -249,10 +248,62 @@
 }
 
 /* ── AI Summary ── */
+.aiCard {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
+  padding: 24px 28px;
+}
+
+.aiLogo {
+  width: 130px;
+  height: 130px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 12px rgba(94, 203, 138, 0.35));
+  margin-bottom: -4px;
+}
+
+.aiBubble {
+  position: relative;
+  flex: 1;
+  background: var(--bg-title);
+  border: 1px solid var(--accent-border);
+  border-radius: 12px 12px 12px 4px;
+  padding: 18px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.aiBubble::before {
+  content: '';
+  position: absolute;
+  bottom: 18px;
+  left: -10px;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 10px solid var(--accent-border);
+}
+
+.aiBubble::after {
+  content: '';
+  position: absolute;
+  bottom: 19px;
+  left: -8px;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-right: 8px solid var(--bg-title);
+}
+
 .aiSummary {
+  font-family: var(--font-ui);
   font-size: 14px;
   line-height: 1.8;
-  color: var(--text-muted);
+  color: var(--text);
   margin: 0;
   white-space: pre-wrap;
 }

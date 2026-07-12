@@ -41,7 +41,7 @@
 
 .navLink {
   padding: 4px 12px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 13px;
   color: var(--text-muted);
   border-radius: 4px;
@@ -52,7 +52,7 @@
 .logoutBtn {
   margin-left: auto;
   padding: 5px 14px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   color: var(--text-muted);
   background: transparent;

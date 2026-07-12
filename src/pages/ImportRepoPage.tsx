@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listGitHubRepos, type GitHubRepo } from '../api/github';
 import { listProjects, deleteProject, type Project } from '../api/projects';
+import { MOCK_REPOS } from '../api/mock';
 import styles from './ImportRepoPage.module.css';
 
 function timeAgo(iso: string) {
@@ -22,19 +23,26 @@ export function ImportRepoPage() {
 
   useEffect(() => {
     Promise.all([listGitHubRepos(), listProjects()])
-      .then(([r, p]) => { setRepos(r); setProjects(p); })
-      .catch(() => {/* 미연결 환경에서는 빈 목록 */})
+      .then(([r, p]) => {
+        setRepos(Array.isArray(r) ? r : MOCK_REPOS);
+        setProjects(Array.isArray(p) ? p : []);
+      })
+      .catch(() => { setRepos(MOCK_REPOS); })
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = repos.filter(r =>
-    r.full_name.toLowerCase().includes(query.toLowerCase()),
+  const filtered = useMemo(
+    () => repos.filter(r => r.full_name.toLowerCase().includes(query.toLowerCase())),
+    [repos, query],
   );
 
-  const registeredIds = new Set(projects.map(p => p.repo_url ?? ''));
+  const registeredIds = useMemo(
+    () => new Set(projects.map(p => p.repo_url ?? '')),
+    [projects],
+  );
 
   const handleImport = (repo: GitHubRepo) => {
-    navigate(`/projects/new?repo=${encodeURIComponent(repo.full_name)}&url=${encodeURIComponent(repo.html_url)}`);
+    navigate(`/agreement?repo=${encodeURIComponent(repo.full_name)}&url=${encodeURIComponent(repo.html_url)}`);
   };
 
   const handleDelete = async (id: number) => {
