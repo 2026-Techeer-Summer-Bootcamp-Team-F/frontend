@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { App } from './App';
 import { LoginPage } from '../pages/LoginPage';
-import { GitHubLoginPage } from '../pages/GitHubLoginPage';
+import { AuthCallbackPage } from '../pages/AuthCallbackPage';
 import { ImportRepoPage } from '../pages/ImportRepoPage';
 import { AgreementPage } from '../pages/AgreementPage';
 import { RegisterTargetPage } from '../pages/RegisterTargetPage';
@@ -10,7 +10,7 @@ import { ReportPage } from '../pages/ReportPage';
 
 export const router = createBrowserRouter([
   { path: '/', element: <LoginPage /> },
-  { path: '/login/github', element: <GitHubLoginPage /> },
+  { path: '/auth/callback', element: <AuthCallbackPage /> },
 
   // 인증 후 앱: AppLayout(다크 셸) 포함
   {

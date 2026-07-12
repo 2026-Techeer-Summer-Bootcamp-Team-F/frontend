@@ -80,13 +80,40 @@ export async function getScanReport(scanId: number): Promise<ScanReport> {
 }
 
 export async function getScanHeatmap(scanId: number): Promise<{ techniques: HeatmapTechnique[] }> {
-  const { data } = await apiClient.get(`/scans/${scanId}/heatmap`);
-  return data;
+  const { data } = await apiClient.get<{ scan_id: number; cells: HeatmapTechnique[] }>(`/scans/${scanId}/heatmap`);
+  return { techniques: data.cells };
 }
 
 export async function getScanFindings(scanId: number): Promise<Finding[]> {
-  const { data } = await apiClient.get<Finding[]>(`/scans/${scanId}/findings`);
-  return data;
+  const { data } = await apiClient.get<{
+    findings_id: number;
+    severity: 'critical' | 'high' | 'medium' | 'low';
+    atlas_technique_id: string | null;
+    technique_name: string | null;
+    attempt_id: number;
+    prompt: string | null;
+    evidence: { prompt?: string; response?: string; canary_hit?: boolean } | null;
+    mitigation: string | null;
+  }[]>(`/scans/${scanId}/findings`);
+  return data.map(f => ({
+    findings_id: f.findings_id,
+    objective_id: 0,
+    attempt_id: f.attempt_id,
+    atlas_technique_id: f.atlas_technique_id ?? '',
+    severity: f.severity,
+    title: f.technique_name ?? f.atlas_technique_id ?? '취약점',
+    evidence: {
+      prompt: f.evidence?.prompt ?? f.prompt ?? '',
+      response: f.evidence?.response ?? '',
+      canary: f.evidence?.canary_hit ? 'CANARY_HIT' : undefined,
+    },
+    mitigation: f.mitigation ?? '',
+  }));
+}
+
+export async function getScanSummary(scanId: number): Promise<string> {
+  const { data } = await apiClient.get<{ ai_summary: string }>(`/scans/${scanId}/summary`);
+  return data.ai_summary;
 }
 
 export async function listScans(targetId?: number): Promise<Scan[]> {

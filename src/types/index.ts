@@ -1,9 +1,8 @@
 export interface User {
-  id: number;
-  github_login: string;
-  email: string | null;
-  avatar_url: string | null;
-  created_at: string;
+  user_id: number;
+  github_id: string;
+  github_name: string;
+  name: string;
 }
 
 export interface Target {

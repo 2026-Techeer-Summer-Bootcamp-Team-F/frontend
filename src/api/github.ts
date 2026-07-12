@@ -9,8 +9,8 @@ export interface GitHubRepo {
 }
 
 export async function listGitHubRepos(q?: string): Promise<GitHubRepo[]> {
-  const { data } = await apiClient.get<GitHubRepo[]>('/github/repos', {
+  const { data } = await apiClient.get<{ data: GitHubRepo[] }>('/github/repos', {
     params: q ? { q } : undefined,
   });
-  return data;
+  return data.data;
 }

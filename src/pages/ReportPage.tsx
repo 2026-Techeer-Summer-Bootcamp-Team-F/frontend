@@ -4,6 +4,7 @@ import {
   getScanReport,
   getScanHeatmap,
   getScanFindings,
+  getScanSummary,
   listScans,
   type ScanReport,
   type HeatmapTechnique,
@@ -32,6 +33,7 @@ export function ReportPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedFindings, setExpandedFindings] = useState<Set<number>>(new Set());
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
 
   useEffect(() => {
     if (!scanId) return;
@@ -44,7 +46,7 @@ export function ReportPage() {
     ])
       .then(([r, h, f, s]) => {
         setReport(r);
-        setHeatmap(h.techniques);
+        setHeatmap(h.techniques ?? []);
         setFindings(f);
         setPastScans(s.filter(sc => sc.scan_id !== id).slice(0, 5));
       })
@@ -55,6 +57,10 @@ export function ReportPage() {
         setPastScans([]);
       })
       .finally(() => setLoading(false));
+
+    getScanSummary(id)
+      .then(summary => setAiSummary(summary))
+      .catch(() => {});
   }, [scanId]);
 
   if (loading) return <LoadingState />;
@@ -229,12 +235,12 @@ export function ReportPage() {
       )}
 
       {/* ── AI Summary (맨 아래) ── */}
-      {report.ai_summary && (
+      {aiSummary && (
         <section className={styles.aiCard}>
           <img src="/logo.png" alt="Hackie" className={styles.aiLogo} />
           <div className={styles.aiBubble}>
             <p className={styles.cardLabel}>AI 분석 요약</p>
-            <p className={styles.aiSummary}>{report.ai_summary}</p>
+            <p className={styles.aiSummary}>{aiSummary}</p>
           </div>
         </section>
       )}

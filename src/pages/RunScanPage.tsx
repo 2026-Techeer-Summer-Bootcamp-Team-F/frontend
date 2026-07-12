@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { listAttackTypes, getProject, type AttackType, type Project } from '../api/projects';
 import { startScan, cancelScan, type ScanConfig } from '../api/scans';
 import { getMockProject, MOCK_ATTACK_TYPES, simulateScan } from '../api/mock';
+import { getToken } from '../utils/auth';
 import styles from './RunScanPage.module.css';
 
 interface LogLine { id: number; msg: string; level: string }
@@ -102,26 +103,31 @@ export function RunScanPage() {
   };
 
   const subscribeSSE = (id: number) => {
-    const base = import.meta.env.VITE_API_BASE_URL ?? '';
-    const token = localStorage.getItem('access_token') ?? '';
+    const base = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000';
+    const token = getToken() ?? '';
     const es = new EventSource(`${base}/scans/${id}/stream?token=${token}`);
     esRef.current = es;
 
-    es.addEventListener('log', (e: MessageEvent) => {
+    es.onmessage = (e: MessageEvent) => {
       const d = JSON.parse(e.data as string);
-      setLogs(prev => [...prev, { id: prev.length, msg: d.msg, level: d.level }]);
-    });
+      const eventType = d.event as string;
 
-    es.addEventListener('progress', (e: MessageEvent) => {
-      const d = JSON.parse(e.data as string);
-      setProgress(d as ProgressData);
-    });
-
-    es.addEventListener('done', (e: MessageEvent) => {
-      const d = JSON.parse(e.data as string);
-      setStatus(d.status === 'done' ? 'done' : 'failed');
-      es.close();
-    });
+      if (eventType === 'log') {
+        setLogs(prev => [...prev, { id: prev.length, msg: d.message ?? d.msg ?? '', level: d.level ?? 'info' }]);
+      } else if (eventType === 'progress') {
+        setProgress(prev => ({
+          generation: d.generation ?? prev?.generation ?? 0,
+          evaluated: d.evaluated ?? prev?.evaluated ?? 0,
+          best_score: d.best_score ?? prev?.best_score ?? 0,
+          phase: d.phase ?? prev?.phase ?? '',
+          current_attack: d.current_attack ?? prev?.current_attack ?? null,
+          summary: d.summary ?? prev?.summary ?? null,
+        }));
+      } else if (eventType === 'done') {
+        setStatus(d.status === 'done' ? 'done' : 'failed');
+        es.close();
+      }
+    };
 
     es.onerror = () => { setStatus('failed'); es.close(); };
   };

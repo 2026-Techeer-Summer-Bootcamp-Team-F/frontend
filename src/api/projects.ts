@@ -53,8 +53,8 @@ export async function deleteProject(id: number): Promise<void> {
 }
 
 export async function listAttackTypes(): Promise<AttackType[]> {
-  const { data } = await apiClient.get<AttackType[]>('/attack-types');
-  return data;
+  const { data } = await apiClient.get<{ key: string; label: string; atlas_technique_id: string }[]>('/attack-types');
+  return data.map(t => ({ key: t.key, label: t.label, atlas: t.atlas_technique_id, category: '' }));
 }
 
 export interface AttackType {
