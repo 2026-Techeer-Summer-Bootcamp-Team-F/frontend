@@ -39,6 +39,20 @@ export async function createProject(payload: CreateProjectPayload): Promise<Proj
   return data;
 }
 
+export interface DetectResult {
+  detected: boolean;
+  source: string;
+  confidence?: number;
+  route_path?: string | null;
+  config?: ActorConfig | null;
+}
+
+// 레포에서 HTTP 연결 config 자동 감지(등록 폼 프리필). 실패 시 detected=false → 프리셋 폴백.
+export async function detectConfig(payload: { repo_url?: string; url?: string }): Promise<DetectResult> {
+  const { data } = await apiClient.post<DetectResult>('/projects/detect', payload);
+  return data;
+}
+
 export async function listProjects(): Promise<Project[]> {
   const { data } = await apiClient.get<{ data: Project[] }>('/projects');
   return data.data;
