@@ -173,8 +173,9 @@ export function RunScanPage() {
         const verdict = d.verdict as string;
         const score = ((d.score ?? 0) * 100).toFixed(1);
         const op = d.mutation_op ? ` [${d.mutation_op}]` : '';
+        const errDetail = verdict === 'error' && d.error ? ` — ${d.error}` : '';
         addLog(
-          `[${d.atlas ?? '?'}]${op} ${verdict} (${score}%)`,
+          `[${d.atlas ?? '?'}]${op} ${verdict} (${score}%)${errDetail}`,
           verdict === 'breach' ? 'error' : 'info',
         );
       } else if (eventType === 'finding') {
