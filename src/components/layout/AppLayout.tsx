@@ -16,7 +16,7 @@ export function AppLayout({ children }: PropsWithChildren) {
   return (
     <div className={styles.shell}>
       <header className={styles.nav}>
-        <Link to="/repos" className={styles.logo}>
+        <Link to="/" className={styles.logo}>
           <img className={styles.logoMark} src="/logo-redi.png" alt="REDI 로고" draggable={false} />
           <span className={styles.logoName}>REDI</span>
         </Link>

@@ -241,6 +241,112 @@
 }
 .deleteBtn:hover { color: var(--red); border-color: var(--red); }
 
+/* ── 토글 버튼 ── */
+.toggleBtn {
+  padding: 5px 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 10px;
+  border: 1px solid var(--accent-border);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+.toggleBtn:hover { color: var(--accent); border-color: var(--accent); }
+
+/* ── 프로젝트 블록(카드 + 패널 묶음) ── */
+.projectBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── 스캔 기록 패널 ── */
+.scanPanel {
+  background: var(--bg);
+  border-top: 1px solid var(--accent-border);
+  padding: 10px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scanPanelLabel {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text-muted);
+  margin: 0 0 4px;
+}
+
+.scanRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: var(--bg-card);
+  border: 1px solid var(--accent-border);
+}
+
+.scanId {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.scanStatus {
+  font-size: 11px;
+  font-weight: 600;
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.scanDate {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.scanActions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.reportBtn {
+  padding: 3px 10px;
+  background: var(--accent);
+  color: #0e1a14;
+  font-size: 11px;
+  font-weight: 700;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.reportBtn:hover { background: #72d99b; }
+
+.scanDeleteBtn {
+  padding: 3px 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  border: 1px solid var(--accent-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.scanDeleteBtn:hover { color: var(--red); border-color: var(--red); }
+
+.scanEmpty {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 8px 0;
+  margin: 0;
+}
+
 /* 빈 상태 */
 .empty {
   padding: 32px;

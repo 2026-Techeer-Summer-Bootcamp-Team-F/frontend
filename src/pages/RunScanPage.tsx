@@ -173,6 +173,19 @@ export function RunScanPage() {
     setStatus('failed');
   };
 
+  const handleRestart = async () => {
+    esRef.current?.close();
+    cancelMockRef.current?.();
+    if (scanId && status === 'running') {
+      try { await cancelScan(scanId); } catch { /* demo mode */ }
+    }
+    setScanId(null);
+    setStatus('idle');
+    setLogs([]);
+    setProgress(null);
+    setElapsed(0);
+  };
+
   return (
     <div className={styles.page}>
       {/* ── Header ── */}
@@ -211,8 +224,18 @@ export function RunScanPage() {
           </button>
         )}
         {status === 'done' && (
-          <button className={styles.reportBtn} onClick={() => navigate(`/report/${scanId}`)}>
-            ›_ 스캔 결과 리포트 보기
+          <div className={styles.btnRow}>
+            <button className={styles.reportBtn} onClick={() => navigate(`/report/${scanId}`)}>
+              ›_ 스캔 결과 리포트 보기
+            </button>
+            <button className={styles.restartBtn} onClick={handleRestart}>
+              ↺ 다시 스캔
+            </button>
+          </div>
+        )}
+        {status === 'failed' && (
+          <button className={styles.restartBtn} onClick={handleRestart}>
+            ↺ 다시 스캔
           </button>
         )}
       </div>

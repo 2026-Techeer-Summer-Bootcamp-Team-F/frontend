@@ -111,6 +111,25 @@
 }
 .reportBtn:hover { background: #8be8b0; }
 
+.btnRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.restartBtn {
+  padding: 10px 24px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.restartBtn:hover { color: var(--accent); border-color: var(--accent); }
+
 @keyframes glow {
   0%, 100% { box-shadow: 0 0 10px rgba(80, 200, 120, 0.3); }
   50%       { box-shadow: 0 0 28px rgba(80, 200, 120, 0.65); }
