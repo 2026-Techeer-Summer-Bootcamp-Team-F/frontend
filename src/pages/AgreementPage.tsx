@@ -100,7 +100,7 @@ export function AgreementPage() {
       </section>
 
       <button className={styles.nextBtn} onClick={handleNext} disabled={!allAgreed}>
-        ›_ 동의하고 액터 구성으로 →
+        ›_ 동의하고 필요 정보 입력으로 →
       </button>
     </div>
   );

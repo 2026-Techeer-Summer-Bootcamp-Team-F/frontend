@@ -22,16 +22,24 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-family: var(--font-mono);
-  font-size: 18px;
-  font-weight: 700;
+  gap: 8px;
   text-decoration: none;
-  color: var(--text);
 }
 
-.logoPrompt { color: var(--accent); }
-.logoName   { color: var(--text); }
+.logoMark {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(94, 203, 138, 0.4));
+}
+
+.logoName {
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
 
 .navLinks {
   display: flex;

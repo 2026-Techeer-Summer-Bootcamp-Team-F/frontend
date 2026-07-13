@@ -61,7 +61,7 @@ export function RegisterTargetPage() {
       <div className={styles.header}>
         <p className={styles.label}>STEP 2 / 3</p>
         <h1 className={styles.title}>
-          액터 <span className={styles.accent}>구성</span>
+          필요 정보 <span className={styles.accent}>입력</span>
         </h1>
         {repoFullName && (
           <p className={styles.repoTag}>
@@ -76,7 +76,7 @@ export function RegisterTargetPage() {
             <span className={`${styles.macDot} ${styles.macG}`} />
             <span className={`${styles.macDot} ${styles.macY}`} />
             <span className={`${styles.macDot} ${styles.macR}`} />
-            <span className={styles.macTitle}>액터 구성</span>
+            <span className={styles.macTitle}>필요 정보 입력</span>
           </div>
           <div className={styles.cardInner}><div className={styles.grid}>
             <div className={styles.field}>
@@ -84,7 +84,7 @@ export function RegisterTargetPage() {
               <input className={styles.input} value={form.project_name} onChange={set('project_name')} required />
             </div>
             <div className={styles.field}>
-              <label className={styles.fieldLabel}>Actor 타입</label>
+              <label className={styles.fieldLabel}>연결 방식</label>
               <select className={styles.input} value={form.actor_type} onChange={set('actor_type')}>
                 <option value="http">HTTP</option>
                 <option value="browser">Browser (Playwright)</option>
