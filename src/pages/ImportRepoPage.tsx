@@ -106,7 +106,7 @@ export function ImportRepoPage() {
       {/* ── 헤더 ── */}
       <div className={styles.header}>
         <p className={styles.label}>IMPORT GIT REPOSITORY</p>
-        <h1 className={styles.title}>GitHub 레포지터리 연결</h1>
+        <h1 className={styles.title}>GitHub 레포지토리 연결</h1>
         <p className={styles.desc}>분석할 AI 앱 레포를 선택하면 스캔 설정 화면으로 이동합니다.</p>
       </div>
 
@@ -115,7 +115,7 @@ export function ImportRepoPage() {
         <span className={styles.searchIcon}>›_</span>
         <input
           className={styles.searchInput}
-          placeholder="레포지터리 검색..."
+          placeholder="레포지토리 검색..."
           value={query}
           onChange={e => setQuery(e.target.value)}
         />
@@ -127,7 +127,7 @@ export function ImportRepoPage() {
         <div className={styles.column}>
           <p className={styles.colLabel}>
             <span className={styles.colDot} />
-            미등록 레포지터리
+            미등록 레포지토리
             <span className={styles.colCount}>{unimported.length}</span>
           </p>
           <div className={styles.list}>
@@ -135,7 +135,7 @@ export function ImportRepoPage() {
               <p className={styles.empty}><span className={styles.blink}>█</span> 로딩 중...</p>
             )}
             {!loading && unimported.length === 0 && (
-              <p className={styles.empty}>레포지터리가 없습니다.</p>
+              <p className={styles.empty}>레포지토리가 없습니다.</p>
             )}
             {unimported.map(repo => (
               <div key={repo.full_name} className={styles.repoCard}>

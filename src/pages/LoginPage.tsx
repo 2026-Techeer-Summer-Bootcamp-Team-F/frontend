@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { Brand } from '../components/Brand';
 import styles from './LoginPage.module.css';
 
 export function LoginPage() {
@@ -10,10 +11,7 @@ export function LoginPage() {
     <div className={styles.page}>
       {/* ── Top nav ── */}
       <nav className={styles.nav}>
-        <div className={styles.brand}>
-          <img className={styles.brandLogo} src="/logo-redi.png" alt="REDI 로고" draggable={false} />
-          <span className={styles.brandName}>REDI</span>
-        </div>
+        <Brand to="/" />
       </nav>
 
       {/* ── Hero ── */}

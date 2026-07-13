@@ -260,3 +260,94 @@
   height: 20px;
   flex-shrink: 0;
 }
+
+/* ═══════════════════════════════════════
+   슬라이드(캐러셀) — 세로 나열 대체
+═══════════════════════════════════════ */
+
+/* 상단 로고 nav (클릭 → 온보딩) */
+.topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  padding: 18px 24px;
+}
+.brand { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+.brandLogo {
+  width: 26px; height: 26px; object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(94, 203, 138, 0.4));
+}
+.brandName {
+  font-family: var(--font-display);
+  font-size: 21px; font-weight: 800; letter-spacing: 0.06em;
+  color: var(--text);
+  transition: color 0.15s;
+}
+.brand:hover .brandName { color: var(--accent); }
+
+/* 캐러셀 컨테이너 (카드 한 장 + 점 + 이전/다음) */
+.carousel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+.carousel .card { flex: 0 0 auto; width: 100%; }
+.carousel .cardBody { min-height: 130px; }   /* 스텝 간 높이 튐 방지 */
+
+/* 카드 안 큰 스텝 번호 뱃지 */
+.stepNum {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-line);
+  border-radius: 5px;
+  padding: 2px 9px;
+  margin-bottom: 10px;
+}
+
+/* 페이지 점 */
+.dots { display: flex; gap: 10px; }
+.dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--accent-line); border: none; padding: 0;
+  cursor: pointer; transition: background 0.15s, transform 0.15s;
+}
+.dot:hover { background: var(--accent-dim); }
+.dotActive {
+  background: var(--accent);
+  transform: scale(1.25);
+  box-shadow: 0 0 8px rgba(94, 203, 138, 0.6);
+}
+
+/* 이전 / 다음 */
+.slideNav { display: flex; align-items: center; gap: 12px; }
+.navBtn, .navBtnPrimary {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  padding: 11px 26px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s, filter 0.15s;
+}
+.navBtn {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.navBtn:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+.navBtn:disabled { opacity: 0.35; cursor: not-allowed; }
+.navBtnPrimary {
+  background: var(--accent);
+  color: #0e1a14;
+  font-weight: 700;
+  border: none;
+}
+.navBtnPrimary:hover { transform: translateY(-1px); filter: brightness(1.08); }
