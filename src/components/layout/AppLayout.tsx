@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { Brand } from '../Brand';
 import { logout } from '../../api/auth';
 import { removeToken } from '../../utils/auth';
 import styles from './AppLayout.module.css';
@@ -16,10 +17,7 @@ export function AppLayout({ children }: PropsWithChildren) {
   return (
     <div className={styles.shell}>
       <header className={styles.nav}>
-        <Link to="/" className={styles.logo}>
-          <img className={styles.logoMark} src="/logo-redi.png" alt="REDI 로고" draggable={false} />
-          <span className={styles.logoName}>REDI</span>
-        </Link>
+        <Brand to="/repos" />
 
         <nav className={styles.navLinks}>
           <Link to="/repos" className={styles.navLink}>프로젝트</Link>

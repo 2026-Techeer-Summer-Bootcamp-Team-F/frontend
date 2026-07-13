@@ -1,0 +1,26 @@
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.logo {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 8px rgba(94, 203, 138, 0.4));
+}
+
+.name {
+  font-family: var(--font-display, 'Black Han Sans', 'Pretendard', sans-serif);
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text, #f0f4f2);
+  transition: color 0.15s;
+}
+
+.brand:hover .name {
+  color: var(--accent, #5ecb8a);
+}

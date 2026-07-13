@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Brand } from '../components/Brand';
 import { getGitHubLoginUrl } from '../api/auth';
 import styles from './GuidePage.module.css';
 
@@ -6,11 +7,11 @@ const STEPS = [
   {
     num: '01',
     title: 'GitHub 연결',
-    desc: 'GitHub OAuth로 로그인하면 본인 계정의 레포지터리 목록을 불러옵니다. 별도 설치나 설정 없이 버튼 한 번으로 연결됩니다.',
+    desc: 'GitHub OAuth로 로그인하면 본인 계정의 레포지토리 목록을 불러옵니다. 별도 설치나 설정 없이 버튼 한 번으로 연결됩니다.',
   },
   {
     num: '02',
-    title: '레포지터리 선택',
+    title: '레포지토리 선택',
     desc: '분석할 AI 앱이 있는 레포를 고릅니다. 공개·비공개 모두 지원하며, 언제든 다른 레포로 교체할 수 있습니다.',
   },
   {
@@ -26,13 +27,16 @@ const STEPS = [
   {
     num: '05',
     title: '스캔 & 리포트',
-    desc: 'MITRE ATLAS 기반 공격 코퍼스를 자동 실행하고 결과를 실시간으로 스트리밍합니다. 완료 후 취약점 분류·심각도·증거까지 리포트로 제공합니다.',
+    desc: 'MITRE ATLAS 기반 실전 공격 데이터를 자동 실행하고 결과를 실시간으로 스트리밍합니다. 완료 후 취약점 분류·심각도·증거까지 리포트로 제공합니다.',
   },
 ];
 
 export function GuidePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [current, setCurrent] = useState(0);   // 슬라이드 현재 스텝(0-based)
+  const step = STEPS[current];
+  const isLast = current === STEPS.length - 1;
 
   const handleStart = async () => {
     setLoading(true);
@@ -48,17 +52,16 @@ export function GuidePage() {
 
   return (
     <div className={styles.page}>
+      <nav className={styles.topbar}>
+        <Brand to="/" />
+      </nav>
+
       <header className={styles.header}>
         <p className={styles.badge}>
           <span className={styles.badgeLabel}>WELCOME</span>
           <span className={styles.badgeDot}>·</span>
           <span>시작 전 안내</span>
         </p>
-        <h1 className={styles.title}>
-          AI 레드팀 스캔,
-          <br />
-          <span className={styles.accent}>5단계</span>면 충분합니다.
-        </h1>
         <p className={styles.sub}>
           GitHub 저장소만 있으면 바로 시작할 수 있습니다.
           <br />
@@ -66,34 +69,56 @@ export function GuidePage() {
         </p>
       </header>
 
-      <section className={styles.timeline}>
-        {STEPS.map((step, i) => (
-          <div key={step.num} className={styles.stepRow}>
-            <div className={styles.connector}>
-              <div className={styles.node}>
-                <span className={styles.nodeNum}>{step.num}</span>
-              </div>
-              {i < STEPS.length - 1 && <div className={styles.line} />}
+      {/* ── 슬라이드(한 스텝씩 '다음'으로 넘김) ── */}
+      <section className={styles.carousel}>
+        <div className={styles.card}>
+          <div className={styles.macBar}>
+            <div className={styles.macDots}>
+              <span className={`${styles.macDot} ${styles.macG}`} />
+              <span className={`${styles.macDot} ${styles.macY}`} />
+              <span className={`${styles.macDot} ${styles.macR}`} />
             </div>
-
-            <div className={styles.card}>
-              <div className={styles.macBar}>
-                <div className={styles.macDots}>
-                  <span className={`${styles.macDot} ${styles.macG}`} />
-                  <span className={`${styles.macDot} ${styles.macY}`} />
-                  <span className={`${styles.macDot} ${styles.macR}`} />
-                </div>
-                <span className={styles.macTitle}>STEP {step.num}</span>
-              </div>
-              <div className={styles.cardBody}>
-                <p className={styles.stepTitle}>{step.title}</p>
-                <p className={styles.stepDesc}>{step.desc}</p>
-              </div>
-            </div>
+            <span className={styles.macTitle}>STEP {step.num} / {STEPS.length}</span>
           </div>
-        ))}
+          <div className={styles.cardBody}>
+            <span className={styles.stepNum}>{step.num}</span>
+            <p className={styles.stepTitle}>{step.title}</p>
+            <p className={styles.stepDesc}>{step.desc}</p>
+          </div>
+        </div>
+
+        {/* 페이지 점 */}
+        <div className={styles.dots}>
+          {STEPS.map((_, i) => (
+            <button
+              key={i}
+              className={`${styles.dot} ${i === current ? styles.dotActive : ''}`}
+              onClick={() => setCurrent(i)}
+              aria-label={`${i + 1}단계로`}
+            />
+          ))}
+        </div>
+
+        {/* 이전 / 다음 (슬라이드 이동만) */}
+        <div className={styles.slideNav}>
+          <button
+            className={styles.navBtn}
+            onClick={() => setCurrent(c => Math.max(0, c - 1))}
+            disabled={current === 0}
+          >
+            ← 이전
+          </button>
+          <button
+            className={styles.navBtn}
+            onClick={() => setCurrent(c => Math.min(STEPS.length - 1, c + 1))}
+            disabled={isLast}
+          >
+            다음 →
+          </button>
+        </div>
       </section>
 
+      {/* GitHub 시작 — 항상 하단에 따로. 슬라이드 다 안 넘겨도 바로 시작 가능 */}
       <footer className={styles.footer}>
         {error && (
           <p className={styles.errorMsg}>
