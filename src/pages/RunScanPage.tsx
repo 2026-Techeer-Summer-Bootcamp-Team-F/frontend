@@ -141,12 +141,15 @@ export function RunScanPage() {
     const es = new EventSource(`${base}/scans/${id}/stream?token=${token}`);
     esRef.current = es;
 
+    const addLog = (msg: string, level = 'info') =>
+      setLogs(prev => [...prev, { id: prev.length, msg, level }]);
+
     es.onmessage = (e: MessageEvent) => {
       const d = JSON.parse(e.data as string);
       const eventType = d.event as string;
 
       if (eventType === 'log') {
-        setLogs(prev => [...prev, { id: prev.length, msg: d.message ?? d.msg ?? '', level: d.level ?? 'info' }]);
+        addLog(d.message ?? d.msg ?? '', d.level ?? 'info');
       } else if (eventType === 'progress') {
         setProgress(prev => ({
           generation: d.generation ?? prev?.generation ?? 0,
@@ -156,6 +159,26 @@ export function RunScanPage() {
           current_attack: d.current_attack ?? prev?.current_attack ?? null,
           summary: d.summary ?? prev?.summary ?? null,
         }));
+        // progress 이벤트 → 터미널 로그
+        if (d.phase === 'recon') {
+          addLog(`[RECON] 정찰 완료 — tools: ${(d.tools ?? []).join(', ') || '없음'}, defenses: ${(d.defenses ?? []).join(', ') || '없음'}`);
+        } else if (d.phase === 'start') {
+          addLog(`[SCAN] 목표 ${d.objectives ?? 0}개 확인, 진화 루프 시작`);
+        } else if (d.phase === 'evolve') {
+          addLog(`[GEN ${d.generation}] 최고 점수 ${((d.best_score ?? 0) * 100).toFixed(1)}%`);
+        } else if (d.phase === 'objective_done') {
+          addLog(`[OBJECTIVE] 완료 — ${d.status ?? ''}`, d.status === 'breached' ? 'error' : 'info');
+        }
+      } else if (eventType === 'attempt') {
+        const verdict = d.verdict as string;
+        const score = ((d.score ?? 0) * 100).toFixed(1);
+        const op = d.mutation_op ? ` [${d.mutation_op}]` : '';
+        addLog(
+          `[${d.atlas ?? '?'}]${op} ${verdict} (${score}%)`,
+          verdict === 'breach' ? 'error' : 'info',
+        );
+      } else if (eventType === 'finding') {
+        addLog(`⚠ 취약점 발견: ${d.atlas ?? ''} (심각도: ${d.severity ?? 'high'})`, 'error');
       } else if (eventType === 'done') {
         setStatus(d.status === 'done' ? 'done' : 'failed');
         es.close();

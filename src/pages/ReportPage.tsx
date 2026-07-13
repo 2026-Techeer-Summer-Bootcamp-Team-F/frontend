@@ -17,7 +17,8 @@ import styles from './ReportPage.module.css';
 
 function fmtDuration(startedAt: string | null, finishedAt: string | null): string {
   if (!startedAt) return '—';
-  const ms = (finishedAt ? new Date(finishedAt) : new Date()).getTime() - new Date(startedAt).getTime();
+  const parse = (s: string) => new Date(s.endsWith('Z') ? s : s + 'Z').getTime();
+  const ms = (finishedAt ? parse(finishedAt) : Date.now()) - parse(startedAt);
   const s = Math.floor(ms / 1000);
   const m = Math.floor(s / 60);
   const h = Math.floor(m / 60);
@@ -131,9 +132,9 @@ export function ReportPage() {
           <span className={styles.durationValue}>
             {fmtDuration(scanMeta.started_at, scanMeta.finished_at)}
           </span>
-          {scanMeta.started_at && (
+          {scanMeta.finished_at && (
             <span className={styles.durationMeta}>
-              {new Date(scanMeta.started_at).toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' })}
+              {new Date(scanMeta.finished_at + 'Z').toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' })}
             </span>
           )}
         </div>
