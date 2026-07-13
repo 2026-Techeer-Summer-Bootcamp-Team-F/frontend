@@ -37,9 +37,11 @@ export function RunScanPage() {
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [loadingStart, setLoadingStart] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
   const logEndRef = useRef<HTMLDivElement>(null);
   const esRef = useRef<EventSource | null>(null);
   const cancelMockRef = useRef<(() => void) | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (!projectId) return;
@@ -69,8 +71,39 @@ export function RunScanPage() {
     });
   };
 
+  useEffect(() => {
+    if (status === 'running') {
+      setElapsed(0);
+      timerRef.current = setInterval(() => setElapsed(s => s + 1), 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [status]);
+
+  useEffect(() => {
+    if (status !== 'done' && status !== 'failed') return;
+    const send = () => {
+      new Notification(status === 'done' ? '✅ 스캔 완료' : '❌ 스캔 실패', {
+        body: status === 'done'
+          ? `${project?.project_name ?? '프로젝트'} 분석이 완료됐습니다.`
+          : `${project?.project_name ?? '프로젝트'} 스캔 중 오류가 발생했습니다.`,
+        icon: '/raccoon.png',
+      });
+    };
+    if (Notification.permission === 'granted') {
+      send();
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission().then(p => { if (p === 'granted') send(); });
+    }
+  }, [status, project?.project_name]);
+
+  const fmtElapsed = (s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
   const handleStart = async () => {
     if (!projectId || selected.size === 0) return;
+    if (Notification.permission === 'default') Notification.requestPermission();
     setLoadingStart(true);
     try {
       const config: ScanConfig = {
@@ -197,7 +230,11 @@ export function RunScanPage() {
           {status === 'running' && (
             <span className={styles.analyzing}>
               <span className={styles.blink}>█</span> 분석 중...
+              <span className={styles.timer}>{fmtElapsed(elapsed)}</span>
             </span>
+          )}
+          {status === 'done' && (
+            <span className={styles.timerDone}>{fmtElapsed(elapsed)}</span>
           )}
         </div>
         <div className={styles.termBody}>

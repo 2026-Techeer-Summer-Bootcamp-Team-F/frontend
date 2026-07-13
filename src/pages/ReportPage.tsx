@@ -5,6 +5,7 @@ import {
   getScanHeatmap,
   getScanFindings,
   getScanSummary,
+  getScan,
   listScans,
   type ScanReport,
   type HeatmapTechnique,
@@ -13,6 +14,17 @@ import {
 } from '../api/scans';
 import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS } from '../api/mock';
 import styles from './ReportPage.module.css';
+
+function fmtDuration(startedAt: string | null, finishedAt: string | null): string {
+  if (!startedAt) return '—';
+  const ms = (finishedAt ? new Date(finishedAt) : new Date()).getTime() - new Date(startedAt).getTime();
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60);
+  const h = Math.floor(m / 60);
+  if (h > 0) return `${h}h ${m % 60}m ${s % 60}s`;
+  if (m > 0) return `${m}m ${s % 60}s`;
+  return `${s}s`;
+}
 
 const SEVERITY_ORDER = ['critical', 'high', 'medium', 'low'] as const;
 const SEVERITY_COLOR: Record<string, string> = {
@@ -30,9 +42,11 @@ export function ReportPage() {
   const [heatmap, setHeatmap] = useState<HeatmapTechnique[]>([]);
   const [findings, setFindings] = useState<Finding[]>([]);
   const [pastScans, setPastScans] = useState<Scan[]>([]);
+  const [scanMeta, setScanMeta] = useState<{ started_at: string | null; finished_at: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedFindings, setExpandedFindings] = useState<Set<number>>(new Set());
+  const [pastOpen, setPastOpen] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,12 +57,14 @@ export function ReportPage() {
       getScanHeatmap(id),
       getScanFindings(id),
       listScans(),
+      getScan(id),
     ])
-      .then(([r, h, f, s]) => {
+      .then(([r, h, f, s, meta]) => {
         setReport(r);
         setHeatmap(h.techniques ?? []);
         setFindings(f);
         setPastScans(s.filter(sc => sc.scan_id !== id).slice(0, 5));
+        setScanMeta({ started_at: meta.started_at, finished_at: meta.finished_at });
       })
       .catch(() => {
         setReport(MOCK_REPORT);
@@ -62,10 +78,6 @@ export function ReportPage() {
       .then(summary => setAiSummary(summary))
       .catch(() => {});
   }, [scanId]);
-
-  if (loading) return <LoadingState />;
-  if (error) return <p className={styles.error}>{error}</p>;
-  if (!report) return null;
 
   const sortedFindings = useMemo(
     () => [...findings].sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity)),
@@ -81,6 +93,10 @@ export function ReportPage() {
   }, []);
 
   const breachedTechniques = heatmap.filter(t => t.status === 'breached');
+
+  if (loading) return <LoadingState />;
+  if (error) return <p className={styles.error}>{error}</p>;
+  if (!report) return null;
 
   return (
     <div className={styles.page}>
@@ -107,6 +123,21 @@ export function ReportPage() {
         />
         <StatCard value={report.stats.findings} label="취약점 수" />
       </div>
+
+      {/* ── 소요 시간 ── */}
+      {scanMeta && (
+        <div className={styles.durationBar}>
+          <span className={styles.durationLabel}>SCAN DURATION</span>
+          <span className={styles.durationValue}>
+            {fmtDuration(scanMeta.started_at, scanMeta.finished_at)}
+          </span>
+          {scanMeta.started_at && (
+            <span className={styles.durationMeta}>
+              {new Date(scanMeta.started_at).toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' })}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* ── ATLAS Heatmap ── */}
       <section className={styles.card}>
@@ -207,20 +238,25 @@ export function ReportPage() {
       {/* ── Past scans ── */}
       {pastScans.length > 0 && (
         <section className={styles.card}>
-          <p className={styles.cardLabel}>과거 분석 결과</p>
-          <div className={styles.pastList}>
-            {pastScans.map(sc => (
-              <button
-                key={sc.scan_id}
-                className={styles.pastItem}
-                onClick={() => navigate(`/report/${sc.scan_id}`)}
-              >
-                <span className={styles.pastId}>#{sc.scan_id}</span>
-                <span className={`${styles.pastStatus} ${styles[sc.status]}`}>{sc.status}</span>
-                <span className={styles.pastDate}>{sc.started_at?.slice(0, 10) ?? '—'}</span>
-              </button>
-            ))}
-          </div>
+          <button className={styles.toggleHeader} onClick={() => setPastOpen(v => !v)}>
+            <p className={styles.cardLabel}>과거 분석 결과</p>
+            <span className={styles.toggleIcon}>{pastOpen ? '▲' : '▼'}</span>
+          </button>
+          {pastOpen && (
+            <div className={styles.pastList}>
+              {pastScans.map(sc => (
+                <button
+                  key={sc.scan_id}
+                  className={styles.pastItem}
+                  onClick={() => navigate(`/report/${sc.scan_id}`)}
+                >
+                  <span className={styles.pastId}>#{sc.scan_id}</span>
+                  <span className={`${styles.pastStatus} ${styles[sc.status]}`}>{sc.status}</span>
+                  <span className={styles.pastDate}>{sc.started_at?.slice(0, 10) ?? '—'}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
