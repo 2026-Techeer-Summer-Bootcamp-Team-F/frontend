@@ -45,9 +45,11 @@ export function RegisterTargetPage() {
   // 진입 시 레포가 있으면 자동감지 → 성공하면 body_template·response_path 프리필.
   useEffect(() => {
     if (!repoFullName) return;
+    let cancelled = false;   // 언마운트/레포변경 시 뒤늦은 응답의 setState 방지
     setDetect('detecting');
     detectConfig({ repo_url: `https://github.com/${repoFullName}` })
       .then(res => {
+        if (cancelled) return;
         if (res.detected && res.config) {
           setForm(prev => ({
             ...prev,
@@ -61,7 +63,8 @@ export function RegisterTargetPage() {
           setDetect('failed');
         }
       })
-      .catch(() => setDetect('failed'));
+      .catch(() => { if (!cancelled) setDetect('failed'); });
+    return () => { cancelled = true; };
   }, [repoFullName]);
 
   const set = (k: keyof typeof form) =>
