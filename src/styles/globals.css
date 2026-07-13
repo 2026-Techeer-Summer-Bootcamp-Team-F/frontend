@@ -3,14 +3,14 @@
   --bg-card:       #0c1210;
   --bg-title:      #0e1512;
   --accent:        #5ecb8a;
-  --accent-dim:    rgba(94, 203, 138, 0.15);
-  --accent-border: rgba(94, 203, 138, 0.22);
+  --accent-dim:    rgba(94, 203, 138, 0.18);
+  --accent-border: rgba(94, 203, 138, 0.16);
   --text:          #f0f4f2;
   --text-muted:    rgba(240, 244, 242, 0.55);
   --red:           #e05252;
   --orange:        #e0a452;
-  --font-display:  'Plus Jakarta Sans', 'Pretendard', sans-serif;
-  --font-ui:       'Pretendard', 'Plus Jakarta Sans', sans-serif;
+  --font-display:  'Black Han Sans', 'Pretendard', 'Noto Sans KR', sans-serif;
+  --font-ui:       'Pretendard', 'Noto Sans KR', sans-serif;
   --font-mono:     'JetBrains Mono', 'Courier New', monospace;
 
   color: var(--text);

@@ -31,14 +31,16 @@ export function ImportRepoPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filtered = useMemo(
-    () => repos.filter(r => r.full_name.toLowerCase().includes(query.toLowerCase())),
-    [repos, query],
-  );
-
   const registeredIds = useMemo(
     () => new Set(projects.map(p => p.repo_url ?? '')),
     [projects],
+  );
+
+  const unimported = useMemo(
+    () => repos
+      .filter(r => !registeredIds.has(r.html_url))
+      .filter(r => r.full_name.toLowerCase().includes(query.toLowerCase())),
+    [repos, registeredIds, query],
   );
 
   const handleImport = (repo: GitHubRepo) => {
@@ -52,87 +54,101 @@ export function ImportRepoPage() {
 
   return (
     <div className={styles.page}>
-      {/* ── Import section ── */}
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <p className={styles.label}>IMPORT GIT REPOSITORY</p>
-          <h1 className={styles.title}>GitHub 레포지터리 연결</h1>
-          <p className={styles.desc}>분석할 AI 앱 레포를 선택하면 스캔 설정 화면으로 이동합니다.</p>
-        </div>
+      {/* ── 헤더 ── */}
+      <div className={styles.header}>
+        <p className={styles.label}>IMPORT GIT REPOSITORY</p>
+        <h1 className={styles.title}>GitHub 레포지터리 연결</h1>
+        <p className={styles.desc}>분석할 AI 앱 레포를 선택하면 스캔 설정 화면으로 이동합니다.</p>
+      </div>
 
-        <div className={styles.searchRow}>
-          <span className={styles.searchIcon}>›_</span>
-          <input
-            className={styles.searchInput}
-            placeholder="레포지터리 검색..."
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-          />
-        </div>
+      {/* ── 검색 ── */}
+      <div className={styles.searchRow}>
+        <span className={styles.searchIcon}>›_</span>
+        <input
+          className={styles.searchInput}
+          placeholder="레포지터리 검색..."
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+        />
+      </div>
 
-        <div className={styles.repoList}>
-          {loading && (
-            <p className={styles.empty}>
-              <span className={styles.blink}>█</span> 로딩 중...
-            </p>
-          )}
-          {!loading && filtered.length === 0 && (
-            <p className={styles.empty}>레포지터리가 없습니다.</p>
-          )}
-          {filtered.map(repo => (
-            <div key={repo.full_name} className={styles.repoCard}>
-              <div className={styles.repoMeta}>
-                <span className={styles.repoName}>{repo.full_name}</span>
-                {repo.private && <span className={styles.badge}>Private</span>}
-                <span className={styles.repoDesc}>{repo.description ?? '설명 없음'}</span>
-              </div>
-              <div className={styles.repoRight}>
-                <span className={styles.repoTime}>{timeAgo(repo.updated_at)}</span>
-                {registeredIds.has(repo.html_url) ? (
-                  <span className={styles.importedTag}>✓ 등록됨</span>
-                ) : (
+      {/* ── 좌우 분할 ── */}
+      <div className={styles.columns}>
+        {/* 왼쪽: 미등록 레포 */}
+        <div className={styles.column}>
+          <p className={styles.colLabel}>
+            <span className={styles.colDot} />
+            미등록 레포지터리
+            <span className={styles.colCount}>{unimported.length}</span>
+          </p>
+          <div className={styles.list}>
+            {loading && (
+              <p className={styles.empty}><span className={styles.blink}>█</span> 로딩 중...</p>
+            )}
+            {!loading && unimported.length === 0 && (
+              <p className={styles.empty}>레포지터리가 없습니다.</p>
+            )}
+            {unimported.map(repo => (
+              <div key={repo.full_name} className={styles.repoCard}>
+                <div className={styles.repoMeta}>
+                  <div className={styles.repoNameRow}>
+                    <span className={styles.repoName}>{repo.full_name}</span>
+                    {repo.private && <span className={styles.badge}>Private</span>}
+                  </div>
+                  <span className={styles.repoDesc}>{repo.description ?? '설명 없음'}</span>
+                </div>
+                <div className={styles.repoRight}>
+                  <span className={styles.repoTime}>{timeAgo(repo.updated_at)}</span>
                   <button className={styles.importBtn} onClick={() => handleImport(repo)}>
                     Import
                   </button>
-                )}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </section>
 
-      {/* ── Registered projects ── */}
-      {projects.length > 0 && (
-        <section className={styles.section}>
-          <p className={styles.label}>등록된 프로젝트</p>
-          <div className={styles.projectList}>
+        {/* 구분선 */}
+        <div className={styles.divider} />
+
+        {/* 오른쪽: 등록된 프로젝트 */}
+        <div className={styles.column}>
+          <p className={styles.colLabel}>
+            <span className={`${styles.colDot} ${styles.colDotActive}`} />
+            등록된 프로젝트
+            <span className={styles.colCount}>{projects.length}</span>
+          </p>
+          <div className={styles.list}>
+            {projects.length === 0 && (
+              <p className={styles.empty}>아직 등록된 프로젝트가 없습니다.</p>
+            )}
             {projects.map(p => (
-              <div key={p.target_id} className={styles.projectCard}>
-                <div>
-                  <span className={styles.projectName}>{p.project_name}</span>
-                  <span className={styles.projectMeta}>
-                    {p.actor_type.toUpperCase()}{p.config?.url ? ` · ${p.config.url}` : ''}
+              <div key={p.target_id} className={`${styles.repoCard} ${styles.projectCard}`}>
+                <div className={styles.repoMeta}>
+                  <div className={styles.repoNameRow}>
+                    <span className={styles.repoName}>{p.project_name}</span>
+                    <span className={styles.badge}>{p.actor_type.toUpperCase()}</span>
+                  </div>
+                  <span className={styles.repoDesc}>
+                    {p.config?.url ?? '엔드포인트 미설정'}
                   </span>
                 </div>
-                <div className={styles.projectActions}>
+                <div className={styles.repoRight}>
                   <button
                     className={styles.scanBtn}
                     onClick={() => navigate(`/analysis/${p.target_id}`)}
                   >
                     스캔 시작
                   </button>
-                  <button
-                    className={styles.deleteBtn}
-                    onClick={() => handleDelete(p.target_id)}
-                  >
+                  <button className={styles.deleteBtn} onClick={() => handleDelete(p.target_id)}>
                     삭제
                   </button>
                 </div>
               </div>
             ))}
           </div>
-        </section>
-      )}
+        </div>
+      </div>
     </div>
   );
 }

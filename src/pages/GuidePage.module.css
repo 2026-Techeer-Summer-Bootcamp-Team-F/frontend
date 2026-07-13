@@ -1,21 +1,21 @@
-/* ═══════════════════════════════════════
-   Design tokens (inherited from project)
-═══════════════════════════════════════ */
 .page {
-  --bg:           #1b2621;
-  --bg-card:      #131c18;
-  --bg-bar:       #1e2e27;
+  --bg:           #070b09;
+  --bg-card:      #0d1410;
+  --bg-bar:       #0e1512;
   --accent:       #5ecb8a;
-  --accent-dim:   rgba(94, 203, 138, 0.15);
-  --accent-line:  rgba(94, 203, 138, 0.28);
+  --accent-dim:   rgba(94, 203, 138, 0.18);
+  --accent-line:  rgba(94, 203, 138, 0.22);
   --text:         #f0f4f2;
   --text-muted:   rgba(240, 244, 242, 0.55);
-  --border:       rgba(94, 203, 138, 0.22);
-  --font-display: 'Black Han Sans', 'Noto Sans KR', sans-serif;
-  --font-ui:      'Noto Sans KR', sans-serif;
+  --border:       rgba(94, 203, 138, 0.16);
+  --font-display: 'Black Han Sans', 'Pretendard', 'Noto Sans KR', sans-serif;
+  --font-ui:      'Pretendard', 'Noto Sans KR', sans-serif;
   --font-mono:    'JetBrains Mono', 'Courier New', monospace;
 
-  background: var(--bg);
+  position: relative;
+  background:
+    radial-gradient(1100px 520px at 50% -8%, rgba(94, 203, 138, 0.10), transparent 60%),
+    var(--bg);
   color: var(--text);
   min-height: 100vh;
   font-family: var(--font-ui);
@@ -23,6 +23,30 @@
   flex-direction: column;
   align-items: center;
   padding: 64px 24px 80px;
+  overflow-x: hidden;
+}
+
+/* CRT 스캔라인 */
+.page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(94, 203, 138, 0.045) 0px,
+    rgba(94, 203, 138, 0.045) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+.header,
+.timeline,
+.footer {
+  position: relative;
+  z-index: 1;
 }
 
 /* ═══════════════════════════════════════
@@ -39,20 +63,15 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   letter-spacing: 0.1em;
   color: var(--accent);
   margin: 0 0 20px;
 }
 
-.badgeLabel {
-  letter-spacing: 0.15em;
-}
-
-.badgeDot {
-  opacity: 0.45;
-}
+.badgeLabel { letter-spacing: 0.15em; }
+.badgeDot   { opacity: 0.45; }
 
 .title {
   font-family: var(--font-display);
@@ -64,9 +83,7 @@
   margin: 0 0 20px;
 }
 
-.accent {
-  color: var(--accent);
-}
+.accent { color: var(--accent); }
 
 .sub {
   font-size: 15px;
@@ -92,14 +109,13 @@
   gap: 20px;
 }
 
-/* ── Left: connector ── */
 .connector {
   display: flex;
   flex-direction: column;
   align-items: center;
   flex-shrink: 0;
   width: 44px;
-  padding-top: 10px; /* aligns node with macBar top */
+  padding-top: 10px;
 }
 
 .node {
@@ -116,7 +132,7 @@
 }
 
 .nodeNum {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   font-weight: 700;
   color: var(--accent);
@@ -131,7 +147,6 @@
   margin: 6px 0;
 }
 
-/* ── Right: card ── */
 .card {
   flex: 1;
   border: 1px solid var(--border);
@@ -139,7 +154,7 @@
   overflow: hidden;
   background: var(--bg-card);
   box-shadow: 0 0 0 1px rgba(94, 203, 138, 0.04),
-              0 8px 24px rgba(0, 0, 0, 0.32);
+              0 8px 24px rgba(0, 0, 0, 0.4);
   margin-bottom: 20px;
 }
 
@@ -152,10 +167,7 @@
   border-bottom: 1px solid var(--border);
 }
 
-.macDots {
-  display: flex;
-  gap: 6px;
-}
+.macDots { display: flex; gap: 6px; }
 
 .macDot {
   display: block;
@@ -169,15 +181,13 @@
 .macR { background: #ff5f57; }
 
 .macTitle {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   letter-spacing: 0.12em;
   color: var(--text-muted);
 }
 
-.cardBody {
-  padding: 18px 20px 20px;
-}
+.cardBody { padding: 18px 20px 20px; }
 
 .stepTitle {
   font-family: var(--font-ui);
@@ -208,7 +218,7 @@
 }
 
 .errorMsg {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 13px;
   color: #ff6b6b;
   margin: 0;
@@ -238,9 +248,7 @@
   box-shadow: 0 8px 24px rgba(94, 203, 138, 0.28);
 }
 
-.cta:active:not(:disabled) {
-  transform: translateY(0);
-}
+.cta:active:not(:disabled) { transform: translateY(0); }
 
 .cta:disabled {
   opacity: 0.6;

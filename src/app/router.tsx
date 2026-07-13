@@ -3,6 +3,8 @@ import { App } from './App';
 import { LoginPage } from '../pages/LoginPage';
 import { GuidePage } from '../pages/GuidePage';
 import { AuthCallbackPage } from '../pages/AuthCallbackPage';
+import { GitHubLogoutCallbackPage } from '../pages/GitHubLogoutCallbackPage';
+import { GitHubLogoutRedirectPage } from '../pages/GitHubLogoutRedirectPage';
 import { ImportRepoPage } from '../pages/ImportRepoPage';
 import { AgreementPage } from '../pages/AgreementPage';
 import { RegisterTargetPage } from '../pages/RegisterTargetPage';
@@ -13,6 +15,8 @@ export const router = createBrowserRouter([
   { path: '/', element: <LoginPage /> },
   { path: '/guide', element: <GuidePage /> },
   { path: '/auth/callback', element: <AuthCallbackPage /> },
+  { path: '/auth/logout-callback', element: <GitHubLogoutCallbackPage /> },
+  { path: '/auth/logout-redirect', element: <GitHubLogoutRedirectPage /> },
 
   // 인증 후 앱: AppLayout(다크 셸) 포함
   {
