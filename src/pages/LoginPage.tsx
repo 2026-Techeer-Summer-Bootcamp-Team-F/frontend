@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getGitHubLoginUrl } from '../api/auth';
 import styles from './LoginPage.module.css';
 
@@ -22,6 +22,15 @@ const KEYWORD_CLOUD = [
 export function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+
+  // 뒤로가기(bfcache) 복원 시 loading이 true로 굳어 버튼이 비활성화되는 문제 방지
+  useEffect(() => {
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) setLoading(false);
+    };
+    window.addEventListener('pageshow', onPageShow);
+    return () => window.removeEventListener('pageshow', onPageShow);
+  }, []);
 
   const handleGitHubLogin = async () => {
     setLoading(true);
