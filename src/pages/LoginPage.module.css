@@ -2,23 +2,140 @@
    Design tokens
 ═══════════════════════════════════════ */
 .page {
-  --bg:            #1b2621;
-  --bg-terminal:   #131c18;
-  --bg-title:      #1e2e27;
+  --bg:            #070b09;
+  --bg-terminal:   #090d0b;
+  --bg-title:      #0e1512;
   --accent:        #5ecb8a;
   --accent-dim:    rgba(94, 203, 138, 0.18);
   --text:          #f0f4f2;
   --text-muted:    rgba(240, 244, 242, 0.55);
-  --border:        rgba(94, 203, 138, 0.22);
-  --font-display:  'Black Han Sans', 'Noto Sans KR', sans-serif;
-  --font-ui:       'Noto Sans KR', sans-serif;
+  --border:        rgba(94, 203, 138, 0.16);
+  --font-display:  'Black Han Sans', 'Pretendard', 'Noto Sans KR', sans-serif;
+  --font-ui:       'Pretendard', 'Noto Sans KR', sans-serif;
   --font-mono:     'JetBrains Mono', 'Courier New', monospace;
 
-  background: var(--bg);
+  position: relative;
+  background:
+    radial-gradient(1100px 520px at 50% -8%, rgba(94, 203, 138, 0.10), transparent 60%),
+    var(--bg);
   color: var(--text);
   min-height: 100vh;
   font-family: var(--font-ui);
   overflow-x: hidden;
+}
+
+/* CRT 스캔라인(초록 픽셀 줄무늬) — html/터미널 느낌 */
+.page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(94, 203, 138, 0.045) 0px,
+    rgba(94, 203, 138, 0.045) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+}
+
+/* 콘텐츠는 스캔라인 위로 */
+.hero,
+.quickstart {
+  position: relative;
+  z-index: 1;
+}
+
+/* ═══════════════════════════════════════
+   Top nav
+═══════════════════════════════════════ */
+.nav {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 14px 32px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.brandLogo {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 10px rgba(94, 203, 138, 0.4));
+}
+
+.brandName {
+  font-family: var(--font-display);
+  font-size: 28px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.navItem {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.navItem:hover {
+  color: var(--accent);
+}
+
+.navGithub {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  text-decoration: none;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.navGithub svg {
+  width: 15px;
+  height: 15px;
+}
+
+.navGithub:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.navBeta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 7px;
+}
+
+@media (max-width: 640px) {
+  .navItem, .navBeta { display: none; }
 }
 
 /* ═══════════════════════════════════════
@@ -29,40 +146,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 56px;
-  padding-bottom: 72px;
+  padding-top: 4px;
+  padding-bottom: 48px;
   text-align: center;
-}
-
-/* ── Keyword cloud ── */
-.cloud {
-  position: relative;
-  width: 480px;
-  height: 280px;
-  pointer-events: none;
-  user-select: none;
-  margin-bottom: -16px;
-}
-
-.cloudWord {
-  position: absolute;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.05em;
-  color: var(--accent);
-  white-space: nowrap;
-  transform: translateX(-50%);
-  animation: cloudDrift 8s ease-in-out infinite alternate;
-}
-
-.cloudWord:nth-child(odd) {
-  animation-duration: 10s;
-  animation-direction: alternate-reverse;
-}
-
-@keyframes cloudDrift {
-  from { transform: translateX(-50%) translateY(0px); }
-  to   { transform: translateX(-50%) translateY(-6px); }
 }
 
 /* ── Mascot ── */
@@ -72,14 +158,16 @@
   height: 200px;
   width: auto;
   image-rendering: pixelated;
-  margin-top: -220px; /* overlap the cloud */
+  margin-top: 8px;
   pointer-events: none;
   filter: drop-shadow(0 0 32px rgba(94, 203, 138, 0.12));
 }
 
 /* ── Text block ── */
 .heroContent {
-  margin-top: 28px;
+  position: relative;
+  z-index: 1;
+  margin-top: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -112,12 +200,13 @@
 /* Headline */
 .headline {
   font-family: var(--font-display);
-  font-size: clamp(40px, 6vw, 64px);
-  font-weight: 900;
-  line-height: 1.12;
+  font-size: clamp(22px, 3.7vw, 46px);
+  font-weight: 800;
+  line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--text);
   margin: 0;
+  white-space: nowrap;   /* 한 줄 고정 — 다음 줄로 안 넘김 */
 }
 
 .accent {
