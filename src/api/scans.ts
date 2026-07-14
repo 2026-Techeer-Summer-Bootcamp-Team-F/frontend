@@ -10,7 +10,7 @@ export interface ScanConfig {
 export interface Scan {
   scan_id: number;
   target_id: number;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: 'pending' | 'running' | 'done' | 'failed' | 'cancelled';
   config: ScanConfig;
   progress: {
     generation: number;

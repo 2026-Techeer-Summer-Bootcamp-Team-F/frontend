@@ -259,7 +259,7 @@
 .pastItem:hover { background: var(--accent-dim); }
 .pastId { font-family: var(--mono); font-size: 13px; color: var(--text); width: 50px; }
 .pastStatus { font-family: var(--mono); font-size: 11px; padding: 2px 7px; border-radius: 4px; }
-.pastStatus.completed { color: var(--accent); background: rgba(94, 203, 138, 0.1); }
+.pastStatus.done { color: var(--accent); background: rgba(94, 203, 138, 0.1); }
 .pastStatus.running { color: var(--high); background: rgba(224, 164, 82, 0.1); }
 .pastStatus.failed { color: var(--crit); background: rgba(224, 82, 95, 0.1); }
 .pastStatus.pending { color: var(--muted); background: rgba(232, 240, 234, 0.05); }
