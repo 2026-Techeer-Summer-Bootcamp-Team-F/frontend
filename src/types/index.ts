@@ -20,7 +20,7 @@ export interface Target {
 export interface Scan {
   id: number;
   target_id: number;
-  status: 'pending' | 'running' | 'completed' | 'failed';
+  status: 'pending' | 'running' | 'done' | 'failed' | 'cancelled';
   started_at: string | null;
   finished_at: string | null;
   created_at: string;

@@ -25,7 +25,7 @@ export function ProgressLive({ scanId, onComplete }: Props) {
 
     const pollStatus = setInterval(async () => {
       const scan = await getScan(scanId);
-      if (scan.status === 'completed' || scan.status === 'failed') {
+      if (scan.status === 'done' || scan.status === 'failed') {
         clearInterval(pollStatus);
         unsubscribe();
         onComplete(scanId);

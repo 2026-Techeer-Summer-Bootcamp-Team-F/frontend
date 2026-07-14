@@ -46,7 +46,6 @@ const mockProjectStore = new Map<number, Project>();
 export function makeMockProject(payload: CreateProjectPayload): Project {
   const project: Project = {
     target_id: mockIdCounter++,
-    user_id: 1,
     project_name: payload.project_name,
     actor_type: payload.actor_type,
     config: payload.config,
@@ -54,8 +53,8 @@ export function makeMockProject(payload: CreateProjectPayload): Project {
     system_prompt: payload.system_prompt ?? null,
     repo_url: payload.repo_url ?? null,
     model: null,
-    defences: [],
-    tools: [],
+    defences: {},
+    tools: {},
     created_at: new Date().toISOString(),
   };
   mockProjectStore.set(project.target_id, project);
