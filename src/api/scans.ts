@@ -28,7 +28,7 @@ export interface ScanReport {
   total_objectives: number;
   breached_count: number;
   coverage_pct: number;
-  severity_counts: { critical: number; high: number; medium: number };
+  severity_counts: { critical: number; high: number; medium: number; low?: number };
   risk_score: number;
   stats: {
     total_attempts: number;
@@ -44,6 +44,8 @@ export interface HeatmapTechnique {
   status: 'breached' | 'safe' | 'untested';
   attempts: number;
   best_score: number;
+  tactic?: string;
+  dist?: { defended: number; partial: number; breached: number };
 }
 
 export interface Finding {
