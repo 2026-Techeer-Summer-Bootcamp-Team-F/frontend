@@ -44,6 +44,7 @@ export interface DetectResult {
   source: string;
   confidence?: number;
   route_path?: string | null;
+  hint?: string | null;   // 배포 환경에서 로컬주소 감지 시 공개 URL 안내
   config?: ActorConfig | null;
 }
 
