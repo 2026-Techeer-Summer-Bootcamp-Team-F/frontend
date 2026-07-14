@@ -17,6 +17,8 @@ import {
 import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS } from '../api/mock';
 import { EChart } from '../components/EChart';
 import styles from './ReportPage.module.css';
+import { useTutorial } from '../hooks/useTutorial';
+import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
 
 function fmtDuration(startedAt: string | null, finishedAt: string | null): string {
   if (!startedAt) return '—';
@@ -157,6 +159,39 @@ export function ReportPage() {
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [modalTech, setModalTech] = useState<HeatmapTechnique | null>(null);
 
+  const tutorial = useTutorial('report', [
+    {
+      selector: 'kpis',
+      title: '핵심 지표',
+      desc: '스캔의 핵심 결과를 한눈에 확인합니다. 위험도 점수, 총 시도 횟수, 침투 성공 수, 발견된 취약점 수를 보여줍니다.',
+    },
+    {
+      selector: 'heatmap',
+      title: 'MITRE ATLAS 히트맵',
+      desc: 'MITRE ATLAS 프레임워크 기준으로 각 공격 기법의 결과를 시각화합니다. 뚫린 기법은 빨간색, 방어된 기법은 초록색으로 표시됩니다.',
+    },
+    {
+      selector: 'ptable',
+      title: '기법별 침투율',
+      desc: '각 공격 기법별 시도 횟수와 침투율을 상세히 보여줍니다. 어떤 기법이 가장 위협적인지 파악할 수 있습니다.',
+    },
+    {
+      selector: 'findings',
+      title: '발견된 취약점',
+      desc: '실제로 침투에 성공한 공격 사례입니다. 각 항목을 클릭하면 공격 프롬프트와 모델 응답을 확인할 수 있습니다.',
+    },
+    {
+      selector: 'severity',
+      title: '심각도 분포',
+      desc: '발견된 취약점을 심각도(Critical / High / Medium / Low)별로 분류한 도넛 차트입니다.',
+    },
+    {
+      selector: 'ai-summary',
+      title: 'AI 요약',
+      desc: 'Hackie가 스캔 결과를 분석해 작성한 보안 요약 보고서입니다. 취약점 원인과 완화 방안을 제안합니다.',
+    },
+  ]);
+
   useEffect(() => {
     if (!scanId) return;
     const id = Number(scanId);
@@ -237,7 +272,7 @@ export function ReportPage() {
       ? active.map(d => ({ value: d.count, name: d.sev.toUpperCase(), itemStyle: { color: SEVERITY_COLOR[d.sev] } }))
       : [{ value: 1, name: '없음', itemStyle: { color: '#141d18' }, tooltip: { show: false } }];
     return {
-      tooltip: { trigger: 'item', backgroundColor: '#0d1512', borderColor: GRID, textStyle: { color: '#e8f0ea', fontFamily: 'monospace', fontSize: 11 }, formatter: '{b}: {c}건' },
+      tooltip: { trigger: 'item', backgroundColor: '#0d1512', borderColor: GRID, textStyle: { color: '#e8f0ea', fontFamily: "'Pretendard', 'Noto Sans KR', sans-serif", fontSize: 11 }, formatter: '{b}: {c}건' },
       series: [{
         type: 'pie', radius: ['64%', '90%'], center: ['50%', '50%'], startAngle: 90,
         avoidLabelOverlap: false, label: { show: false }, labelLine: { show: false },
@@ -245,7 +280,7 @@ export function ReportPage() {
         data: pieData, emphasis: { scale: true, scaleSize: 4 },
       }],
       graphic: [
-        { type: 'text', left: 'center', top: '40%', style: { text: String(findingsCount), fontSize: 34, fontWeight: 700, fill: '#e8f0ea', fontFamily: 'monospace' } },
+        { type: 'text', left: 'center', top: '40%', style: { text: String(findingsCount), fontSize: 34, fontWeight: 700, fill: '#e8f0ea', fontFamily: "'Pretendard', 'Noto Sans KR', sans-serif" } },
         { type: 'text', left: 'center', top: '58%', style: { text: '취약점', fontSize: 11, fill: MUT } },
       ],
     };
@@ -285,6 +320,16 @@ export function ReportPage() {
 
   return (
     <div className={styles.page}>
+      {tutorial.active && tutorial.currentStep && (
+        <TutorialOverlay
+          step={tutorial.currentStep}
+          stepIndex={tutorial.step}
+          total={tutorial.total}
+          onNext={tutorial.next}
+          onPrev={tutorial.prev}
+          onSkip={tutorial.skip}
+        />
+      )}
       {/* ── CONSOLE HEADER ── */}
       <div className={styles.console}>
         <div className={styles.cbar}>
@@ -305,7 +350,7 @@ export function ReportPage() {
       </div>
 
       {/* ── KPI ── */}
-      <div className={styles.kpis}>
+      <div className={styles.kpis} data-tutorial="kpis">
         <div className={`${styles.win} ${styles.kpi} ${styles.kRisk}`}>
           <div className={styles.kpiIn}>
             <EChart option={gaugeOption} className={styles.gauge} />
@@ -345,7 +390,7 @@ export function ReportPage() {
 
       {/* ── HEATMAP + 기법별 침투율 ── */}
       <div className={styles.row2}>
-        <div className={`${styles.win} ${styles.tGreen}`}>
+        <div className={`${styles.win} ${styles.tGreen}`} data-tutorial="heatmap">
           <div className={styles.winbar}>
             <i className={`${styles.dd} ${styles.dg}`} /><i className={`${styles.dd} ${styles.dy}`} /><i className={`${styles.dd} ${styles.dr}`} />
             <span className={styles.tt}>mitre_atlas.heatmap</span>
@@ -379,7 +424,7 @@ export function ReportPage() {
           </div>
         </div>
 
-        <div className={styles.win}>
+        <div className={styles.win} data-tutorial="ptable">
           <div className={styles.winbar}>
             <i className={`${styles.dd} ${styles.dg}`} /><i className={`${styles.dd} ${styles.dy}`} /><i className={`${styles.dd} ${styles.dr}`} />
             <span className={styles.tt}>penetration.by_technique</span>
@@ -422,7 +467,7 @@ export function ReportPage() {
 
       {/* ── FINDINGS + SEVERITY ── */}
       <div className={styles.row3}>
-        <div className={`${styles.win} ${styles.tRed}`}>
+        <div className={`${styles.win} ${styles.tRed}`} data-tutorial="findings">
           <div className={styles.winbar}>
             <i className={`${styles.dd} ${styles.dg}`} /><i className={`${styles.dd} ${styles.dy}`} /><i className={`${styles.dd} ${styles.dr}`} />
             <span className={styles.tt}>findings.top</span>
@@ -472,7 +517,7 @@ export function ReportPage() {
           </div>
         </div>
 
-        <div className={`${styles.win} ${styles.tAmber} ${styles.sevWin}`}>
+        <div className={`${styles.win} ${styles.tAmber} ${styles.sevWin}`} data-tutorial="severity">
           <div className={styles.winbar}>
             <i className={`${styles.dd} ${styles.dg}`} /><i className={`${styles.dd} ${styles.dy}`} /><i className={`${styles.dd} ${styles.dr}`} />
             <span className={styles.tt}>severity.dist</span>
@@ -494,7 +539,7 @@ export function ReportPage() {
 
       {/* ── AI SUMMARY ── */}
       {aiSummary && (
-        <div className={styles.win}>
+        <div className={styles.win} data-tutorial="ai-summary">
           <div className={styles.winbar}>
             <i className={`${styles.dd} ${styles.dg}`} /><i className={`${styles.dd} ${styles.dy}`} /><i className={`${styles.dd} ${styles.dr}`} />
             <span className={styles.tt}>ai_summary.md</span>
@@ -502,7 +547,7 @@ export function ReportPage() {
           </div>
           <div className={styles.sumIn}>
             <div className={styles.sumhead}>
-              <img src="/raccoon.png" alt="" />
+              <img src="/logo.png" alt="" />
               <span className={styles.sumName}>Hackie</span>
             </div>
             <div className={styles.md}>
