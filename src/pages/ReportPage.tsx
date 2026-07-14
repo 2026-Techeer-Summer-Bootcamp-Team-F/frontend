@@ -20,6 +20,8 @@ import { EChart } from '../components/EChart';
 import styles from './ReportPage.module.css';
 import { useTutorial } from '../hooks/useTutorial';
 import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
+// [SIMULATION] 아래 줄 1개 삭제하면 시뮬레이션 기능 제거
+import { AttackSimulation } from '../components/AttackSimulation/AttackSimulation';
 
 function fmtDuration(startedAt: string | null, finishedAt: string | null): string {
   if (!startedAt) return '—';
@@ -159,6 +161,9 @@ export function ReportPage() {
   const [pastOpen, setPastOpen] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [modalTech, setModalTech] = useState<HeatmapTechnique | null>(null);
+  // [SIMULATION] 아래 줄 2개 삭제하면 시뮬레이션 기능 제거
+  const [simFinding, setSimFinding] = useState<Finding | null>(null);
+  const [simTargetId, setSimTargetId] = useState(0);
 
   const tutorial = useTutorial('report', [
     {
@@ -209,6 +214,7 @@ export function ReportPage() {
         setFindings(f);
         setPastScans(s.filter(sc => sc.scan_id !== id).slice(0, 5));
         setScanMeta({ started_at: meta.started_at, finished_at: meta.finished_at });
+        setSimTargetId((meta as any).target_id ?? 0); // [SIMULATION]
       })
       .catch(() => {
         setReport(MOCK_REPORT);
@@ -490,6 +496,8 @@ export function ReportPage() {
                         <span className={styles.bdg} style={{ borderColor: sevColor, color: sevColor }}>{f.severity.toUpperCase()}</span>
                         <span className={styles.ft}>{f.title}</span>
                         <span className={styles.fa}>{f.atlas_technique_id}</span>
+                        {/* [SIMULATION] 아래 버튼 1개 삭제하면 시뮬레이션 기능 제거 */}
+                        <button className={styles.simBtn} onClick={e => { e.stopPropagation(); setSimFinding(f); }}>▶ 시뮬레이션</button>
                         <span className={styles.expandIcon}>{isOpen ? '▲' : '▼'}</span>
                       </div>
                       {isOpen && (
@@ -617,6 +625,14 @@ export function ReportPage() {
             </div>
           </div>
         </div>
+      )}
+      {/* [SIMULATION] 아래 블록 삭제하면 시뮬레이션 기능 제거 */}
+      {simFinding && (
+        <AttackSimulation
+          finding={simFinding}
+          targetId={simTargetId}
+          onClose={() => setSimFinding(null)}
+        />
       )}
     </div>
   );

@@ -168,6 +168,9 @@
 .ft { font-weight: 650; font-size: 14px; }
 .fa { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--muted); }
 .expandIcon { font-size: 11px; color: var(--muted); }
+/* [SIMULATION] 아래 줄 삭제하면 시뮬레이션 기능 제거 */
+.simBtn { background: rgba(224,82,95,.1); border: 1px solid rgba(224,82,95,.3); color: #e0525f; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 5px; cursor: pointer; flex-shrink: 0; transition: background .15s; }
+.simBtn:hover { background: rgba(224,82,95,.2); }
 .fev { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding: 0 13px 12px; }
 .ev { background: #070c09; border: 1px solid var(--line); border-radius: 7px; padding: 9px 10px; display: flex; flex-direction: column; }
 .evK { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 5px; flex-shrink: 0; }
