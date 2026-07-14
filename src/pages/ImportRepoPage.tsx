@@ -1,10 +1,12 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listGitHubRepos, type GitHubRepo } from '../api/github';
 import { listProjects, deleteProject, type Project } from '../api/projects';
 import { listScans, type Scan } from '../api/scans';
 import { MOCK_REPOS } from '../api/mock';
 import styles from './ImportRepoPage.module.css';
+import { useTutorial } from '../hooks/useTutorial';
+import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -25,6 +27,52 @@ const STATUS_COLOR: Record<string, string> = {
 
 export function ImportRepoPage() {
   const navigate = useNavigate();
+
+  const openFirstProject = useCallback(() => {
+    setProjects(prev => {
+      if (prev.length > 0) {
+        setOpenIds(ids => new Set([...ids, prev[0].target_id]));
+      }
+      return prev;
+    });
+  }, []);
+
+  const tutorialSteps = useMemo(() => [
+    {
+      selector: 'repo-list',
+      title: '미등록 레포지토리',
+      desc: 'GitHub에서 가져온 레포지토리 목록입니다. 아직 분석 대상으로 등록되지 않은 레포들이 여기에 표시됩니다.',
+    },
+    {
+      selector: 'import-btn',
+      title: 'Import',
+      desc: '이 버튼을 누르면 레포를 분석 대상으로 등록하는 흐름이 시작됩니다. 동의 후 엔드포인트를 설정하면 됩니다.',
+    },
+    {
+      selector: 'project-list',
+      title: '등록된 프로젝트',
+      desc: '등록이 완료된 분석 대상 프로젝트 목록입니다. 각 프로젝트에 대해 스캔을 실행할 수 있습니다.',
+    },
+    {
+      selector: 'scan-btn',
+      title: '스캔 시작',
+      desc: 'AI 레드팀 분석을 시작합니다. 공격 유형과 설정을 선택하는 화면으로 이동합니다.',
+    },
+    {
+      selector: 'toggle-btn',
+      title: '분석 기록',
+      desc: '이 버튼으로 해당 프로젝트의 과거 스캔 기록을 펼치거나 접을 수 있습니다. 완료된 스캔은 리포트로 바로 이동할 수 있습니다.',
+      forceOpen: openFirstProject,
+    },
+    {
+      selector: 'delete-btn',
+      title: '프로젝트 삭제',
+      desc: '프로젝트를 등록 해제합니다. 스캔 기록은 함께 삭제됩니다.',
+    },
+  ], [openFirstProject]);
+
+  const tutorial = useTutorial('repos', tutorialSteps);
+
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [query, setQuery] = useState('');
@@ -103,6 +151,16 @@ export function ImportRepoPage() {
 
   return (
     <div className={styles.page}>
+      {tutorial.active && tutorial.currentStep && (
+        <TutorialOverlay
+          step={tutorial.currentStep}
+          stepIndex={tutorial.step}
+          total={tutorial.total}
+          onNext={tutorial.next}
+          onPrev={tutorial.prev}
+          onSkip={tutorial.skip}
+        />
+      )}
       {/* ── 헤더 ── */}
       <div className={styles.header}>
         <p className={styles.label}>IMPORT GIT REPOSITORY</p>
@@ -124,7 +182,7 @@ export function ImportRepoPage() {
       {/* ── 좌우 분할 ── */}
       <div className={styles.columns}>
         {/* 왼쪽: 미등록 레포 */}
-        <div className={styles.column}>
+        <div className={styles.column} data-tutorial="repo-list">
           <p className={styles.colLabel}>
             <span className={styles.colDot} />
             미등록 레포지토리
@@ -137,7 +195,7 @@ export function ImportRepoPage() {
             {!loading && unimported.length === 0 && (
               <p className={styles.empty}>레포지토리가 없습니다.</p>
             )}
-            {unimported.map(repo => (
+            {unimported.map((repo, idx) => (
               <div key={repo.full_name} className={styles.repoCard}>
                 <div className={styles.repoMeta}>
                   <div className={styles.repoNameRow}>
@@ -148,7 +206,11 @@ export function ImportRepoPage() {
                 </div>
                 <div className={styles.repoRight}>
                   <span className={styles.repoTime}>{timeAgo(repo.updated_at)}</span>
-                  <button className={styles.importBtn} onClick={() => handleImport(repo)}>
+                  <button
+                    className={styles.importBtn}
+                    onClick={() => handleImport(repo)}
+                    {...(idx === 0 ? { 'data-tutorial': 'import-btn' } : {})}
+                  >
                     Import
                   </button>
                 </div>
@@ -161,7 +223,7 @@ export function ImportRepoPage() {
         <div className={styles.divider} />
 
         {/* 오른쪽: 등록된 프로젝트 */}
-        <div className={styles.column}>
+        <div className={styles.column} data-tutorial="project-list">
           <p className={styles.colLabel}>
             <span className={`${styles.colDot} ${styles.colDotActive}`} />
             등록된 프로젝트
@@ -171,7 +233,7 @@ export function ImportRepoPage() {
             {projects.length === 0 && (
               <p className={styles.empty}>아직 등록된 프로젝트가 없습니다.</p>
             )}
-            {projects.map(p => {
+            {projects.map((p, pIdx) => {
               const isOpen = openIds.has(p.target_id);
               const scans = scanMap.get(p.target_id) ?? [];
               const isLoadingScans = loadingScans.has(p.target_id);
@@ -193,6 +255,7 @@ export function ImportRepoPage() {
                       <button
                         className={styles.scanBtn}
                         onClick={() => navigate(`/analysis/${p.target_id}`)}
+                        {...(pIdx === 0 ? { 'data-tutorial': 'scan-btn' } : {})}
                       >
                         스캔 시작
                       </button>
@@ -200,10 +263,15 @@ export function ImportRepoPage() {
                         className={styles.toggleBtn}
                         onClick={() => handleToggle(p.target_id)}
                         title="분석 기록"
+                        {...(pIdx === 0 ? { 'data-tutorial': 'toggle-btn' } : {})}
                       >
                         {isOpen ? '▲' : '▼'}
                       </button>
-                      <button className={styles.deleteBtn} onClick={() => handleDeleteProject(p.target_id)}>
+                      <button
+                        className={styles.deleteBtn}
+                        onClick={() => handleDeleteProject(p.target_id)}
+                        {...(pIdx === 0 ? { 'data-tutorial': 'delete-btn' } : {})}
+                      >
                         삭제
                       </button>
                     </div>
