@@ -7,6 +7,7 @@ import { getToken } from '../utils/auth';
 import styles from './RunScanPage.module.css';
 import { useTutorial } from '../hooks/useTutorial';
 import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
+import { atlasLabel } from '../shared/constants';
 
 interface LogLine { id: number; msg: string; level: string }
 interface ProgressData {
@@ -190,11 +191,11 @@ export function RunScanPage() {
         const op = d.mutation_op ? ` [${d.mutation_op}]` : '';
         const errDetail = verdict === 'error' && d.error ? ` — ${d.error}` : '';
         addLog(
-          `[${d.atlas ?? '?'}]${op} ${verdict} (${score}%)${errDetail}`,
+          `${atlasLabel(d.atlas)}${op} ${verdict} (${score}%)${errDetail}`,
           verdict === 'breach' ? 'error' : 'info',
         );
       } else if (eventType === 'finding') {
-        addLog(`⚠ 취약점 발견: ${d.atlas ?? ''} (심각도: ${d.severity ?? 'high'})`, 'error');
+        addLog(`⚠ 취약점 발견: ${atlasLabel(d.atlas)} (심각도: ${d.severity ?? 'high'})`, 'error');
       } else if (eventType === 'done') {
         setStatus(d.status === 'done' ? 'done' : 'failed');
         es.close();
