@@ -169,7 +169,7 @@ export function ReportPage() {
     {
       selector: 'heatmap',
       title: 'MITRE ATLAS 히트맵',
-      desc: 'MITRE ATLAS 프레임워크 기준으로 각 공격 기법의 결과를 시각화합니다. 뚫린 기법은 빨간색, 방어된 기법은 초록색으로 표시됩니다.',
+      desc: 'MITRE ATLAS 프레임워크 기준으로 각 공격 기법의 결과를 시각화합니다. 셀의 숫자는 공격 fitness(0.00~1.00)로, 진화 알고리즘이 해당 기법으로 얼마나 위협적인 공격을 만들어냈는지를 나타냅니다. 1.00이면 침투 성공, 낮을수록 방어가 견고합니다.',
     },
     {
       selector: 'ptable',
@@ -310,7 +310,7 @@ export function ReportPage() {
           kind,
           id: modalTech.atlas_technique_id.replace(/^AML\./, ''),
           name: modalTech.name,
-          score: modalTech.status === 'untested' ? '—' : `${Math.round(modalTech.best_score * 100)}%`,
+          score: modalTech.status === 'untested' ? '—' : modalTech.best_score.toFixed(2),
           attempts: modalTech.attempts,
           desc: info?.desc ?? '이 기법에 대한 상세 설명이 아직 준비되지 않았습니다.',
           prompt: match?.evidence.prompt || info?.prompt || '(예시 프롬프트 없음)',
@@ -400,18 +400,19 @@ export function ReportPage() {
             <span className={styles.rt}>{heatmap.length} techniques · {breachedTechniques.length} breach</span>
           </div>
           <div className={styles.in}>
-            <div className={styles.hcap}>숫자 = <b>최고 공격 점수</b> · <b>100%</b>면 침투 성공(뚫림), 낮을수록 방어 견고</div>
+            <div className={styles.hcap}>숫자 = <b>최고 공격 fitness</b> · <b>1.00</b>이면 침투 성공(뚫림), 낮을수록 방어 견고</div>
             <div className={styles.heat}>
               {heatmap.map(t => {
                 const kind = cellKind(t);
-                const pct = t.status === 'untested' ? 0 : Math.round(t.best_score * 100);
+                const barPct = t.status === 'untested' ? 0 : Math.round(t.best_score * 100);
+                const scoreDisplay = t.status === 'untested' ? '—' : t.best_score.toFixed(2);
                 const barColor = kind === 'br' ? '#e0525f' : kind === 'warn' ? '#e0a452' : kind === 'safe' ? GREEN : 'transparent';
                 return (
                   <div key={t.atlas_technique_id} className={`${styles.cell} ${styles[kind]}`} onClick={() => setModalTech(t)}>
                     <div className={styles.cellId}>{t.atlas_technique_id.replace(/^AML\./, '')}</div>
                     <div className={styles.cellNm}>{t.name}</div>
-                    <div className={styles.cellSc}>{t.status === 'untested' ? '—' : `${pct}%`}</div>
-                    <div className={styles.cellBar}><i style={{ width: `${pct}%`, background: barColor }} /></div>
+                    <div className={styles.cellSc}>{scoreDisplay}</div>
+                    <div className={styles.cellBar}><i style={{ width: `${barPct}%`, background: barColor }} /></div>
                     <div className={styles.cellSt}>{CELL_LABEL[kind]}</div>
                   </div>
                 );
