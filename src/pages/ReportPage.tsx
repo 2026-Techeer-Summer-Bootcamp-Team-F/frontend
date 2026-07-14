@@ -7,6 +7,7 @@ import {
   getScanHeatmap,
   getScanFindings,
   getScanSummary,
+  getScanEvolution,
   getScan,
   listScans,
   type ScanReport,
@@ -14,9 +15,11 @@ import {
   type Finding,
   type MitigationDetail,
   type Scan,
+  type EvolutionObjective,
 } from '../api/scans';
 import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS } from '../api/mock';
 import { EChart } from '../components/EChart';
+import { EvolutionTree } from '../components/dashboard/EvolutionTree';
 import styles from './ReportPage.module.css';
 import { useTutorial } from '../hooks/useTutorial';
 import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
@@ -159,6 +162,7 @@ export function ReportPage() {
   const [pastOpen, setPastOpen] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [modalTech, setModalTech] = useState<HeatmapTechnique | null>(null);
+  const [evolution, setEvolution] = useState<EvolutionObjective[]>([]);
 
   const tutorial = useTutorial('report', [
     {
@@ -220,6 +224,10 @@ export function ReportPage() {
 
     getScanSummary(id)
       .then(summary => setAiSummary(summary))
+      .catch(() => {});
+
+    getScanEvolution(id)
+      .then(objs => setEvolution(objs))
       .catch(() => {});
   }, [scanId]);
 
@@ -551,6 +559,20 @@ export function ReportPage() {
           </div>
         </div>
       </div>
+
+      {/* ── 공격 진화 트리 ── */}
+      {evolution.length > 0 && (
+        <div className={styles.win}>
+          <div className={styles.winbar}>
+            <i className={`${styles.dd} ${styles.dg}`} /><i className={`${styles.dd} ${styles.dy}`} /><i className={`${styles.dd} ${styles.dr}`} />
+            <span className={styles.tt}>attack_evolution.tree</span>
+            <span className={styles.rt}>기법별 공격 계보</span>
+          </div>
+          <div className={styles.in}>
+            <EvolutionTree objectives={evolution} />
+          </div>
+        </div>
+      )}
 
       {/* ── AI SUMMARY ── */}
       {aiSummary && (

@@ -1,27 +1,172 @@
-import type { Attempt } from '../../types';
+import { useMemo, useState } from 'react';
+import { EChart } from '../EChart';
+import type { EvolutionObjective, EvolutionAttempt } from '../../api/scans';
+import { atlasLabel } from '../../shared/constants';
 
 interface Props {
-  attempts: Attempt[];
+  objectives: EvolutionObjective[];
 }
 
-export function EvolutionTree({ attempts }: Props) {
-  const roots = attempts.filter((a) => a.parent_attempt_id === null);
-  const childrenOf = (id: number) => attempts.filter((a) => a.parent_attempt_id === id);
+// fitness → 노드 색상
+function fitnessColor(fitness: number, breached: boolean): string {
+  if (breached) return '#e0525f';
+  if (fitness >= 0.8) return '#e0a452';
+  if (fitness >= 0.5) return '#e0d252';
+  if (fitness >= 0.3) return '#5ecb8a';
+  return '#3a5a4a';
+}
 
-  const renderNode = (attempt: Attempt, depth: number = 0): React.ReactNode => (
-    <li key={attempt.id} style={{ marginLeft: depth * 16 }}>
-      <span>
-        세대 {attempt.generation} | {attempt.mutation_operator ?? 'seed'} | fitness{' '}
-        {attempt.fitness.toFixed(3)} {attempt.success && '✅'}
-      </span>
-      <ul>{childrenOf(attempt.id).map((child) => renderNode(child, depth + 1))}</ul>
-    </li>
-  );
+const OP_LABEL: Record<string, string> = {
+  seed:             '씨앗',
+  expand:           '확장',
+  shorten:          '압축',
+  rephrase:         '재표현',
+  encode:           '인코딩',
+  crossover:        '교차',
+  generate_similar: '유사생성',
+};
+
+function buildTree(attempts: EvolutionAttempt[]): object | null {
+  if (!attempts.length) return null;
+
+  const map = new Map<number, EvolutionAttempt & { children: object[] }>();
+  attempts.forEach(a => map.set(a.attempt_id, { ...a, children: [] }));
+
+  const roots: object[] = [];
+  map.forEach(node => {
+    const nodeData = {
+      name: `${OP_LABEL[node.mutation_op] ?? node.mutation_op}\n${node.fitness.toFixed(2)}`,
+      value: node.fitness,
+      prompt: node.prompt,
+      breached: node.breached,
+      generation: node.generation,
+      mutation_op: node.mutation_op,
+      itemStyle: {
+        color: fitnessColor(node.fitness, node.breached),
+        borderColor: node.breached ? '#ff3a4a' : 'rgba(94,203,138,0.3)',
+        borderWidth: node.breached ? 2 : 1,
+      },
+      label: {
+        color: node.breached ? '#ffaaaa' : '#c6e2d5',
+        fontSize: 10,
+      },
+      children: node.children,
+    };
+
+    if (node.parent_id === null) {
+      roots.push(nodeData);
+    } else {
+      const parent = map.get(node.parent_id);
+      if (parent) parent.children.push(nodeData);
+    }
+  });
+
+  // 루트가 여럿이면 가상 루트로 묶음
+  if (roots.length === 1) return roots[0];
+  return {
+    name: '씨앗 풀',
+    itemStyle: { color: '#1a2e24' },
+    label: { color: '#5ecb8a', fontSize: 10 },
+    children: roots,
+  };
+}
+
+export function EvolutionTree({ objectives }: Props) {
+  const [selected, setSelected] = useState(0);
+
+  const obj = objectives[selected];
+  const tree = useMemo(() => obj ? buildTree(obj.attempts) : null, [obj]);
+
+  const option = useMemo(() => {
+    if (!tree) return null;
+    return {
+      backgroundColor: 'transparent',
+      tooltip: {
+        trigger: 'item',
+        backgroundColor: '#0d1512',
+        borderColor: 'rgba(94,203,138,0.2)',
+        textStyle: { color: '#e8f0ea', fontSize: 11 },
+        formatter: (params: any) => {
+          const d = params.data;
+          if (!d?.prompt) return params.name;
+          const badge = d.breached ? '<span style="color:#e0525f;font-weight:700">⚡ BREACH</span><br/>' : '';
+          return `${badge}<b>gen ${d.generation}</b> · ${OP_LABEL[d.mutation_op] ?? d.mutation_op}<br/>fitness <b>${d.value?.toFixed(3)}</b><hr style="border-color:rgba(94,203,138,0.15);margin:6px 0"/><span style="color:#8fb8a8">${d.prompt}</span>`;
+        },
+      },
+      series: [{
+        type: 'tree',
+        data: [tree],
+        top: '5%', bottom: '5%', left: '12%', right: '20%',
+        symbol: 'circle',
+        symbolSize: (val: number) => Math.max(14, Math.min(32, val * 40)),
+        orient: 'LR',
+        expandAndCollapse: false,
+        edgeShape: 'curve',
+        edgeForkPosition: '63%',
+        lineStyle: { color: 'rgba(94,203,138,0.18)', width: 1.5, curveness: 0.5 },
+        label: {
+          position: 'right',
+          verticalAlign: 'middle',
+          fontSize: 10,
+          color: '#8fb8a8',
+        },
+        leaves: {
+          label: { position: 'right', verticalAlign: 'middle' },
+        },
+        animationDuration: 550,
+        animationEasing: 'cubicOut',
+      }],
+    };
+  }, [tree]);
+
+  if (!objectives.length) return null;
 
   return (
-    <section>
-      <h2>진화 트리</h2>
-      <ul>{roots.map((root) => renderNode(root))}</ul>
-    </section>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* 기법 탭 */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {objectives.map((o, i) => (
+          <button
+            key={o.objective_id}
+            onClick={() => setSelected(i)}
+            style={{
+              background: i === selected ? 'rgba(94,203,138,0.15)' : 'transparent',
+              border: `1px solid ${i === selected ? '#5ecb8a' : 'rgba(94,203,138,0.2)'}`,
+              color: i === selected ? '#5ecb8a' : 'rgba(240,244,242,0.55)',
+              borderRadius: 5,
+              padding: '3px 10px',
+              fontSize: 11,
+              cursor: 'pointer',
+              transition: 'all 0.15s',
+            }}
+          >
+            {atlasLabel(o.atlas_technique_id).replace(/^\[/, '').replace(/\]$/, '')}
+            {o.status === 'breached' && ' ⚡'}
+          </button>
+        ))}
+      </div>
+
+      {/* 범례 */}
+      <div style={{ display: 'flex', gap: 14, fontSize: 10, color: 'rgba(240,244,242,0.4)' }}>
+        {[
+          { color: '#3a5a4a', label: '낮은 fitness' },
+          { color: '#5ecb8a', label: '참여 감지' },
+          { color: '#e0d252', label: '위험 근접' },
+          { color: '#e0a452', label: '고위험' },
+          { color: '#e0525f', label: '침투 성공' },
+        ].map(({ color, label }) => (
+          <span key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <i style={{ width: 8, height: 8, borderRadius: '50%', background: color, display: 'inline-block' }} />
+            {label}
+          </span>
+        ))}
+      </div>
+
+      {/* 트리 차트 */}
+      {option
+        ? <EChart option={option} style={{ height: 320 }} />
+        : <p style={{ color: 'rgba(240,244,242,0.3)', fontSize: 12 }}>시도 데이터 없음</p>
+      }
+    </div>
   );
 }

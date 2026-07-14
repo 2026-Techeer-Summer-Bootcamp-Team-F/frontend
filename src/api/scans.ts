@@ -145,6 +145,28 @@ export async function getScanFindings(scanId: number): Promise<Finding[]> {
   }));
 }
 
+export interface EvolutionAttempt {
+  attempt_id: number;
+  parent_id: number | null;
+  generation: number;
+  mutation_op: string;
+  fitness: number;
+  breached: boolean;
+  prompt: string;
+}
+
+export interface EvolutionObjective {
+  objective_id: number;
+  atlas_technique_id: string;
+  status: string;
+  attempts: EvolutionAttempt[];
+}
+
+export async function getScanEvolution(scanId: number): Promise<EvolutionObjective[]> {
+  const { data } = await apiClient.get<{ objectives: EvolutionObjective[] }>(`/scans/${scanId}/evolution`);
+  return data.objectives;
+}
+
 export async function getScanSummary(scanId: number): Promise<string> {
   const { data } = await apiClient.get<{ ai_summary: string }>(`/scans/${scanId}/summary`);
   return data.ai_summary;
