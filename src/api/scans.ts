@@ -48,6 +48,20 @@ export interface HeatmapTechnique {
   dist?: { defended: number; partial: number; breached: number };
 }
 
+export interface MitigationRef {
+  label: string;
+  url: string;
+}
+
+// 백엔드 #79: 기법별 구조화 완화 정본. GET /scans/{id}/findings가 반환.
+export interface MitigationDetail {
+  summary: string;
+  cause: string;
+  steps: string[];
+  verify: string;
+  references: MitigationRef[];
+}
+
 export interface Finding {
   findings_id: number;
   objective_id: number;
@@ -56,7 +70,25 @@ export interface Finding {
   severity: 'critical' | 'high' | 'medium' | 'low';
   title: string;
   evidence: { prompt: string; response: string; canary?: string };
-  mitigation: string;
+  mitigation: MitigationDetail;
+}
+
+const EMPTY_MITIGATION: MitigationDetail = {
+  summary: '', cause: '', steps: [], verify: '', references: [],
+};
+
+// 완화 응답 정규화 — 객체면 필드 보정, 구버전 문자열/누락이면 안전한 빈 구조로 폴백.
+function normalizeMitigation(raw: MitigationDetail | string | null | undefined): MitigationDetail {
+  if (raw && typeof raw === 'object') {
+    return {
+      summary: raw.summary ?? '',
+      cause: raw.cause ?? '',
+      steps: Array.isArray(raw.steps) ? raw.steps : [],
+      verify: raw.verify ?? '',
+      references: Array.isArray(raw.references) ? raw.references : [],
+    };
+  }
+  return { ...EMPTY_MITIGATION, summary: typeof raw === 'string' ? raw : '' };
 }
 
 export async function startScan(
@@ -95,7 +127,7 @@ export async function getScanFindings(scanId: number): Promise<Finding[]> {
     attempt_id: number;
     prompt: string | null;
     evidence: { prompt?: string; response?: string; canary_hit?: boolean } | null;
-    mitigation: string | null;
+    mitigation: MitigationDetail | string | null;
   }[]>(`/scans/${scanId}/findings`);
   return data.map(f => ({
     findings_id: f.findings_id,
@@ -109,7 +141,7 @@ export async function getScanFindings(scanId: number): Promise<Finding[]> {
       response: f.evidence?.response ?? '',
       canary: f.evidence?.canary_hit ? 'CANARY_HIT' : undefined,
     },
-    mitigation: f.mitigation ?? '',
+    mitigation: normalizeMitigation(f.mitigation),
   }));
 }
 
