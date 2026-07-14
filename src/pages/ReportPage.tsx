@@ -191,6 +191,11 @@ export function ReportPage() {
       desc: '발견된 취약점을 심각도(Critical / High / Medium / Low)별로 분류한 도넛 차트입니다.',
     },
     {
+      selector: 'evolution-tree',
+      title: '공격 진화 트리',
+      desc: '진화 알고리즘이 공격 프롬프트를 어떻게 변이시켰는지 계보로 보여줍니다. 노드 색상은 fitness 강도를 나타내며, 기법 탭을 눌러 각 공격 기법별 진화 경로를 확인할 수 있습니다.',
+    },
+    {
       selector: 'ai-summary',
       title: 'AI 요약',
       desc: 'Hackie가 스캔 결과를 분석해 작성한 보안 요약 보고서입니다. 취약점 원인과 완화 방안을 제안합니다.',
@@ -562,7 +567,7 @@ export function ReportPage() {
 
       {/* ── 공격 진화 트리 ── */}
       {evolution.length > 0 && (
-        <div className={styles.win}>
+        <div className={styles.win} data-tutorial="evolution-tree">
           <div className={styles.winbar}>
             <i className={`${styles.dd} ${styles.dg}`} /><i className={`${styles.dd} ${styles.dy}`} /><i className={`${styles.dd} ${styles.dr}`} />
             <span className={styles.tt}>attack_evolution.tree</span>
