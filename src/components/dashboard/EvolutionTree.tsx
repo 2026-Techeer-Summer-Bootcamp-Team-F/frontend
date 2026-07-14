@@ -17,13 +17,23 @@ function fitnessColor(fitness: number, breached: boolean): string {
 }
 
 const OP_LABEL: Record<string, string> = {
-  seed:             '씨앗',
-  expand:           '확장',
-  shorten:          '압축',
-  rephrase:         '재표현',
-  encode:           '인코딩',
-  crossover:        '교차',
-  generate_similar: '유사생성',
+  seed:             'SEED',
+  expand:           'EXPAND',
+  shorten:          'TRIM',
+  rephrase:         'REPHRASE',
+  encode:           'ENCODE',
+  crossover:        'CROSSOVER',
+  generate_similar: 'SIMILAR',
+};
+
+const OP_DESC: Record<string, string> = {
+  seed:             '초기 공격 케이스',
+  expand:           '문맥 확장 변이',
+  shorten:          '핵심만 압축',
+  rephrase:         '표현 재구성',
+  encode:           'Base64 인코딩',
+  crossover:        '우수 케이스 교차',
+  generate_similar: '유사 패턴 생성',
 };
 
 function buildTree(attempts: EvolutionAttempt[]): object | null {
@@ -35,7 +45,7 @@ function buildTree(attempts: EvolutionAttempt[]): object | null {
   const roots: object[] = [];
   map.forEach(node => {
     const nodeData = {
-      name: `${OP_LABEL[node.mutation_op] ?? node.mutation_op}\n${node.fitness.toFixed(2)}`,
+      name: `${OP_LABEL[node.mutation_op] ?? node.mutation_op}  ${node.fitness.toFixed(2)}`,
       value: node.fitness,
       prompt: node.prompt,
       breached: node.breached,
@@ -64,9 +74,11 @@ function buildTree(attempts: EvolutionAttempt[]): object | null {
   // 루트가 여럿이면 가상 루트로 묶음
   if (roots.length === 1) return roots[0];
   return {
-    name: '씨앗 풀',
-    itemStyle: { color: '#1a2e24' },
-    label: { color: '#5ecb8a', fontSize: 10 },
+    name: 'INITIAL POOL',
+    itemStyle: { color: '#0e1512', borderColor: 'rgba(94,203,138,0.4)', borderWidth: 1.5 },
+    label: { color: 'rgba(94,203,138,0.7)', fontSize: 10, fontWeight: 'bold' },
+    symbol: 'diamond',
+    symbolSize: 10,
     children: roots,
   };
 }
@@ -90,7 +102,9 @@ export function EvolutionTree({ objectives }: Props) {
           const d = params.data;
           if (!d?.prompt) return params.name;
           const badge = d.breached ? '<span style="color:#e0525f;font-weight:700">⚡ BREACH</span><br/>' : '';
-          return `${badge}<b>gen ${d.generation}</b> · ${OP_LABEL[d.mutation_op] ?? d.mutation_op}<br/>fitness <b>${d.value?.toFixed(3)}</b><hr style="border-color:rgba(94,203,138,0.15);margin:6px 0"/><span style="color:#8fb8a8">${d.prompt}</span>`;
+          const op = OP_LABEL[d.mutation_op] ?? d.mutation_op;
+          const opDesc = OP_DESC[d.mutation_op] ?? '';
+          return `${badge}<b>GEN.${d.generation}</b> · <span style="color:#5ecb8a">${op}</span>${opDesc ? ` <span style="color:rgba(240,244,242,0.4);font-size:10px">${opDesc}</span>` : ''}<br/>fitness <b>${d.value?.toFixed(3)}</b><hr style="border-color:rgba(94,203,138,0.15);margin:6px 0"/><span style="color:#8fb8a8;font-size:10px">${d.prompt}</span>`;
         },
       },
       series: [{
