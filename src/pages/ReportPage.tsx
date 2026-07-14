@@ -595,6 +595,33 @@ export function ReportPage() {
         </div>
       </div>
 
+      {/* ── 취약 코드 위치 ── */}
+      {codeLocations.length > 0 && (
+        <div className={styles.win}>
+          <div className={styles.winbar}>
+            <i className={`${styles.dd} ${styles.dg}`} /><i className={`${styles.dd} ${styles.dy}`} /><i className={`${styles.dd} ${styles.dr}`} />
+            <span className={styles.tt}>source_code.vulnerabilities</span>
+            <span className={styles.rt}>{codeLocations.length} locations detected</span>
+          </div>
+          <div className={styles.codeLocs} style={{ margin: '12px 13px' }}>
+            {codeLocations.map((l, i) => (
+              <div key={i} className={styles.codeLoc}>
+                <div className={styles.codeLocMeta}>
+                  <span className={styles.codeLocFile}>{l.file}</span>
+                  <span className={styles.codeLocLine}>L{l.line}</span>
+                  <span className={`${styles.codeLocSev} ${styles[`sev_${l.severity}`]}`}>
+                    {l.severity.toUpperCase()}
+                  </span>
+                  <span style={{ fontSize: 9, color: 'rgba(240,244,242,0.35)', marginLeft: 'auto' }}>{l.atlas_technique_id}</span>
+                </div>
+                <div className={styles.codeLocReason}>{l.reason}</div>
+                <pre className={styles.codeLocSnippet}>{l.snippet}</pre>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ── 공격 진화 트리 ── */}
       {evolution.length > 0 && (
         <div className={styles.win} data-tutorial="evolution-tree">
