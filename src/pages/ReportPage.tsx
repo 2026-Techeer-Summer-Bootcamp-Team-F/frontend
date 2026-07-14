@@ -17,6 +17,7 @@ import {
   type Scan,
   type EvolutionObjective,
 } from '../api/scans';
+import { getCodeLocations, type CodeLocation } from '../api/scans';
 import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS } from '../api/mock';
 import { EChart } from '../components/EChart';
 import { EvolutionTree } from '../components/dashboard/EvolutionTree';
@@ -163,6 +164,7 @@ export function ReportPage() {
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [modalTech, setModalTech] = useState<HeatmapTechnique | null>(null);
   const [evolution, setEvolution] = useState<EvolutionObjective[]>([]);
+  const [codeLocations, setCodeLocations] = useState<CodeLocation[]>([]);
 
   const tutorial = useTutorial('report', [
     {
@@ -233,6 +235,10 @@ export function ReportPage() {
 
     getScanEvolution(id)
       .then(objs => setEvolution(objs))
+      .catch(() => {});
+
+    getCodeLocations(id)
+      .then(locs => setCodeLocations(locs))
       .catch(() => {});
   }, [scanId]);
 
@@ -535,6 +541,30 @@ export function ReportPage() {
                             <div className={styles.loc}>⚠ <b>카나리 트리거</b> — {f.evidence.canary}</div>
                           )}
                           <MitigationBlock m={f.mitigation} />
+                          {(() => {
+                            const locs = codeLocations.filter(
+                              l => l.atlas_technique_id === f.atlas_technique_id
+                            );
+                            if (!locs.length) return null;
+                            return (
+                              <div className={styles.codeLocs}>
+                                <div className={styles.codeLocsHd}>📂 취약 코드 위치</div>
+                                {locs.map((l, i) => (
+                                  <div key={i} className={styles.codeLoc}>
+                                    <div className={styles.codeLocMeta}>
+                                      <span className={styles.codeLocFile}>{l.file}</span>
+                                      <span className={styles.codeLocLine}>L{l.line}</span>
+                                      <span className={`${styles.codeLocSev} ${styles[`sev_${l.severity}`]}`}>
+                                        {l.severity.toUpperCase()}
+                                      </span>
+                                    </div>
+                                    <div className={styles.codeLocReason}>{l.reason}</div>
+                                    <pre className={styles.codeLocSnippet}>{l.snippet}</pre>
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })()}
                         </>
                       )}
                     </div>

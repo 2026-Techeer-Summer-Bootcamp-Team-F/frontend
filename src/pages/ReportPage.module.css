@@ -301,3 +301,18 @@
   .fev { grid-template-columns: 1fr; }
   .sumIn { grid-template-columns: 1fr; }
 }
+
+/* ── 취약 코드 위치 ── */
+.codeLocs { margin: 0 13px 12px; display: flex; flex-direction: column; gap: 8px; }
+.codeLocsHd { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 2px; }
+.codeLoc { background: #070c09; border: 1px solid var(--line); border-radius: 7px; padding: 9px 11px; display: flex; flex-direction: column; gap: 5px; }
+.codeLocMeta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.codeLocFile { font-size: 11px; color: #5ecb8a; font-weight: 600; word-break: break-all; }
+.codeLocLine { font-size: 10px; color: rgba(240,244,242,0.4); flex-shrink: 0; }
+.codeLocSev { font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; border: 1px solid; flex-shrink: 0; }
+.sev_critical { color: #e0525f; border-color: rgba(224,82,95,0.4); background: rgba(224,82,95,0.08); }
+.sev_high     { color: #e0a452; border-color: rgba(224,164,82,0.4); background: rgba(224,164,82,0.08); }
+.sev_medium   { color: #e0d252; border-color: rgba(224,210,82,0.4); background: rgba(224,210,82,0.08); }
+.sev_low      { color: #5a6a61; border-color: rgba(90,106,97,0.4);  background: rgba(90,106,97,0.08); }
+.codeLocReason { font-size: 11px; color: rgba(240,244,242,0.65); line-height: 1.5; }
+.codeLocSnippet { font-size: 10.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; color: #8fb8a8; margin: 0; background: #040807; border-radius: 4px; padding: 6px 8px; }
