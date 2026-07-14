@@ -12,6 +12,7 @@ import {
   type ScanReport,
   type HeatmapTechnique,
   type Finding,
+  type MitigationDetail,
   type Scan,
 } from '../api/scans';
 import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS } from '../api/mock';
@@ -278,7 +279,9 @@ export function ReportPage() {
           attempts: modalTech.attempts,
           desc: info?.desc ?? '이 기법에 대한 상세 설명이 아직 준비되지 않았습니다.',
           prompt: match?.evidence.prompt || info?.prompt || '(예시 프롬프트 없음)',
-          mit: info?.mit ?? match?.mitigation ?? '(완화 정보 없음)',
+          // 백엔드 정본(매칭 finding의 구조화 완화). 없으면 클라 맵 폴백(비침투 셀).
+          mitDetail: match?.mitigation ?? null,
+          mitFallback: info?.mit ?? '(완화 정보 없음)',
         };
       })()
     : null;
@@ -459,9 +462,7 @@ export function ReportPage() {
                           {f.evidence.canary && (
                             <div className={styles.loc}>⚠ <b>카나리 트리거</b> — {f.evidence.canary}</div>
                           )}
-                          {f.mitigation && (
-                            <div className={styles.loc}>🛡️ <b>완화</b> — {f.mitigation}</div>
-                          )}
+                          <MitigationBlock m={f.mitigation} />
                         </>
                       )}
                     </div>
@@ -565,8 +566,56 @@ export function ReportPage() {
               </div>
               <div><div className={styles.msec}>이 공격은?</div><div className={styles.mdesc}>{modalInfo.desc}</div></div>
               <div><div className={styles.msec}>사용된 예시 프롬프트</div><div className={styles.mpre}>{modalInfo.prompt}</div></div>
-              <div><div className={styles.msec}>🛡️ 완화 방법</div><div className={styles.mpre}>{modalInfo.mit}</div></div>
+              {mitHasContent(modalInfo.mitDetail)
+                ? <MitigationBlock m={modalInfo.mitDetail!} />
+                : <div><div className={styles.msec}>🛡️ 완화 방법</div><div className={styles.mpre}>{modalInfo.mitFallback}</div></div>}
             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 완화 정본에 표시할 내용이 있는지(빈 폴백 구조 구분)
+function mitHasContent(m?: MitigationDetail | null): boolean {
+  return !!m && !!(m.summary || m.cause || m.steps.length || m.verify || m.references.length);
+}
+
+// 구조화 완화(원인/조치 단계/검증/참고) 렌더 — finding 카드·히트맵 모달 공용
+function MitigationBlock({ m }: { m: MitigationDetail }) {
+  if (!mitHasContent(m)) return null;
+  return (
+    <div className={styles.mit}>
+      <div className={styles.mitHd}>🛡️ 완화 방법</div>
+      {m.summary && <div className={styles.mitSummary}>{m.summary}</div>}
+      {m.cause && (
+        <div className={styles.mitSec}>
+          <div className={styles.mitK}>원인</div>
+          <div className={styles.mitV}>{m.cause}</div>
+        </div>
+      )}
+      {m.steps.length > 0 && (
+        <div className={styles.mitSec}>
+          <div className={styles.mitK}>조치 단계</div>
+          <ol className={styles.mitSteps}>
+            {m.steps.map((s, i) => <li key={i}>{s}</li>)}
+          </ol>
+        </div>
+      )}
+      {m.verify && (
+        <div className={styles.mitSec}>
+          <div className={styles.mitK}>검증</div>
+          <div className={styles.mitV}>{m.verify}</div>
+        </div>
+      )}
+      {m.references.length > 0 && (
+        <div className={styles.mitSec}>
+          <div className={styles.mitK}>참고</div>
+          <div className={styles.mitRefs}>
+            {m.references.map((r, i) => (
+              <a key={i} href={r.url} target="_blank" rel="noreferrer noopener">{r.label} ↗</a>
+            ))}
           </div>
         </div>
       )}
