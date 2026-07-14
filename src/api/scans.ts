@@ -162,6 +162,20 @@ export interface EvolutionObjective {
   attempts: EvolutionAttempt[];
 }
 
+export interface CodeLocation {
+  file: string;
+  line: number;
+  snippet: string;
+  reason: string;
+  atlas_technique_id: string;
+  severity: 'critical' | 'high' | 'medium' | 'low';
+}
+
+export async function getCodeLocations(scanId: number): Promise<CodeLocation[]> {
+  const { data } = await apiClient.get<{ locations: CodeLocation[] }>(`/scans/${scanId}/code-locations`);
+  return data.locations;
+}
+
 export async function getScanEvolution(scanId: number): Promise<EvolutionObjective[]> {
   const { data } = await apiClient.get<{ objectives: EvolutionObjective[] }>(`/scans/${scanId}/evolution`);
   return data.objectives;
