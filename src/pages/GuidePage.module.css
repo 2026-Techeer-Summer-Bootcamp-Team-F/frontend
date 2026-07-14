@@ -311,9 +311,6 @@
   width: 100%;
   height: auto;
   display: block;
-  object-fit: cover;
-  object-position: top;
-  max-height: 280px;
 }
 
 /* 카드 안 큰 스텝 번호 뱃지 */
