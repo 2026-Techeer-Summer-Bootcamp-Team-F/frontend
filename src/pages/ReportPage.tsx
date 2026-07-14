@@ -352,6 +352,19 @@ export function ReportPage() {
         </div>
       </div>
 
+      {/* ── 소요 시간 ── */}
+      {scanMeta && (
+        <div className={styles.durationBar}>
+          <span className={styles.durationLabel}>SCAN DURATION</span>
+          <span className={styles.durationValue}>{fmtDuration(scanMeta.started_at, scanMeta.finished_at)}</span>
+          {scanMeta.finished_at && (
+            <span className={styles.durationMeta}>
+              {new Date(scanMeta.finished_at + 'Z').toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' })}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* ── KPI ── */}
       <div className={styles.kpis} data-tutorial="kpis">
         <div className={`${styles.win} ${styles.kpi} ${styles.kRisk}`}>
@@ -559,20 +572,9 @@ export function ReportPage() {
         </div>
       )}
 
-      {/* ── 소요 시간 + 과거 스캔 (기존 기능 유지) ── */}
-      {(scanMeta || pastScans.length > 0) && (
+      {/* ── 과거 스캔 ── */}
+      {pastScans.length > 0 && (
         <div className={styles.metaRow}>
-          {scanMeta && (
-            <div className={styles.durationBar}>
-              <span className={styles.durationLabel}>SCAN DURATION</span>
-              <span className={styles.durationValue}>{fmtDuration(scanMeta.started_at, scanMeta.finished_at)}</span>
-              {scanMeta.finished_at && (
-                <span className={styles.durationMeta}>
-                  {new Date(scanMeta.finished_at + 'Z').toLocaleString('ko-KR', { dateStyle: 'short', timeStyle: 'short' })}
-                </span>
-              )}
-            </div>
-          )}
           {pastScans.length > 0 && (
             <div className={styles.win}>
               <button className={styles.toggleHeader} onClick={() => setPastOpen(v => !v)}>
