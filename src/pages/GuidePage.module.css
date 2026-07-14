@@ -296,7 +296,25 @@
   gap: 22px;
 }
 .carousel .card { flex: 0 0 auto; width: 100%; }
-.carousel .cardBody { min-height: 130px; }   /* 스텝 간 높이 튐 방지 */
+.carousel .cardBody { min-height: 130px; }
+
+.screenshotWrap {
+  margin-top: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  line-height: 0;
+}
+
+.screenshot {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  object-position: top;
+  max-height: 280px;
+}
 
 /* 카드 안 큰 스텝 번호 뱃지 */
 .stepNum {

@@ -8,26 +8,31 @@ const STEPS = [
     num: '01',
     title: 'GitHub 연결',
     desc: 'GitHub OAuth로 로그인하면 본인 계정의 레포지토리 목록을 불러옵니다. 별도 설치나 설정 없이 버튼 한 번으로 연결됩니다.',
+    img: '/guide/step01-login.png',
   },
   {
     num: '02',
     title: '레포지토리 선택',
     desc: '분석할 AI 앱이 있는 레포를 고릅니다. 공개·비공개 모두 지원하며, 언제든 다른 레포로 교체할 수 있습니다.',
+    img: '/guide/step02-repos.png',
   },
   {
     num: '03',
     title: '이용약관 동의',
     desc: '자동화된 공격 요청을 전송하는 서비스 특성상, 타겟 소유 권한 확인 및 면책 조항에 동의가 필요합니다. 스캔 전 단 한 번만 확인합니다.',
+    img: '/guide/step03-agreement.png',
   },
   {
     num: '04',
     title: '필요 정보 입력',
     desc: '스캔 대상 AI 앱의 엔드포인트와 접속 정보를 입력합니다. 레포를 고르면 요청·응답 형태를 자동으로 감지해 채워줍니다.',
+    img: '/guide/step04-register.png',
   },
   {
     num: '05',
     title: '스캔 & 리포트',
     desc: 'MITRE ATLAS 기반 실전 공격 데이터를 자동 실행하고 결과를 실시간으로 스트리밍합니다. 완료 후 취약점 분류·심각도·증거까지 리포트로 제공합니다.',
+    img: '/guide/step05-report.png',
   },
 ];
 
@@ -84,6 +89,11 @@ export function GuidePage() {
             <span className={styles.stepNum}>{step.num}</span>
             <p className={styles.stepTitle}>{step.title}</p>
             <p className={styles.stepDesc}>{step.desc}</p>
+            {step.img && (
+              <div className={styles.screenshotWrap}>
+                <img src={step.img} alt={step.title} className={styles.screenshot} />
+              </div>
+            )}
           </div>
         </div>
 
