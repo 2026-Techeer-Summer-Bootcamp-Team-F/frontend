@@ -12,11 +12,11 @@ const LS = {
 };
 
 const SHOTS = [
-  { file: 'step01-login.png',      url: '/',                        auth: false, delay: 800  },
-  { file: 'step02-repos.png',      url: '/repos',                   auth: true,  delay: 2000 },
-  { file: 'step03-agreement.png',  url: '/agreement?repo=demo-org%2Fcustomer-support-bot&url=https%3A%2F%2Fgithub.com%2Fdemo-org%2Fcustomer-support-bot', auth: true, delay: 800 },
-  { file: 'step04-register.png',   url: '/projects/new',            auth: true,  delay: 800  },
-  { file: 'step05-report.png',     url: '/report/46',               auth: true,  delay: 3000 },
+  { file: '01-github.png',     url: '/',                        auth: false, delay: 800  },
+  { file: '02-repos.png',      url: '/repos',                   auth: true,  delay: 2000 },
+  { file: '03-agreement.png',  url: '/agreement?repo=demo-org%2Fcustomer-support-bot&url=https%3A%2F%2Fgithub.com%2Fdemo-org%2Fcustomer-support-bot', auth: true, delay: 800 },
+  { file: '04-register.png',   url: '/projects/new',            auth: true,  delay: 800  },
+  { file: '05-report.png',     url: '/report/46',               auth: true,  delay: 3000 },
 ];
 
 const browser = await chromium.launch({ headless: true });

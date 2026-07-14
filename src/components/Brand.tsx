@@ -6,7 +6,7 @@ import styles from './Brand.module.css';
 export function Brand({ to = '/' }: { to?: string }) {
   return (
     <Link to={to} className={styles.brand} aria-label="처음 화면으로">
-      <img className={styles.logo} src="/logo-redi.png" alt="REDI 로고" draggable={false} />
+      <img className={styles.logo} src="/brand.png" alt="REDI 로고" draggable={false} />
       <span className={styles.name}>REDI</span>
     </Link>
   );
