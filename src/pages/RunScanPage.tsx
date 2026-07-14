@@ -5,6 +5,8 @@ import { startScan, cancelScan, type ScanConfig } from '../api/scans';
 import { getMockProject, MOCK_ATTACK_TYPES, simulateScan } from '../api/mock';
 import { getToken } from '../utils/auth';
 import styles from './RunScanPage.module.css';
+import { useTutorial } from '../hooks/useTutorial';
+import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
 
 interface LogLine { id: number; msg: string; level: string }
 interface ProgressData {
@@ -42,6 +44,19 @@ export function RunScanPage() {
   const esRef = useRef<EventSource | null>(null);
   const cancelMockRef = useRef<(() => void) | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const tutorial = useTutorial('analysis', [
+    {
+      selector: 'start-btn',
+      title: '스캔 실행',
+      desc: '설정한 공격 유형으로 AI 레드팀 분석을 시작합니다. 진화 알고리즘이 다양한 공격 프롬프트를 자동 생성하며 취약점을 탐색합니다.',
+    },
+    {
+      selector: 'term-body',
+      title: '실시간 로그',
+      desc: '스캔 진행 상황이 실시간으로 출력됩니다. 각 공격 시도의 결과와 최고 점수를 여기서 확인할 수 있습니다.',
+    },
+  ]);
 
   useEffect(() => {
     if (!projectId) return;
@@ -212,6 +227,16 @@ export function RunScanPage() {
 
   return (
     <div className={styles.page}>
+      {tutorial.active && tutorial.currentStep && (
+        <TutorialOverlay
+          step={tutorial.currentStep}
+          stepIndex={tutorial.step}
+          total={tutorial.total}
+          onNext={tutorial.next}
+          onPrev={tutorial.prev}
+          onSkip={tutorial.skip}
+        />
+      )}
       {/* ── Header ── */}
       <div className={styles.header}>
         <p className={styles.label}>STEP 3 / 3 — AI RED TEAMING ANALYSIS</p>
@@ -236,6 +261,7 @@ export function RunScanPage() {
         {status === 'idle' && (
           <button
             className={styles.startBtn}
+            data-tutorial="start-btn"
             onClick={handleStart}
             disabled={loadingStart || selected.size === 0}
           >
@@ -284,7 +310,7 @@ export function RunScanPage() {
             <span className={styles.timerDone}>{fmtElapsed(elapsed)}</span>
           )}
         </div>
-        <div className={styles.termBody}>
+        <div className={styles.termBody} data-tutorial="term-body">
           {logs.length === 0 && (
             <p className={styles.termEmpty}>스캔을 시작하면 실시간 로그가 표시됩니다.</p>
           )}
