@@ -20,6 +20,13 @@ const PRESETS: Record<string, { label: string; body_template: string; response_p
 
 type DetectState = 'idle' | 'detecting' | 'detected' | 'failed';
 
+// 배포된 REDI(클라우드)는 사용자 PC의 로컬 주소에 못 닿는다 → 경고로 공개 URL 유도.
+// 자동채움/프리셋/수동입력 어느 경로로 들어온 URL이든 동일하게 검사한다.
+const LOCAL_HOST_RE = /:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|host\.docker\.internal)\b/i;
+function isLocalUrl(url: string): boolean {
+  return LOCAL_HOST_RE.test(url.trim());
+}
+
 export function RegisterTargetPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -158,7 +165,13 @@ export function RegisterTargetPage() {
               </div>
               <div className={`${styles.field} ${styles.spanFull}`}>
                 <label className={styles.fieldLabel}>엔드포인트 URL <span className={styles.required}>*</span></label>
-                <input className={styles.input} type="url" placeholder="http://localhost:8080/chat" value={form.url} onChange={set('url')} required />
+                <input className={styles.input} type="url" placeholder="https://your-app.example.com/chat" value={form.url} onChange={set('url')} required />
+                {isLocalUrl(form.url) && (
+                  <p className={styles.urlWarn}>
+                    ⚠ 로컬 주소예요. 배포된 REDI는 여러분 PC의 <code>localhost</code>에 닿지 못해요 —
+                    공개 URL(예: <code>ngrok</code>·<code>cloudflared</code> 터널 주소)로 바꿔주세요. 경로는 그대로 두면 됩니다.
+                  </p>
+                )}
               </div>
             </div>
 

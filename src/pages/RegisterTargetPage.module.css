@@ -224,6 +224,25 @@
 }
 .detectOk { color: var(--accent); border-color: var(--accent); }
 
+/* 로컬 주소 경고 — URL 입력칸 아래 */
+.urlWarn {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--yellow, #e6b800);
+  background: color-mix(in srgb, var(--yellow, #e6b800) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--yellow, #e6b800) 40%, transparent);
+  border-radius: 6px;
+  padding: 8px 11px;
+  margin: 8px 0 0;
+}
+.urlWarn code {
+  font-family: var(--font-mono, monospace);
+  background: color-mix(in srgb, var(--yellow, #e6b800) 16%, transparent);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
 /* 고급 설정 접기 */
 .advanced {
   border-top: 1px solid var(--accent-border);
