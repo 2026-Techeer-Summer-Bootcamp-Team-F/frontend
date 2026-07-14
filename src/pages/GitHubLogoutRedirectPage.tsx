@@ -7,7 +7,7 @@ export function GitHubLogoutRedirectPage() {
   }, []);
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'monospace', color: '#a3ffae' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: "'Pretendard', 'Noto Sans KR', sans-serif", color: '#a3ffae' }}>
       GitHub 로그아웃 중...
     </div>
   );

@@ -11,8 +11,6 @@
   --orange:        #e0a452;
   --font-display:  'Black Han Sans', 'Pretendard', 'Noto Sans KR', sans-serif;
   --font-ui:       'Pretendard', 'Noto Sans KR', sans-serif;
-  --font-mono:     'JetBrains Mono', 'Courier New', monospace;
-
   color: var(--text);
   background: var(--bg);
   font-family: var(--font-ui);

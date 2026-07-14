@@ -10,8 +10,6 @@
   --border:       rgba(94, 203, 138, 0.16);
   --font-display: 'Black Han Sans', 'Pretendard', 'Noto Sans KR', sans-serif;
   --font-ui:      'Pretendard', 'Noto Sans KR', sans-serif;
-  --font-mono:    'JetBrains Mono', 'Courier New', monospace;
-
   position: relative;
   background:
     radial-gradient(1100px 520px at 50% -8%, rgba(94, 203, 138, 0.10), transparent 60%),
@@ -303,7 +301,7 @@
 /* 카드 안 큰 스텝 번호 뱃지 */
 .stepNum {
   display: inline-block;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   color: var(--accent);
   background: var(--accent-dim);

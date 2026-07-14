@@ -9,7 +9,7 @@ export function GitHubLogoutCallbackPage() {
   }, []);
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'monospace', color: '#a3ffae' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: "'Pretendard', 'Noto Sans KR', sans-serif", color: '#a3ffae' }}>
       로그아웃 완료 중...
     </div>
   );

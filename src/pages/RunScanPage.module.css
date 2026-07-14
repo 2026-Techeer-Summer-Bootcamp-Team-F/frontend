@@ -312,7 +312,7 @@
 }
 
 .timer {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   color: var(--accent);
   letter-spacing: 0.05em;
@@ -322,7 +322,7 @@
 
 .timerDone {
   margin-left: auto;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: 12px;
   color: var(--text-muted);
   letter-spacing: 0.05em;

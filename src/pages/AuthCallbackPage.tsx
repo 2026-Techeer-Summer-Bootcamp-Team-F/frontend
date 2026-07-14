@@ -29,11 +29,11 @@ export function AuthCallbackPage() {
 
   if (error) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: '16px', fontFamily: 'monospace', color: '#ff6b6b' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: '16px', fontFamily: "'Pretendard', 'Noto Sans KR', sans-serif", color: '#ff6b6b' }}>
         <span>{error}</span>
         <button
           onClick={() => navigate('/', { replace: true })}
-          style={{ background: 'none', border: '1px solid #ff6b6b', color: '#ff6b6b', padding: '8px 16px', cursor: 'pointer', fontFamily: 'monospace' }}
+          style={{ background: 'none', border: '1px solid #ff6b6b', color: '#ff6b6b', padding: '8px 16px', cursor: 'pointer', fontFamily: "'Pretendard', 'Noto Sans KR', sans-serif" }}
         >
           홈으로 돌아가기
         </button>
@@ -42,7 +42,7 @@ export function AuthCallbackPage() {
   }
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'monospace', color: '#a3ffae' }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: "'Pretendard', 'Noto Sans KR', sans-serif", color: '#a3ffae' }}>
       GitHub 인증 중...
     </div>
   );

@@ -11,7 +11,7 @@
   --high: #e0a452;
   --med: #e0d252;
   --low: #5a6a61;
-  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --mono: 'Pretendard', 'Noto Sans KR', sans-serif;
 
   display: flex;
   flex-direction: column;
@@ -169,9 +169,9 @@
 .fa { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--muted); }
 .expandIcon { font-size: 11px; color: var(--muted); }
 .fev { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; padding: 0 13px 12px; }
-.ev { background: #070c09; border: 1px solid var(--line); border-radius: 7px; padding: 9px 10px; }
-.evK { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 5px; }
-.ev pre { font-family: var(--mono); font-size: 10.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; color: #c6e2d5; margin: 0; }
+.ev { background: #070c09; border: 1px solid var(--line); border-radius: 7px; padding: 9px 10px; display: flex; flex-direction: column; }
+.evK { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 5px; flex-shrink: 0; }
+.ev pre { font-family: var(--mono); font-size: 10.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; color: #c6e2d5; margin: 0; height: 120px; overflow-y: auto; }
 .flag { color: var(--crit); font-weight: 700; }
 .loc { margin: 0 13px 12px; font-family: var(--mono); font-size: 11px; color: var(--muted); border-left: 2px solid var(--accent); padding-left: 11px; line-height: 1.7; }
 .loc b { color: var(--accent); }
@@ -189,7 +189,7 @@
 /* ── AI summary (markdown) ── */
 .sumIn { padding: 16px; display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; }
 .sumhead { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.sumhead img { width: 34px; height: 34px; object-fit: contain; image-rendering: pixelated; }
+.sumhead img { width: 80px; height: 80px; object-fit: contain; }
 .sumName { font-family: var(--mono); font-size: 10px; color: var(--muted); }
 .md { font-size: 13.5px; line-height: 1.8; }
 .md p { color: rgba(232, 240, 234, 0.9); margin: 0 0 8px; }
