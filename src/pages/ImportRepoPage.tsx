@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listGitHubRepos, type GitHubRepo } from '../api/github';
 import { listProjects, deleteProject, type Project } from '../api/projects';
@@ -28,15 +28,6 @@ const STATUS_COLOR: Record<string, string> = {
 export function ImportRepoPage() {
   const navigate = useNavigate();
 
-  const openFirstProject = useCallback(() => {
-    setProjects(prev => {
-      if (prev.length > 0) {
-        setOpenIds(ids => new Set([...ids, prev[0].target_id]));
-      }
-      return prev;
-    });
-  }, []);
-
   const tutorialSteps = useMemo(() => [
     {
       selector: 'repo-list',
@@ -62,14 +53,13 @@ export function ImportRepoPage() {
       selector: 'toggle-btn',
       title: '분석 기록',
       desc: '이 버튼으로 해당 프로젝트의 과거 스캔 기록을 펼치거나 접을 수 있습니다. 완료된 스캔은 리포트로 바로 이동할 수 있습니다.',
-      forceOpen: openFirstProject,
     },
     {
       selector: 'delete-btn',
       title: '프로젝트 삭제',
       desc: '프로젝트를 등록 해제합니다. 스캔 기록은 함께 삭제됩니다.',
     },
-  ], [openFirstProject]);
+  ], []);
 
   const tutorial = useTutorial('repos', tutorialSteps);
 

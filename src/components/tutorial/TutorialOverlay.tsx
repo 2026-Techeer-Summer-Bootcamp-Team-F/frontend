@@ -98,6 +98,7 @@ export function TutorialOverlay({ step, stepIndex, total, onNext, onPrev, onSkip
         </div>
         <img src="/logo.png" alt="Hackie" className={styles.mascotImg} />
       </div>
+
     </>,
     document.body,
   );
