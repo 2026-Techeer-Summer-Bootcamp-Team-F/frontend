@@ -7,7 +7,6 @@ import {
   getScanHeatmap,
   getScanFindings,
   getScanSummary,
-  getScanEvolution,
   getScan,
   listScans,
   type ScanReport,
@@ -15,12 +14,9 @@ import {
   type Finding,
   type MitigationDetail,
   type Scan,
-  type EvolutionObjective,
 } from '../api/scans';
-import { getCodeLocations, type CodeLocation } from '../api/scans';
 import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS } from '../api/mock';
 import { EChart } from '../components/EChart';
-import { EvolutionTree } from '../components/dashboard/EvolutionTree';
 import styles from './ReportPage.module.css';
 import { useTutorial } from '../hooks/useTutorial';
 import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
@@ -163,8 +159,6 @@ export function ReportPage() {
   const [pastOpen, setPastOpen] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [modalTech, setModalTech] = useState<HeatmapTechnique | null>(null);
-  const [evolution, setEvolution] = useState<EvolutionObjective[]>([]);
-  const [codeLocations, setCodeLocations] = useState<CodeLocation[]>([]);
 
   const tutorial = useTutorial('report', [
     {
@@ -191,11 +185,6 @@ export function ReportPage() {
       selector: 'severity',
       title: '심각도 분포',
       desc: '발견된 취약점을 심각도(Critical / High / Medium / Low)별로 분류한 도넛 차트입니다.',
-    },
-    {
-      selector: 'evolution-tree',
-      title: '공격 진화 트리',
-      desc: '진화 알고리즘이 공격 프롬프트를 어떻게 변이시켰는지 계보로 보여줍니다. 노드 색상은 fitness 강도를 나타내며, 기법 탭을 눌러 각 공격 기법별 진화 경로를 확인할 수 있습니다.',
     },
     {
       selector: 'ai-summary',
@@ -231,14 +220,6 @@ export function ReportPage() {
 
     getScanSummary(id)
       .then(summary => setAiSummary(summary))
-      .catch(() => {});
-
-    getScanEvolution(id)
-      .then(objs => setEvolution(objs))
-      .catch(() => {});
-
-    getCodeLocations(id)
-      .then(locs => setCodeLocations(locs))
       .catch(() => {});
   }, [scanId]);
 
@@ -541,30 +522,6 @@ export function ReportPage() {
                             <div className={styles.loc}>⚠ <b>카나리 트리거</b> — {f.evidence.canary}</div>
                           )}
                           <MitigationBlock m={f.mitigation} />
-                          {(() => {
-                            const locs = codeLocations.filter(
-                              l => l.atlas_technique_id === f.atlas_technique_id
-                            );
-                            if (!locs.length) return null;
-                            return (
-                              <div className={styles.codeLocs}>
-                                <div className={styles.codeLocsHd}>📂 취약 코드 위치</div>
-                                {locs.map((l, i) => (
-                                  <div key={i} className={styles.codeLoc}>
-                                    <div className={styles.codeLocMeta}>
-                                      <span className={styles.codeLocFile}>{l.file}</span>
-                                      <span className={styles.codeLocLine}>L{l.line}</span>
-                                      <span className={`${styles.codeLocSev} ${styles[`sev_${l.severity}`]}`}>
-                                        {l.severity.toUpperCase()}
-                                      </span>
-                                    </div>
-                                    <div className={styles.codeLocReason}>{l.reason}</div>
-                                    <pre className={styles.codeLocSnippet}>{l.snippet}</pre>
-                                  </div>
-                                ))}
-                              </div>
-                            );
-                          })()}
                         </>
                       )}
                     </div>
@@ -594,47 +551,6 @@ export function ReportPage() {
           </div>
         </div>
       </div>
-
-      {/* ── 취약 코드 위치 ── */}
-      {codeLocations.length > 0 && (
-        <div className={styles.win}>
-          <div className={styles.winbar}>
-            <i className={`${styles.dd} ${styles.dg}`} /><i className={`${styles.dd} ${styles.dy}`} /><i className={`${styles.dd} ${styles.dr}`} />
-            <span className={styles.tt}>source_code.vulnerabilities</span>
-            <span className={styles.rt}>{codeLocations.length} locations detected</span>
-          </div>
-          <div className={styles.codeLocs} style={{ margin: '12px 13px' }}>
-            {codeLocations.map((l, i) => (
-              <div key={i} className={styles.codeLoc}>
-                <div className={styles.codeLocMeta}>
-                  <span className={styles.codeLocFile}>{l.file}</span>
-                  <span className={styles.codeLocLine}>L{l.line}</span>
-                  <span className={`${styles.codeLocSev} ${styles[`sev_${l.severity}`]}`}>
-                    {l.severity.toUpperCase()}
-                  </span>
-                  <span style={{ fontSize: 9, color: 'rgba(240,244,242,0.35)', marginLeft: 'auto' }}>{l.atlas_technique_id}</span>
-                </div>
-                <div className={styles.codeLocReason}>{l.reason}</div>
-                <pre className={styles.codeLocSnippet}>{l.snippet}</pre>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── 공격 진화 트리 ── */}
-      {evolution.length > 0 && (
-        <div className={styles.win} data-tutorial="evolution-tree">
-          <div className={styles.winbar}>
-            <i className={`${styles.dd} ${styles.dg}`} /><i className={`${styles.dd} ${styles.dy}`} /><i className={`${styles.dd} ${styles.dr}`} />
-            <span className={styles.tt}>attack_evolution.tree</span>
-            <span className={styles.rt}>기법별 공격 계보</span>
-          </div>
-          <div className={styles.in}>
-            <EvolutionTree objectives={evolution} />
-          </div>
-        </div>
-      )}
 
       {/* ── AI SUMMARY ── */}
       {aiSummary && (

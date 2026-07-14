@@ -145,41 +145,6 @@ export async function getScanFindings(scanId: number): Promise<Finding[]> {
   }));
 }
 
-export interface EvolutionAttempt {
-  attempt_id: number;
-  parent_id: number | null;
-  generation: number;
-  mutation_op: string;
-  fitness: number;
-  breached: boolean;
-  prompt: string;
-}
-
-export interface EvolutionObjective {
-  objective_id: number;
-  atlas_technique_id: string;
-  status: string;
-  attempts: EvolutionAttempt[];
-}
-
-export interface CodeLocation {
-  file: string;
-  line: number;
-  snippet: string;
-  reason: string;
-  atlas_technique_id: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
-}
-
-export async function getCodeLocations(scanId: number): Promise<CodeLocation[]> {
-  const { data } = await apiClient.get<{ locations: CodeLocation[] }>(`/scans/${scanId}/code-locations`);
-  return data.locations;
-}
-
-export async function getScanEvolution(scanId: number): Promise<EvolutionObjective[]> {
-  const { data } = await apiClient.get<{ objectives: EvolutionObjective[] }>(`/scans/${scanId}/evolution`);
-  return data.objectives;
-}
 
 export async function getScanSummary(scanId: number): Promise<string> {
   const { data } = await apiClient.get<{ ai_summary: string }>(`/scans/${scanId}/summary`);
