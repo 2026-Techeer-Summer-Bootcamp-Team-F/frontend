@@ -100,11 +100,11 @@ export function EvolutionTree({ objectives }: Props) {
         textStyle: { color: '#e8f0ea', fontSize: 11 },
         formatter: (params: any) => {
           const d = params.data;
-          if (!d?.prompt) return params.name;
+          if (!d?.generation === undefined) return params.name;
           const badge = d.breached ? '<span style="color:#e0525f;font-weight:700">⚡ BREACH</span><br/>' : '';
           const op = OP_LABEL[d.mutation_op] ?? d.mutation_op;
           const opDesc = OP_DESC[d.mutation_op] ?? '';
-          return `${badge}<b>GEN.${d.generation}</b> · <span style="color:#5ecb8a">${op}</span>${opDesc ? ` <span style="color:rgba(240,244,242,0.4);font-size:10px">${opDesc}</span>` : ''}<br/>fitness <b>${d.value?.toFixed(3)}</b><hr style="border-color:rgba(94,203,138,0.15);margin:6px 0"/><span style="color:#8fb8a8;font-size:10px">${d.prompt}</span>`;
+          return `${badge}<b>GEN.${d.generation}</b> · <span style="color:#5ecb8a">${op}</span>${opDesc ? ` <span style="color:rgba(240,244,242,0.4);font-size:10px">${opDesc}</span>` : ''}<br/>fitness <b>${d.value?.toFixed(3)}</b>`;
         },
       },
       series: [{
