@@ -2,14 +2,11 @@
    색은 앱 테마 변수만 사용: --accent=방어/라이브, --red=돌파/카나리, --orange=공격/변이. */
 
 .chat {
-  border: 1px solid var(--accent-border);
-  border-radius: 10px;
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  /* min-height가 아닌 확정 height — 카드 높이가 auto면 .thread가 내용만큼 자라
-     overflow-y가 발동하지 않는다. 좌측 .terminal과 같은 값(2단 높이 정합) */
-  height: 440px;
 }
 
 /* 타이틀바 — 좌측 터미널과 같은 크롬 */

@@ -365,23 +365,24 @@ export function RunScanPage() {
         </div>
       </section>
 
-        <AttackSessionList
-          exchanges={exchanges}
-          selected={selectedObjectiveId}
-          onSelect={setSelectedObjectiveId}
-          status={status}
-        />
-
-        <LiveAttackChat
-          exchanges={exchanges}
-          status={status}
-          targetName={project?.project_name ?? '표적'}
-          recon={recon}
-          generation={progress?.generation ?? 0}
-          objectivesDone={objectives.done}
-          objectivesTotal={objectives.total}
-          selectedObjectiveId={selectedObjectiveId}
-        />
+        <div className={styles.chatPanel}>
+          <AttackSessionList
+            exchanges={exchanges}
+            selected={selectedObjectiveId}
+            onSelect={setSelectedObjectiveId}
+            status={status}
+          />
+          <LiveAttackChat
+            exchanges={exchanges}
+            status={status}
+            targetName={project?.project_name ?? '표적'}
+            recon={recon}
+            generation={progress?.generation ?? 0}
+            objectivesDone={objectives.done}
+            objectivesTotal={objectives.total}
+            selectedObjectiveId={selectedObjectiveId}
+          />
+        </div>
       </div>
     </div>
   );
