@@ -163,6 +163,7 @@ export function ReportPage() {
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [modalTech, setModalTech] = useState<HeatmapTechnique | null>(null);
   const [codeLocations, setCodeLocations] = useState<CodeLocation[]>([]);
+  const [codeLocationsExpanded, setCodeLocationsExpanded] = useState(false);
 
   const tutorial = useTutorial('report', [
     {
@@ -563,7 +564,7 @@ export function ReportPage() {
         <section className={styles.codeSection}>
           <h2 className={styles.sectionTitle}>취약 코드 위치</h2>
           <div className={styles.codeList}>
-            {codeLocations.map((loc, i) => (
+            {(codeLocationsExpanded ? codeLocations : codeLocations.slice(0, 3)).map((loc, i) => (
               <div key={i} className={styles.codeLoc}>
                 <div className={styles.codeLocHeader}>
                   <span className={styles.codeAtlas}>{atlasLabel(loc.atlas_id)}</span>
@@ -576,6 +577,14 @@ export function ReportPage() {
               </div>
             ))}
           </div>
+          {codeLocations.length > 3 && (
+            <button
+              className={styles.codeExpandBtn}
+              onClick={() => setCodeLocationsExpanded(prev => !prev)}
+            >
+              {codeLocationsExpanded ? '접기' : `더보기 (+${codeLocations.length - 3})`}
+            </button>
+          )}
         </section>
       )}
 

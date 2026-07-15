@@ -363,6 +363,22 @@
   line-height: 1.5;
 }
 
+.codeExpandBtn {
+  margin-top: 0.75rem;
+  background: none;
+  border: 1px solid rgba(94, 203, 138, 0.3);
+  border-radius: 6px;
+  color: #5ecb8a;
+  font-size: 0.8rem;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.codeExpandBtn:hover {
+  background: rgba(94, 203, 138, 0.08);
+}
+
 .sectionTitle {
   font-family: var(--mono);
   font-size: 13px;
