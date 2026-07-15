@@ -206,15 +206,13 @@ export function ReportPage() {
       getScanFindings(id),
       listScans(),
       getScan(id),
-      getCodeLocations(id),
     ])
-      .then(([r, h, f, s, meta, locs]) => {
+      .then(([r, h, f, s, meta]) => {
         setReport(r);
         setHeatmap(h.techniques ?? []);
         setFindings(f);
         setPastScans(s.filter(sc => sc.scan_id !== id).slice(0, 5));
         setScanMeta({ started_at: meta.started_at, finished_at: meta.finished_at });
-        setCodeLocations(locs);
       })
       .catch(() => {
         setReport(MOCK_REPORT);
@@ -223,6 +221,8 @@ export function ReportPage() {
         setPastScans([]);
       })
       .finally(() => setLoading(false));
+
+    getCodeLocations(id).then(locs => setCodeLocations(locs));
 
     getScanSummary(id)
       .then(summary => setAiSummary(summary))
