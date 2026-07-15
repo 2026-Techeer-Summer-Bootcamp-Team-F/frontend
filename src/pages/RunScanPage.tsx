@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { listAttackTypes, getProject, type AttackType, type Project } from '../api/projects';
 import { startScan, cancelScan, type ScanConfig } from '../api/scans';
-import { getMockProject, MOCK_ATTACK_TYPES, simulateScan } from '../api/mock';
+import {
+  getMockProject, MOCK_ATTACK_TYPES, MOCK_OBJECTIVE_COUNT, MOCK_RECON, simulateScan,
+} from '../api/mock';
 import { getToken } from '../utils/auth';
 import styles from './RunScanPage.module.css';
 import { useTutorial } from '../hooks/useTutorial';
@@ -143,12 +145,17 @@ export function RunScanPage() {
       setLogs([{ id: 0, msg: 'Attack modules loading... (demo mode)', level: 'info' }]);
       const mockScanId = 9999;
       setScanId(mockScanId);
+      // 데모엔 recon/start progress 이벤트가 없어 채팅 서브헤더·커버리지를 직접 채운다
+      setRecon(MOCK_RECON);
+      setObjectives({ done: 0, total: MOCK_OBJECTIVE_COUNT });
       cancelMockRef.current = simulateScan({
         onLog: (msg, level) =>
           setLogs(prev => [...prev, { id: prev.length, msg, level }]),
         onProgress: data => setProgress(data),
+        onAttemptEvent: e => setExchanges(prev => applyAttemptEvent(prev, e)),
         onDone: st => {
           setStatus(st === 'done' ? 'done' : 'failed');
+          setObjectives(prev => ({ ...prev, done: prev.total }));
         },
       });
     } finally {
