@@ -651,7 +651,7 @@ export function ReportPage() {
               <div><div className={styles.msec}>이 공격은?</div><div className={styles.mdesc}>{modalInfo.desc}</div></div>
               {mitHasContent(modalInfo.mitDetail)
                 ? <MitigationBlock m={modalInfo.mitDetail!} />
-                : <div><div className={styles.msec}>🛡️ 완화 방법</div><div className={styles.mpre}>{modalInfo.mitFallback}</div></div>}
+                : <div className={styles.mit}><div className={styles.mitHd}>🛡️ 완화 방법</div><div className={styles.mitSummary}>{modalInfo.mitFallback}</div></div>}
             </div>
           </div>
         </div>
