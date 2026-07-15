@@ -14,6 +14,7 @@ import {
   type HeatmapTechnique,
   type Finding,
   type MitigationDetail,
+  type MitigationRef,
   type Scan,
   type CodeLocation,
 } from '../api/scans';
@@ -106,6 +107,54 @@ const TECH: Record<string, TechInfo> = {
 function techFor(atlasId: string): TechInfo | undefined {
   const key = atlasId.replace(/^AML\./, '');
   return TECH[key] ?? TECH[key.replace(/\.\d+$/, '')];
+}
+
+// 기법별 참고 링크(MITRE ATLAS + OWASP LLM) — 모달 하단 "참고".
+// jailbreak(T0054)은 프롬프트인젝션이 아니라 jailbreak 링크를 정확히 매칭.
+const OWASP = {
+  llm01: 'https://genai.owasp.org/llmrisk/llm01-prompt-injection/',
+  llm02: 'https://genai.owasp.org/llmrisk/llm022025-sensitive-information-disclosure/',
+  llm06: 'https://genai.owasp.org/llmrisk/llm062025-excessive-agency/',
+  llm07: 'https://genai.owasp.org/llmrisk/llm072025-system-prompt-leakage/',
+};
+const atlasUrl = (id: string) => `https://atlas.mitre.org/techniques/AML.${id}`;
+const REFS: Record<string, MitigationRef[]> = {
+  T0054: [
+    { label: 'MITRE ATLAS · AML.T0054 Jailbreak', url: atlasUrl('T0054') },
+    { label: 'OWASP LLM01 · Prompt Injection(Jailbreak)', url: OWASP.llm01 },
+  ],
+  'T0051.000': [
+    { label: 'MITRE ATLAS · AML.T0051.000 Direct Injection', url: atlasUrl('T0051.000') },
+    { label: 'OWASP LLM01 · Prompt Injection', url: OWASP.llm01 },
+  ],
+  'T0051.001': [
+    { label: 'MITRE ATLAS · AML.T0051.001 Indirect Injection', url: atlasUrl('T0051.001') },
+    { label: 'OWASP LLM01 · Prompt Injection', url: OWASP.llm01 },
+  ],
+  T0056: [
+    { label: 'MITRE ATLAS · AML.T0056 System Prompt Extraction', url: atlasUrl('T0056') },
+    { label: 'OWASP LLM07 · System Prompt Leakage', url: OWASP.llm07 },
+  ],
+  T0057: [
+    { label: 'MITRE ATLAS · AML.T0057 Data Leakage', url: atlasUrl('T0057') },
+    { label: 'OWASP LLM02 · Sensitive Information Disclosure', url: OWASP.llm02 },
+  ],
+  T0053: [
+    { label: 'MITRE ATLAS · AML.T0053 Tool Invocation', url: atlasUrl('T0053') },
+    { label: 'OWASP LLM06 · Excessive Agency', url: OWASP.llm06 },
+  ],
+  T0048: [
+    { label: 'MITRE ATLAS · AML.T0048 Data Extraction', url: atlasUrl('T0048') },
+    { label: 'OWASP LLM02 · Sensitive Information Disclosure', url: OWASP.llm02 },
+  ],
+  T0052: [
+    { label: 'MITRE ATLAS · AML.T0054 Jailbreak', url: atlasUrl('T0054') },
+    { label: 'OWASP LLM01 · Prompt Injection(Jailbreak)', url: OWASP.llm01 },
+  ],
+};
+function refsFor(atlasId: string): MitigationRef[] {
+  const key = atlasId.replace(/^AML\./, '');
+  return REFS[key] ?? REFS[key.replace(/\.\d+$/, '')] ?? [];
 }
 
 type CellKind = 'br' | 'warn' | 'safe' | 'un';
@@ -321,9 +370,8 @@ export function ReportPage() {
           attempts: modalTech.attempts,
           desc: info?.desc ?? '이 기법에 대한 상세 설명이 아직 준비되지 않았습니다.',
           prompt: match?.evidence.prompt || info?.prompt || '(예시 프롬프트 없음)',
-          // 백엔드 정본(매칭 finding의 구조화 완화). 없으면 클라 맵 폴백(비침투 셀).
-          mitDetail: match?.mitigation ?? null,
-          mitFallback: info?.mit ?? '(완화 정보 없음)',
+          // 참고 링크: 기법별 정적 맵(MITRE ATLAS+OWASP). 완화방법은 상단 Top findings에만 표시.
+          references: refsFor(modalTech.atlas_technique_id),
         };
       })()
     : null;
@@ -564,7 +612,7 @@ export function ReportPage() {
         <section className={styles.codeSection}>
           <h2 className={styles.sectionTitle}>취약 코드 위치</h2>
           <div className={styles.codeList}>
-            {(codeLocationsExpanded ? codeLocations : codeLocations.slice(0, 3)).map((loc, i) => (
+            {(codeLocationsExpanded ? codeLocations : codeLocations.slice(0, 1)).map((loc, i) => (
               <div key={i} className={styles.codeLoc}>
                 <div className={styles.codeLocHeader}>
                   <span className={styles.codeAtlas}>{atlasLabel(loc.atlas_id)}</span>
@@ -580,16 +628,16 @@ export function ReportPage() {
                     : loc.snippet}
                 </pre>
                 <p className={styles.codeReason}>⚠ {loc.reason}</p>
-                {loc.fix && <p className={styles.codeFix}>🔧 이렇게 고쳐라: {loc.fix}</p>}
+                {loc.fix && <p className={styles.codeFix}>fix: {loc.fix}</p>}
               </div>
             ))}
           </div>
-          {codeLocations.length > 3 && (
+          {codeLocations.length > 1 && (
             <button
               className={styles.codeExpandBtn}
               onClick={() => setCodeLocationsExpanded(prev => !prev)}
             >
-              {codeLocationsExpanded ? '접기' : `더보기 (+${codeLocations.length - 3})`}
+              {codeLocationsExpanded ? '접기' : `더보기 (+${codeLocations.length - 1})`}
             </button>
           )}
         </section>
@@ -656,9 +704,16 @@ export function ReportPage() {
                 <div className={styles.mstatbox}><div className={styles.mk}>시도 횟수</div><div className={styles.mv}>{modalInfo.attempts}</div></div>
               </div>
               <div><div className={styles.msec}>이 공격은?</div><div className={styles.mdesc}>{modalInfo.desc}</div></div>
-              {mitHasContent(modalInfo.mitDetail)
-                ? <MitigationBlock m={modalInfo.mitDetail!} />
-                : <div className={styles.mit}><div className={styles.mitHd}>🛡️ 완화 방법</div><div className={styles.mitSummary}>{modalInfo.mitFallback}</div></div>}
+              {modalInfo.references.length > 0 && (
+                <div className={styles.mrefs}>
+                  <div className={styles.msec}>참고</div>
+                  {modalInfo.references.map((r, i) => (
+                    <a key={i} className={styles.mref} href={r.url} target="_blank" rel="noopener noreferrer">
+                      {r.label} ↗
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
