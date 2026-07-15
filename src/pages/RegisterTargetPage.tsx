@@ -43,6 +43,7 @@ export function RegisterTargetPage() {
     method: 'POST',
     body_template: '{"message": "{{prompt}}"}',
     response_path: 'reply',
+    auth_header: '',
     purpose: '',
     system_prompt: '',
     repo_url: repoFullName ? `https://github.com/${repoFullName}` : '',
@@ -87,6 +88,18 @@ export function RegisterTargetPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    // 인증 헤더 파싱: "Authorization: Bearer xxx" / "Cookie: k=v" → {name: value}.
+    // ':' 없이 값만 넣으면 Authorization 헤더로 간주. 비어 있으면 헤더 미포함(공개 앱).
+    const authInput = form.auth_header.trim();
+    let headers: Record<string, string> | undefined;
+    if (authInput) {
+      const i = authInput.indexOf(':');
+      const name = i === -1 ? 'Authorization' : authInput.slice(0, i).trim();
+      const value = i === -1 ? authInput : authInput.slice(i + 1).trim();
+      if (name && value) {
+        headers = { 'Content-Type': 'application/json', [name]: value };
+      }
+    }
     const payload = {
       project_name: form.project_name,
       actor_type: form.actor_type,
@@ -95,6 +108,7 @@ export function RegisterTargetPage() {
         method: form.method,
         body_template: form.body_template,
         response_path: form.response_path,
+        ...(headers ? { headers } : {}),
       },
       purpose: form.purpose || undefined,
       system_prompt: form.system_prompt || undefined,
@@ -177,7 +191,7 @@ export function RegisterTargetPage() {
 
             {/* 고급 설정 — 자동/프리셋으로 채워짐, 필요시만 펼침 */}
             <details className={styles.advanced}>
-              <summary className={styles.advancedSummary}>고급 설정 (자동으로 채워짐 · 필요시 수정)</summary>
+              <summary className={styles.advancedSummary}>고급 설정 (자동으로 채워짐 · 로그인이 필요한 앱이면 여기서 인증 추가)</summary>
               <div className={styles.grid}>
                 <div className={styles.field}>
                   <label className={styles.fieldLabel}>연결 방식</label>
@@ -195,6 +209,22 @@ export function RegisterTargetPage() {
                 <div className={styles.field}>
                   <label className={styles.fieldLabel}>응답 경로 (response_path)</label>
                   <input className={styles.input} placeholder="reply" value={form.response_path} onChange={set('response_path')} />
+                </div>
+                <div className={`${styles.field} ${styles.spanFull}`}>
+                  <label className={styles.fieldLabel}>
+                    인증 헤더<span className={styles.labelHint}>로그인 필요한 앱만</span>
+                  </label>
+                  <input
+                    className={styles.input}
+                    placeholder="Authorization: Bearer <토큰>   또는   Cookie: session=<값>"
+                    value={form.auth_header}
+                    onChange={set('auth_header')}
+                  />
+                  <p className={styles.fieldHelp}>
+                    로그인을 해야만 들어갈 수 있는 앱이면, 브라우저 개발자도구(F12) → 네트워크 탭에서 요청 헤더의
+                    <code className={styles.code}>Authorization</code> 값이나 <code className={styles.code}>Cookie</code>를 복사해 여기 붙여넣으세요.
+                    그러면 로그인된 사용자 권한으로 공격을 보냅니다. 누구나 열리는 공개 앱이면 비워 두면 됩니다.
+                  </p>
                 </div>
                 <div className={`${styles.field} ${styles.spanFull}`}>
                   <label className={styles.fieldLabel}>Body 템플릿 <code className={styles.code}>{'{{prompt}}'}</code> 위치 명시</label>

@@ -173,6 +173,26 @@
   border-radius: 3px;
 }
 
+/* 필드 아래 설명 문구 */
+.fieldHelp {
+  font-family: var(--font-ui);
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+}
+
+/* 라벨 옆 작은 태그(예: "로그인 필요한 앱만") */
+.labelHint {
+  margin-left: 6px;
+  font-size: 10.5px;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 1px 6px;
+  border-radius: 999px;
+  vertical-align: middle;
+}
+
 .input, .textarea {
   background: var(--bg-title);
   border: 1px solid var(--accent-border);
