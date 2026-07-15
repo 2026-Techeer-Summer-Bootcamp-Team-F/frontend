@@ -646,10 +646,9 @@ export function ReportPage() {
             <div className={styles.mbody}>
               <div className={styles.mrow}>
                 <div className={styles.mstatbox}><div className={styles.mk}>최고 공격 점수</div><div className={styles.mv}>{modalInfo.score}</div></div>
-                <div className={styles.mstatbox}><div className={styles.mk}>ATTEMPTS</div><div className={styles.mv}>{modalInfo.attempts}</div></div>
+                <div className={styles.mstatbox}><div className={styles.mk}>시도 횟수</div><div className={styles.mv}>{modalInfo.attempts}</div></div>
               </div>
               <div><div className={styles.msec}>이 공격은?</div><div className={styles.mdesc}>{modalInfo.desc}</div></div>
-              <div><div className={styles.msec}>사용된 예시 프롬프트</div><div className={styles.mpre}>{modalInfo.prompt}</div></div>
               {mitHasContent(modalInfo.mitDetail)
                 ? <MitigationBlock m={modalInfo.mitDetail!} />
                 : <div><div className={styles.msec}>🛡️ 완화 방법</div><div className={styles.mpre}>{modalInfo.mitFallback}</div></div>}
