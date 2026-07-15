@@ -78,6 +78,15 @@
 .chatSub .tg { color: #dfeee6; font-weight: 600; }
 .chatSub .sep { opacity: 0.4; }
 
+/* 스레드 래퍼 — '새 메시지 ↓' 버튼의 위치 기준. 스크롤은 .thread가 전담한다 */
+.threadWrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 /* 스레드 — 카드에서 유일한 스크롤 영역(타이틀바·서브헤더·푸터는 고정) */
 .thread {
   background: var(--bg-card);
@@ -97,6 +106,26 @@
   font-size: 12px;
   color: var(--text-muted);
 }
+
+/* 과거 내용을 보는 중 새 메시지가 왔을 때만 노출되는 점프 버튼 */
+.jump {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(94, 203, 138, 0.42);
+  background: rgba(94, 203, 138, 0.12);
+  backdrop-filter: blur(4px);
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+}
+.jump:hover { background: rgba(94, 203, 138, 0.2); }
 
 /* 목표(ATLAS 기법)별 구분선 */
 .divider {

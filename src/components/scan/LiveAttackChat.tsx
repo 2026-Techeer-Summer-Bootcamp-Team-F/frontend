@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import type { ScanAttemptEvent, ScanAttemptStartedEvent, ScanVerdict } from '../../types';
 import { ATLAS_LABELS } from '../../shared/constants';
 import styles from './LiveAttackChat.module.css';
@@ -81,6 +81,9 @@ export function applyAttemptEvent(prev: ChatExchange[], event: AttemptEvent): Ch
   }];
 }
 
+/** 하단 판정 여유(px) — 이 이내면 "하단에 붙어 있다"로 본다 */
+const BOTTOM_EPSILON = 40;
+
 const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
 
 /** 목표 순번을 ①②③…로. 10을 넘으면 그냥 숫자. */
@@ -141,11 +144,45 @@ interface Props {
 export function LiveAttackChat({
   exchanges, status, targetName, recon, generation, objectivesDone, objectivesTotal,
 }: Props) {
-  const endRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
+  /** 하단 고정 여부. 사용자가 위로 스크롤해 과거를 보는 중이면 false → 강제로 내리지 않는다.
+      리렌더를 유발할 필요가 없어 state가 아닌 ref로 둔다 */
+  const stickToBottom = useRef(true);
+  const [hasNewBelow, setHasNewBelow] = useState(false);
 
+  /** 스레드 컨테이너만 즉시 하단으로.
+   *
+   *  scrollIntoView를 쓰지 않는 이유: 조상 스크롤 컨테이너까지 함께 움직여 페이지가 튄다.
+   *  behavior:'smooth'를 쓰지 않는 이유: 스캔 중엔 메시지가 계속 도착하는데, 애니메이션이 끝나기
+   *  전에 내용이 더 자라 목표 지점이 어긋나고, 진행 중 발생하는 scroll 이벤트를 handleScroll이
+   *  "사용자가 위로 올렸다"로 오인해 하단 고정이 풀려버린다. */
+  const scrollToBottom = useCallback(() => {
+    const el = threadRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, []);
+
+  /** 스크롤할 때마다 하단 고정 여부를 갱신 — 하단으로 돌아오면 점프 버튼도 거둔다 */
+  const handleScroll = useCallback(() => {
+    const el = threadRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= BOTTOM_EPSILON;
+    stickToBottom.current = atBottom;
+    if (atBottom) setHasNewBelow(false);
+  }, []);
+
+  const jumpToLatest = useCallback(() => {
+    stickToBottom.current = true;
+    setHasNewBelow(false);
+    scrollToBottom();
+  }, [scrollToBottom]);
+
+  // 새 교환이 붙거나 응답이 채워질 때: 하단에 붙어 있으면 따라 내려가고, 아니면 점프 버튼만 띄운다
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [exchanges]);
+    if (exchanges.length === 0) return;
+    if (stickToBottom.current) scrollToBottom();
+    else setHasNewBelow(true);
+  }, [exchanges, scrollToBottom]);
 
   const answered = exchanges.filter(x => x.response !== null);
   const breached = answered.filter(x => x.response!.verdict === 'breach').length;
@@ -190,82 +227,96 @@ export function LiveAttackChat({
       </div>
 
       {/* 실시간으로 늘어나는 영역 — 보조기술이 새 공격·응답을 인지하도록 log 라이브 리전으로 */}
-      <div className={styles.thread} role="log" aria-live="polite" aria-label="실시간 공격 채팅">
-        {exchanges.length === 0 && (
-          <p className={styles.empty}>
-            스캔을 시작하면 공격과 응답이 실시간으로 표시됩니다.
-          </p>
+      <div className={styles.threadWrap}>
+        <div
+          className={styles.thread}
+          ref={threadRef}
+          onScroll={handleScroll}
+          role="log"
+          aria-live="polite"
+          aria-label="실시간 공격 채팅"
+        >
+          {exchanges.length === 0 && (
+            <p className={styles.empty}>
+              스캔을 시작하면 공격과 응답이 실시간으로 표시됩니다.
+            </p>
+          )}
+
+          {exchanges.map(x => {
+            const newObjective = x.objectiveId !== prevObjective;
+            if (newObjective) {
+              prevObjective = x.objectiveId;
+              prevGeneration = null;
+              objectiveNo += 1;
+            }
+            const newGeneration = x.generation !== prevGeneration;
+            const showGenmark = !newObjective && newGeneration && x.generation > 0;
+            prevGeneration = x.generation;
+
+            const verdict = x.response ? VERDICT_STYLE[x.response.verdict] : null;
+
+            return (
+              <Fragment key={x.key}>
+                {newObjective && (
+                  <div className={styles.divider}>
+                    목표 {circled(objectiveNo)} · <b>{techniqueName(x.atlas, x.atlasName)}</b>
+                    {' '}— {x.atlas}
+                  </div>
+                )}
+                {showGenmark && (
+                  <div className={styles.genmark}>
+                    ↻ 변이 적용 — {x.mutationOp} · gen {x.generation}
+                  </div>
+                )}
+
+                <div className={`${styles.msg} ${styles.atk}`}>
+                  <div className={styles.meta}>
+                    <span className={styles.who}>RED TEAM</span>
+                    <span className={`${styles.tag} ${styles.tech}`}>{x.atlas}</span>
+                    <span className={styles.tag}>{genTag(x.generation, x.mutationOp)}</span>
+                  </div>
+                  <div className={styles.bubble}>{x.attackPrompt}</div>
+                  {x.attackTruncated && <p className={styles.truncated}>… 프롬프트가 잘렸습니다</p>}
+                </div>
+
+                <div className={`${styles.msg} ${styles.tgt}`}>
+                  <div className={styles.meta}>
+                    <span className={styles.who}>TARGET</span>
+                    {!x.response && <span className={styles.tag}>응답 대기</span>}
+                  </div>
+                  <div className={styles.bubble}>
+                    {x.response
+                      ? highlightFlag(x.response.text, x.response.flagToken)
+                      : <span className={styles.typing}><i /><i /><i /></span>}
+                  </div>
+                  {x.response?.truncated && <p className={styles.truncated}>… 응답이 잘렸습니다</p>}
+                  {x.response && verdict && (
+                    <div className={`${styles.verdict} ${verdict.cls}`}>
+                      {verdict.label}
+                      <span className={styles.sc}>
+                        {x.response.verdict === 'error'
+                          ? (x.response.error ?? '대상 서버 응답 없음')
+                          : `fitness ${x.response.score.toFixed(2)}`}
+                      </span>
+                    </div>
+                  )}
+                  {x.response?.canaryTriggered && (
+                    <div className={styles.canary}>
+                      🚩 <b>카나리 트리거</b> — 심어둔 FLAG 토큰이 응답에 노출됐습니다.
+                      finding으로 기록됩니다.
+                    </div>
+                  )}
+                </div>
+              </Fragment>
+            );
+          })}
+        </div>
+
+        {hasNewBelow && (
+          <button className={styles.jump} onClick={jumpToLatest}>
+            새 메시지 ↓
+          </button>
         )}
-
-        {exchanges.map(x => {
-          const newObjective = x.objectiveId !== prevObjective;
-          if (newObjective) {
-            prevObjective = x.objectiveId;
-            prevGeneration = null;
-            objectiveNo += 1;
-          }
-          const newGeneration = x.generation !== prevGeneration;
-          const showGenmark = !newObjective && newGeneration && x.generation > 0;
-          prevGeneration = x.generation;
-
-          const verdict = x.response ? VERDICT_STYLE[x.response.verdict] : null;
-
-          return (
-            <Fragment key={x.key}>
-              {newObjective && (
-                <div className={styles.divider}>
-                  목표 {circled(objectiveNo)} · <b>{techniqueName(x.atlas, x.atlasName)}</b>
-                  {' '}— {x.atlas}
-                </div>
-              )}
-              {showGenmark && (
-                <div className={styles.genmark}>
-                  ↻ 변이 적용 — {x.mutationOp} · gen {x.generation}
-                </div>
-              )}
-
-              <div className={`${styles.msg} ${styles.atk}`}>
-                <div className={styles.meta}>
-                  <span className={styles.who}>RED TEAM</span>
-                  <span className={`${styles.tag} ${styles.tech}`}>{x.atlas}</span>
-                  <span className={styles.tag}>{genTag(x.generation, x.mutationOp)}</span>
-                </div>
-                <div className={styles.bubble}>{x.attackPrompt}</div>
-                {x.attackTruncated && <p className={styles.truncated}>… 프롬프트가 잘렸습니다</p>}
-              </div>
-
-              <div className={`${styles.msg} ${styles.tgt}`}>
-                <div className={styles.meta}>
-                  <span className={styles.who}>TARGET</span>
-                  {!x.response && <span className={styles.tag}>응답 대기</span>}
-                </div>
-                <div className={styles.bubble}>
-                  {x.response
-                    ? highlightFlag(x.response.text, x.response.flagToken)
-                    : <span className={styles.typing}><i /><i /><i /></span>}
-                </div>
-                {x.response?.truncated && <p className={styles.truncated}>… 응답이 잘렸습니다</p>}
-                {x.response && verdict && (
-                  <div className={`${styles.verdict} ${verdict.cls}`}>
-                    {verdict.label}
-                    <span className={styles.sc}>
-                      {x.response.verdict === 'error'
-                        ? (x.response.error ?? '대상 서버 응답 없음')
-                        : `fitness ${x.response.score.toFixed(2)}`}
-                    </span>
-                  </div>
-                )}
-                {x.response?.canaryTriggered && (
-                  <div className={styles.canary}>
-                    🚩 <b>카나리 트리거</b> — 심어둔 FLAG 토큰이 응답에 노출됐습니다.
-                    finding으로 기록됩니다.
-                  </div>
-                )}
-              </div>
-            </Fragment>
-          );
-        })}
-        <div ref={endRef} />
       </div>
 
       <div className={styles.chatFoot}>
