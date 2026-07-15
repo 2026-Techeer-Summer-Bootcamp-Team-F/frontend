@@ -1,0 +1,234 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1784119561120,
+  "projectRoot": "/Users/gangminseo/Desktop/테커여름부트캠프/ai-redteam/frontend",
+  "techStack": {
+    "languages": [
+      {
+        "name": "JavaScript/TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "package.json"
+        ]
+      },
+      {
+        "name": "TypeScript",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "tsconfig.json"
+        ]
+      }
+    ],
+    "frameworks": [
+      {
+        "name": "react",
+        "version": "latest",
+        "category": "frontend"
+      },
+      {
+        "name": "react-dom",
+        "version": "latest",
+        "category": "frontend"
+      },
+      {
+        "name": "vite",
+        "version": "latest",
+        "category": "build"
+      },
+      {
+        "name": "playwright",
+        "version": "1.61.1",
+        "category": "testing"
+      }
+    ],
+    "packageManager": "npm",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": "npm run build",
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": "npm run dev",
+    "scripts": {
+      "dev": "vite",
+      "build": "tsc -b && vite build",
+      "preview": "vite preview",
+      "typecheck": "tsc -b"
+    }
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": "type-based"
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "docs",
+      "public",
+      "scripts",
+      "src"
+    ],
+    "gitBranches": {
+      "defaultBranch": "develop",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "dist": {
+      "path": "dist",
+      "purpose": "Distribution/build output",
+      "fileCount": 9,
+      "lastAccessed": 1784119561097,
+      "keyFiles": [
+        "github-142-svgrepo-com.svg",
+        "hackie.gif",
+        "index.html",
+        "logo-raccoon.png",
+        "logo-redi.png"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 0,
+      "lastAccessed": 1784119561097,
+      "keyFiles": []
+    },
+    "public": {
+      "path": "public",
+      "purpose": "Public files",
+      "fileCount": 5,
+      "lastAccessed": 1784119561099,
+      "keyFiles": [
+        "brand.png",
+        "github.svg",
+        "hackie.gif",
+        "logo.png",
+        "raccoon.png"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 1,
+      "lastAccessed": 1784119561100,
+      "keyFiles": [
+        "capture-guide.mjs"
+      ]
+    },
+    "src": {
+      "path": "src",
+      "purpose": "Source code",
+      "fileCount": 2,
+      "lastAccessed": 1784119561100,
+      "keyFiles": [
+        "main.tsx",
+        "vite-env.d.ts"
+      ]
+    },
+    "dist/assets": {
+      "path": "dist/assets",
+      "purpose": "Static assets",
+      "fileCount": 2,
+      "lastAccessed": 1784119561100,
+      "keyFiles": [
+        "index-C434XwJB.css",
+        "index-DQELjPea.js"
+      ]
+    },
+    "docs/assets": {
+      "path": "docs/assets",
+      "purpose": "Static assets",
+      "fileCount": 4,
+      "lastAccessed": 1784119561101,
+      "keyFiles": [
+        "airedteam-erd-scan_id유지본.png",
+        "airedteam-erd-정규화이전.png",
+        "airedteam-erd.png"
+      ]
+    },
+    "src/api": {
+      "path": "src/api",
+      "purpose": "API routes",
+      "fileCount": 7,
+      "lastAccessed": 1784119561101,
+      "keyFiles": [
+        "auth.ts",
+        "client.ts",
+        "github.ts"
+      ]
+    },
+    "src/app": {
+      "path": "src/app",
+      "purpose": "Application code",
+      "fileCount": 2,
+      "lastAccessed": 1784119561101,
+      "keyFiles": [
+        "App.tsx",
+        "router.tsx"
+      ]
+    },
+    "src/components": {
+      "path": "src/components",
+      "purpose": "UI components",
+      "fileCount": 3,
+      "lastAccessed": 1784119561101,
+      "keyFiles": [
+        "Brand.module.css",
+        "Brand.tsx",
+        "EChart.tsx"
+      ]
+    },
+    "src/pages": {
+      "path": "src/pages",
+      "purpose": "Page components",
+      "fileCount": 17,
+      "lastAccessed": 1784119561101,
+      "keyFiles": [
+        "AgreementPage.module.css",
+        "AgreementPage.tsx",
+        "AuthCallbackPage.tsx"
+      ]
+    },
+    "src/types": {
+      "path": "src/types",
+      "purpose": "Type definitions",
+      "fileCount": 1,
+      "lastAccessed": 1784119561102,
+      "keyFiles": [
+        "index.ts"
+      ]
+    },
+    "src/utils": {
+      "path": "src/utils",
+      "purpose": "Utility functions",
+      "fileCount": 2,
+      "lastAccessed": 1784119561102,
+      "keyFiles": [
+        "auth.ts",
+        "sse.ts"
+      ]
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "src/pages/ReportPage.tsx",
+      "accessCount": 8,
+      "lastAccessed": 1784119689685,
+      "type": "file"
+    },
+    {
+      "path": "src/pages/ReportPage.module.css",
+      "accessCount": 2,
+      "lastAccessed": 1784119708213,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

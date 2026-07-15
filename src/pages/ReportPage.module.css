@@ -256,6 +256,9 @@
 .msec { font-size: 12px; font-weight: 700; color: var(--accent); margin-bottom: 5px; }
 .mdesc { font-size: 13px; line-height: 1.7; color: rgba(232, 240, 234, 0.85); }
 .mpre { font-family: var(--mono); font-size: 11px; line-height: 1.5; background: #070c09; border: 1px solid var(--line); border-radius: 8px; padding: 11px; color: #c6e2d5; white-space: pre-wrap; word-break: break-word; }
+.mrefs { margin: 0 13px 12px; padding-left: 12px; border-left: 2px solid var(--accent); display: flex; flex-direction: column; gap: 6px; }
+.mref { font-size: 12.5px; color: #7fd6a4; text-decoration: none; line-height: 1.5; word-break: break-word; }
+.mref:hover { text-decoration: underline; }
 
 /* ── duration + past scans ── */
 .metaRow { display: flex; flex-direction: column; gap: 12px; }
