@@ -12,17 +12,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 11px 14px;
   background: var(--bg-title);
   border-bottom: 1px solid var(--accent-border);
   flex-shrink: 0;
 }
-
-.dots { display: flex; gap: 6px; }
-.dot  { display: block; width: 12px; height: 12px; border-radius: 50%; }
-.dg  { background: #28c840; }
-.dy  { background: #febc2e; }
-.dgr { background: #3a3a3a; }
 
 .title {
   font-family: var(--font-ui);

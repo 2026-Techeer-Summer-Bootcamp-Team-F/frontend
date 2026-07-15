@@ -43,11 +43,6 @@ export function AttackSessionList({ exchanges, selected, onSelect, status }: Pro
   return (
     <div className={styles.list}>
       <div className={styles.header}>
-        <div className={styles.dots}>
-          <span className={`${styles.dot} ${styles.dg}`} />
-          <span className={`${styles.dot} ${styles.dy}`} />
-          <span className={`${styles.dot} ${styles.dgr}`} />
-        </div>
         <span className={styles.title}>SESSIONS</span>
         {sessions.length > 0 && (
           <span className={styles.badge}>{sessions.length}</span>
