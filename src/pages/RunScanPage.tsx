@@ -11,6 +11,7 @@ import { useTutorial } from '../hooks/useTutorial';
 import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
 import { atlasLabel } from '../shared/constants';
 import { LiveAttackChat, applyAttemptEvent, type ChatExchange } from '../components/scan/LiveAttackChat';
+import { AttackSessionList } from '../components/scan/AttackSessionList';
 
 interface LogLine { id: number; msg: string; level: string }
 interface ProgressData {
@@ -47,6 +48,7 @@ export function RunScanPage() {
   const [recon, setRecon] = useState<{ tools: string[]; defenses: string[] } | null>(null);
   const [objectives, setObjectives] = useState({ done: 0, total: 0 });
   const [loadingStart, setLoadingStart] = useState(false);
+  const [selectedObjectiveId, setSelectedObjectiveId] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const logEndRef = useRef<HTMLDivElement>(null);
   const esRef = useRef<EventSource | null>(null);
@@ -249,6 +251,7 @@ export function RunScanPage() {
     setExchanges([]);
     setRecon(null);
     setObjectives({ done: 0, total: 0 });
+    setSelectedObjectiveId(null);
   };
 
   return (
@@ -316,7 +319,7 @@ export function RunScanPage() {
         )}
       </div>
 
-      {/* ── 분석 2단: 좌 = Live Analysis Log(기존), 우 = 실시간 공격 채팅(#26) ── */}
+      {/* ── 분석 3단: 터미널 로그 | 기법별 세션 목록 | 선택된 세션 공격 채팅 ── */}
       <div className={styles.analysisRow}>
       {/* ── Live log (fixed height, scrollable) ── */}
       <section className={styles.terminal}>
@@ -362,6 +365,13 @@ export function RunScanPage() {
         </div>
       </section>
 
+        <AttackSessionList
+          exchanges={exchanges}
+          selected={selectedObjectiveId}
+          onSelect={setSelectedObjectiveId}
+          status={status}
+        />
+
         <LiveAttackChat
           exchanges={exchanges}
           status={status}
@@ -370,6 +380,7 @@ export function RunScanPage() {
           generation={progress?.generation ?? 0}
           objectivesDone={objectives.done}
           objectivesTotal={objectives.total}
+          selectedObjectiveId={selectedObjectiveId}
         />
       </div>
     </div>

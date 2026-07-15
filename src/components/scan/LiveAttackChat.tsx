@@ -133,6 +133,8 @@ interface Props {
   /** 목표 커버리지 — 완료/전체 */
   objectivesDone: number;
   objectivesTotal: number;
+  /** 선택된 세션(objectiveId). null이면 전체 */
+  selectedObjectiveId?: number | null;
 }
 
 /**
@@ -143,7 +145,15 @@ interface Props {
  */
 export function LiveAttackChat({
   exchanges, status, targetName, recon, generation, objectivesDone, objectivesTotal,
+  selectedObjectiveId = null,
 }: Props) {
+  const visible = selectedObjectiveId != null
+    ? exchanges.filter(x => x.objectiveId === selectedObjectiveId)
+    : exchanges;
+  // 선택된 세션의 기법 이름 (서브헤더 표시용)
+  const selectedTechnique = selectedObjectiveId != null
+    ? exchanges.find(x => x.objectiveId === selectedObjectiveId)
+    : null;
   const threadRef = useRef<HTMLDivElement>(null);
   /** 하단 고정 여부. 사용자가 위로 스크롤해 과거를 보는 중이면 false → 강제로 내리지 않는다.
       리렌더를 유발할 필요가 없어 state가 아닌 ref로 둔다 */
@@ -179,18 +189,16 @@ export function LiveAttackChat({
 
   // 새 교환이 붙거나 응답이 채워질 때: 하단에 붙어 있으면 따라 내려가고, 아니면 점프 버튼만 띄운다
   useEffect(() => {
-    // 재스캔(handleRestart)으로 교환이 비면 초기 상태로 되돌린다 — 안 그러면 직전 스캔에서
-    // 위로 올려둔 상태가 남아 빈 채팅에 점프 버튼이 뜨고 새 스캔이 자동 추종되지 않는다
-    if (exchanges.length === 0) {
+    if (visible.length === 0) {
       stickToBottom.current = true;
       setHasNewBelow(false);
       return;
     }
     if (stickToBottom.current) scrollToBottom();
     else setHasNewBelow(true);
-  }, [exchanges, scrollToBottom]);
+  }, [visible, scrollToBottom]);
 
-  const answered = exchanges.filter(x => x.response !== null);
+  const answered = visible.filter(x => x.response !== null);
   const breached = answered.filter(x => x.response!.verdict === 'breach').length;
   const defended = answered.filter(x => x.response!.verdict === 'safe').length;
   const coverage = objectivesTotal > 0
@@ -219,7 +227,14 @@ export function LiveAttackChat({
       <div className={styles.chatSub}>
         <span className={styles.tg}>🎯 {targetName}</span>
         <span className={styles.sep}>·</span>
-        {recon ? (
+        {selectedTechnique ? (
+          <span>
+            <b style={{ color: 'var(--accent)' }}>
+              {techniqueName(selectedTechnique.atlas, selectedTechnique.atlasName)}
+            </b>
+            {' '}· {selectedTechnique.atlas}
+          </span>
+        ) : recon ? (
           <>
             <span>tools: {recon.tools.length ? recon.tools.join(', ') : 'none'}</span>
             <span className={styles.sep}>·</span>
@@ -228,8 +243,6 @@ export function LiveAttackChat({
         ) : (
           <span>정찰 중…</span>
         )}
-        <span className={styles.sep}>·</span>
-        <span>공격 프롬프트 영어 통일</span>
       </div>
 
       {/* 실시간으로 늘어나는 영역 — 보조기술이 새 공격·응답을 인지하도록 log 라이브 리전으로 */}
@@ -242,13 +255,15 @@ export function LiveAttackChat({
           aria-live="polite"
           aria-label="실시간 공격 채팅"
         >
-          {exchanges.length === 0 && (
+          {visible.length === 0 && (
             <p className={styles.empty}>
-              스캔을 시작하면 공격과 응답이 실시간으로 표시됩니다.
+              {selectedObjectiveId != null
+                ? '이 기법의 공격이 아직 시작되지 않았습니다.'
+                : '스캔을 시작하면 공격과 응답이 실시간으로 표시됩니다.'}
             </p>
           )}
 
-          {exchanges.map(x => {
+          {visible.map(x => {
             const newObjective = x.objectiveId !== prevObjective;
             if (newObjective) {
               prevObjective = x.objectiveId;
@@ -263,7 +278,7 @@ export function LiveAttackChat({
 
             return (
               <Fragment key={x.key}>
-                {newObjective && (
+                {newObjective && selectedObjectiveId == null && (
                   <div className={styles.divider}>
                     목표 {circled(objectiveNo)} · <b>{techniqueName(x.atlas, x.atlasName)}</b>
                     {' '}— {x.atlas}
