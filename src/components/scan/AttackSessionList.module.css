@@ -1,5 +1,5 @@
 .list {
-  border-right: 1px solid var(--accent-border);
+  border-left: 1px solid var(--accent-border);
   width: 200px;
   flex-shrink: 0;
   overflow: hidden;

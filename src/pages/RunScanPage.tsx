@@ -366,12 +366,6 @@ export function RunScanPage() {
       </section>
 
         <div className={styles.chatPanel}>
-          <AttackSessionList
-            exchanges={exchanges}
-            selected={selectedObjectiveId}
-            onSelect={setSelectedObjectiveId}
-            status={status}
-          />
           <LiveAttackChat
             exchanges={exchanges}
             status={status}
@@ -381,6 +375,12 @@ export function RunScanPage() {
             objectivesDone={objectives.done}
             objectivesTotal={objectives.total}
             selectedObjectiveId={selectedObjectiveId}
+          />
+          <AttackSessionList
+            exchanges={exchanges}
+            selected={selectedObjectiveId}
+            onSelect={setSelectedObjectiveId}
+            status={status}
           />
         </div>
       </div>
