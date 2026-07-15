@@ -62,6 +62,14 @@ export interface MitigationDetail {
   references: MitigationRef[];
 }
 
+export interface CodeLocation {
+  file: string;
+  line: number;
+  snippet: string;
+  atlas_id: string;
+  reason: string;
+}
+
 export interface Finding {
   findings_id: number;
   objective_id: number;
@@ -156,4 +164,13 @@ export async function listScans(targetId?: number): Promise<Scan[]> {
     params: targetId ? { target_id: targetId } : undefined,
   });
   return data;
+}
+
+export async function getCodeLocations(scanId: number): Promise<CodeLocation[]> {
+  try {
+    const { data } = await apiClient.get<CodeLocation[]>(`/scans/${scanId}/code-locations`);
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
 }
