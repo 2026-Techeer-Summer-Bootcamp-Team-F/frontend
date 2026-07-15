@@ -14,7 +14,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 16px;
+  padding: 0 16px;
+  height: 39px;
+  box-sizing: border-box;
   background: var(--bg-title);
   border-bottom: 1px solid var(--accent-border);
   font-family: var(--font-ui);
