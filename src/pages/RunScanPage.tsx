@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { listAttackTypes, getProject, type AttackType, type Project } from '../api/projects';
 import { startScan, cancelScan, type ScanConfig } from '../api/scans';
-import { getMockProject, MOCK_ATTACK_TYPES, simulateScan } from '../api/mock';
+import {
+  getMockProject, MOCK_ATTACK_TYPES, MOCK_OBJECTIVE_COUNT, MOCK_RECON, simulateScan,
+} from '../api/mock';
 import { getToken } from '../utils/auth';
 import styles from './RunScanPage.module.css';
 import { useTutorial } from '../hooks/useTutorial';
 import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
 import { atlasLabel } from '../shared/constants';
+import { LiveAttackChat, applyAttemptEvent, type ChatExchange } from '../components/scan/LiveAttackChat';
 
 interface LogLine { id: number; msg: string; level: string }
 interface ProgressData {
@@ -39,6 +42,10 @@ export function RunScanPage() {
   const [status, setStatus] = useState<'idle' | 'running' | 'done' | 'failed'>('idle');
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [progress, setProgress] = useState<ProgressData | null>(null);
+  // 실시간 공격 채팅(#26) — 터미널 로그와 같은 EventSource를 공유한다
+  const [exchanges, setExchanges] = useState<ChatExchange[]>([]);
+  const [recon, setRecon] = useState<{ tools: string[]; defenses: string[] } | null>(null);
+  const [objectives, setObjectives] = useState({ done: 0, total: 0 });
   const [loadingStart, setLoadingStart] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const logEndRef = useRef<HTMLDivElement>(null);
@@ -138,10 +145,15 @@ export function RunScanPage() {
       setLogs([{ id: 0, msg: 'Attack modules loading... (demo mode)', level: 'info' }]);
       const mockScanId = 9999;
       setScanId(mockScanId);
+      // 데모엔 recon/start progress 이벤트가 없어 채팅 서브헤더·커버리지를 직접 채운다
+      setRecon(MOCK_RECON);
+      setObjectives({ done: 0, total: MOCK_OBJECTIVE_COUNT });
       cancelMockRef.current = simulateScan({
         onLog: (msg, level) =>
           setLogs(prev => [...prev, { id: prev.length, msg, level }]),
         onProgress: data => setProgress(data),
+        onAttemptEvent: e => setExchanges(prev => applyAttemptEvent(prev, e)),
+        onObjectiveDone: () => setObjectives(prev => ({ ...prev, done: prev.done + 1 })),
         onDone: st => {
           setStatus(st === 'done' ? 'done' : 'failed');
         },
@@ -178,14 +190,22 @@ export function RunScanPage() {
         // progress 이벤트 → 터미널 로그
         if (d.phase === 'recon') {
           addLog(`[RECON] 정찰 완료 — tools: ${(d.tools ?? []).join(', ') || '없음'}, defenses: ${(d.defenses ?? []).join(', ') || '없음'}`);
+          setRecon({ tools: d.tools ?? [], defenses: d.defenses ?? [] });
         } else if (d.phase === 'start') {
           addLog(`[SCAN] 목표 ${d.objectives ?? 0}개 확인, 진화 루프 시작`);
+          setObjectives({ done: 0, total: d.objectives ?? 0 });
         } else if (d.phase === 'evolve') {
           addLog(`[GEN ${d.generation}] 최고 점수 ${((d.best_score ?? 0) * 100).toFixed(1)}%`);
         } else if (d.phase === 'objective_done') {
           addLog(`[OBJECTIVE] 완료 — ${d.status ?? ''}`, d.status === 'breached' ? 'error' : 'info');
+          setObjectives(prev => ({ ...prev, done: prev.done + 1 }));
         }
+      } else if (eventType === 'attempt_started') {
+        // 발사 직전(#102) — 채팅에만 반영(공격 말풍선 + 타이핑). 터미널 로그는 기존대로
+        // attempt에서만 찍는다(로그 중복 방지).
+        setExchanges(prev => applyAttemptEvent(prev, d));
       } else if (eventType === 'attempt') {
+        setExchanges(prev => applyAttemptEvent(prev, d));
         const verdict = d.verdict as string;
         const score = ((d.score ?? 0) * 100).toFixed(1);
         const op = d.mutation_op ? ` [${d.mutation_op}]` : '';
@@ -226,6 +246,9 @@ export function RunScanPage() {
     setLogs([]);
     setProgress(null);
     setElapsed(0);
+    setExchanges([]);
+    setRecon(null);
+    setObjectives({ done: 0, total: 0 });
   };
 
   return (
@@ -293,6 +316,8 @@ export function RunScanPage() {
         )}
       </div>
 
+      {/* ── 분석 2단: 좌 = Live Analysis Log(기존), 우 = 실시간 공격 채팅(#26) ── */}
+      <div className={styles.analysisRow}>
       {/* ── Live log (fixed height, scrollable) ── */}
       <section className={styles.terminal}>
         <div className={styles.termTitle}>
@@ -336,6 +361,17 @@ export function RunScanPage() {
           <div ref={logEndRef} />
         </div>
       </section>
+
+        <LiveAttackChat
+          exchanges={exchanges}
+          status={status}
+          targetName={project?.project_name ?? '표적'}
+          recon={recon}
+          generation={progress?.generation ?? 0}
+          objectivesDone={objectives.done}
+          objectivesTotal={objectives.total}
+        />
+      </div>
     </div>
   );
 }
