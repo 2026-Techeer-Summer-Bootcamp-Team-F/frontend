@@ -363,6 +363,14 @@
   line-height: 1.5;
 }
 
+/* 이렇게 고쳐라(fix) — 서비스 초록 톤 */
+.codeFix {
+  font-size: 0.82rem;
+  color: #5ecb8a;
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+
 .codeExpandBtn {
   margin-top: 0.75rem;
   background: none;
