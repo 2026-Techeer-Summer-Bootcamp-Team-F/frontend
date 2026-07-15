@@ -7,7 +7,9 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 440px;
+  /* min-height가 아닌 확정 height — 카드 높이가 auto면 .thread가 내용만큼 자라
+     overflow-y가 발동하지 않는다. 좌측 .terminal과 같은 값(2단 높이 정합) */
+  height: 440px;
 }
 
 /* 타이틀바 — 좌측 터미널과 같은 크롬 */
@@ -76,11 +78,13 @@
 .chatSub .tg { color: #dfeee6; font-weight: 600; }
 .chatSub .sep { opacity: 0.4; }
 
-/* 스레드 */
+/* 스레드 — 카드에서 유일한 스크롤 영역(타이틀바·서브헤더·푸터는 고정) */
 .thread {
   background: var(--bg-card);
   padding: 14px 16px;
   flex: 1;
+  /* flex 아이템 기본값 min-height:auto면 내용 아래로 못 줄어 스크롤 대신 오버플로가 난다 */
+  min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;

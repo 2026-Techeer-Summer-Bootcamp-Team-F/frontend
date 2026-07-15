@@ -290,7 +290,9 @@
   /* 2단에서 채팅과 높이를 맞추기 위한 세로 플렉스(표시 내용·로그 로직은 그대로) */
   display: flex;
   flex-direction: column;
-  min-height: 440px;
+  /* min-height가 아닌 확정 height — .analysisRow는 stretch 그리드라 행 높이가 두 카드 중
+     큰 쪽을 따른다. 여기가 auto면 로그가 쌓일 때 행째로 늘어나 채팅 높이 고정이 무너진다 */
+  height: 440px;
 }
 
 .termTitle {
