@@ -179,7 +179,13 @@ export function LiveAttackChat({
 
   // 새 교환이 붙거나 응답이 채워질 때: 하단에 붙어 있으면 따라 내려가고, 아니면 점프 버튼만 띄운다
   useEffect(() => {
-    if (exchanges.length === 0) return;
+    // 재스캔(handleRestart)으로 교환이 비면 초기 상태로 되돌린다 — 안 그러면 직전 스캔에서
+    // 위로 올려둔 상태가 남아 빈 채팅에 점프 버튼이 뜨고 새 스캔이 자동 추종되지 않는다
+    if (exchanges.length === 0) {
+      stickToBottom.current = true;
+      setHasNewBelow(false);
+      return;
+    }
     if (stickToBottom.current) scrollToBottom();
     else setHasNewBelow(true);
   }, [exchanges, scrollToBottom]);
