@@ -9,13 +9,16 @@ import {
   getScanSummary,
   getScan,
   listScans,
+  getCodeLocations,
   type ScanReport,
   type HeatmapTechnique,
   type Finding,
   type MitigationDetail,
   type Scan,
+  type CodeLocation,
 } from '../api/scans';
 import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS } from '../api/mock';
+import { atlasLabel } from '../shared/constants';
 import { EChart } from '../components/EChart';
 import styles from './ReportPage.module.css';
 import { useTutorial } from '../hooks/useTutorial';
@@ -159,6 +162,7 @@ export function ReportPage() {
   const [pastOpen, setPastOpen] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [modalTech, setModalTech] = useState<HeatmapTechnique | null>(null);
+  const [codeLocations, setCodeLocations] = useState<CodeLocation[]>([]);
 
   const tutorial = useTutorial('report', [
     {
@@ -202,13 +206,15 @@ export function ReportPage() {
       getScanFindings(id),
       listScans(),
       getScan(id),
+      getCodeLocations(id),
     ])
-      .then(([r, h, f, s, meta]) => {
+      .then(([r, h, f, s, meta, locs]) => {
         setReport(r);
         setHeatmap(h.techniques ?? []);
         setFindings(f);
         setPastScans(s.filter(sc => sc.scan_id !== id).slice(0, 5));
         setScanMeta({ started_at: meta.started_at, finished_at: meta.finished_at });
+        setCodeLocations(locs);
       })
       .catch(() => {
         setReport(MOCK_REPORT);
@@ -551,6 +557,27 @@ export function ReportPage() {
           </div>
         </div>
       </div>
+
+      {/* ── 취약 코드 위치 ── */}
+      {codeLocations.length > 0 && (
+        <section className={styles.codeSection}>
+          <h2 className={styles.sectionTitle}>취약 코드 위치</h2>
+          <div className={styles.codeList}>
+            {codeLocations.map((loc, i) => (
+              <div key={i} className={styles.codeLoc}>
+                <div className={styles.codeLocHeader}>
+                  <span className={styles.codeAtlas}>{atlasLabel(loc.atlas_id)}</span>
+                  <span className={styles.codeFile}>
+                    📄 {loc.file} <span className={styles.codeLine}>:{loc.line}</span>
+                  </span>
+                </div>
+                <pre className={styles.codeSnippet}>{loc.snippet}</pre>
+                <p className={styles.codeReason}>⚠ {loc.reason}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── AI SUMMARY ── */}
       {aiSummary && (

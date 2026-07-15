@@ -302,10 +302,85 @@
   .sumIn { grid-template-columns: 1fr; }
 }
 
-/* ── 취약 코드 위치 ── */
+/* ── 취약 코드 위치 섹션 ── */
+.codeSection {
+  margin-top: 2rem;
+}
+
+.codeList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.codeLocHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.codeAtlas {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #5ecb8a;
+  background: rgba(94, 203, 138, 0.1);
+  border: 1px solid rgba(94, 203, 138, 0.25);
+  border-radius: 4px;
+  padding: 2px 8px;
+  letter-spacing: 0.03em;
+}
+
+.codeFile {
+  font-size: 0.82rem;
+  color: #a8c4b0;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+.codeLine {
+  color: #5ecb8a;
+  font-weight: 700;
+}
+
+.codeSnippet {
+  background: #060d09;
+  border: 1px solid rgba(94, 203, 138, 0.08);
+  border-radius: 6px;
+  padding: 0.6rem 0.9rem;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 0.78rem;
+  color: #c8dfd0;
+  overflow-x: auto;
+  white-space: pre;
+  margin: 0 0 0.6rem 0;
+}
+
+.codeReason {
+  font-size: 0.82rem;
+  color: #e0a452;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.sectionTitle {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  margin: 0 0 1rem 0;
+}
+
+/* ── 취약 코드 위치 (기존 스타일 유지) ── */
 .codeLocs { margin: 0 13px 12px; display: flex; flex-direction: column; gap: 8px; }
 .codeLocsHd { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 2px; }
-.codeLoc { background: #070c09; border: 1px solid var(--line); border-radius: 7px; padding: 9px 11px; display: flex; flex-direction: column; gap: 5px; }
+.codeLoc {
+  background: #0d1512;
+  border: 1px solid rgba(94, 203, 138, 0.15);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
 .codeLocMeta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .codeLocFile { font-size: 11px; color: #5ecb8a; font-weight: 600; word-break: break-all; }
 .codeLocLine { font-size: 10px; color: rgba(240,244,242,0.4); flex-shrink: 0; }
