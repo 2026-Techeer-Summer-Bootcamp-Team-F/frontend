@@ -692,16 +692,6 @@ function MitigationBlock({ m }: { m: MitigationDetail }) {
           <div className={styles.mitV}>{m.verify}</div>
         </div>
       )}
-      {m.references.length > 0 && (
-        <div className={styles.mitSec}>
-          <div className={styles.mitK}>참고</div>
-          <div className={styles.mitRefs}>
-            {m.references.map((r, i) => (
-              <a key={i} href={r.url} target="_blank" rel="noreferrer noopener">{r.label} ↗</a>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
