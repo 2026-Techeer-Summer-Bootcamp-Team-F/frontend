@@ -153,9 +153,9 @@ export function RunScanPage() {
           setLogs(prev => [...prev, { id: prev.length, msg, level }]),
         onProgress: data => setProgress(data),
         onAttemptEvent: e => setExchanges(prev => applyAttemptEvent(prev, e)),
+        onObjectiveDone: () => setObjectives(prev => ({ ...prev, done: prev.done + 1 })),
         onDone: st => {
           setStatus(st === 'done' ? 'done' : 'failed');
-          setObjectives(prev => ({ ...prev, done: prev.total }));
         },
       });
     } finally {

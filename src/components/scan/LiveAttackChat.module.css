@@ -46,10 +46,10 @@
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  animation: pRing 1.6s infinite;
+  animation: pulse-ring 1.6s infinite;
 }
 
-@keyframes pRing {
+@keyframes pulse-ring {
   0%   { box-shadow: 0 0 0 0 rgba(94, 203, 138, 0.5); }
   70%  { box-shadow: 0 0 0 7px rgba(94, 203, 138, 0); }
   100% { box-shadow: 0 0 0 0 rgba(94, 203, 138, 0); }
@@ -167,7 +167,8 @@
   font-size: 11.8px;
   line-height: 1.55;
   white-space: pre-wrap;
-  word-break: break-word;
+  /* 긴 영어 프롬프트·FLAG 토큰이 말풍선을 넘지 않게. break-word는 deprecated 키워드 */
+  overflow-wrap: anywhere;
 }
 /* 공격 프롬프트는 영어 원문 → 모노스페이스(목업 규칙). --font-mono는 앱에서 제거돼 직접 지정 */
 .atk .bubble {

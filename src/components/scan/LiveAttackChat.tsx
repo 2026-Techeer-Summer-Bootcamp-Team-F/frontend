@@ -189,7 +189,8 @@ export function LiveAttackChat({
         <span>공격 프롬프트 영어 통일</span>
       </div>
 
-      <div className={styles.thread}>
+      {/* 실시간으로 늘어나는 영역 — 보조기술이 새 공격·응답을 인지하도록 log 라이브 리전으로 */}
+      <div className={styles.thread} role="log" aria-live="polite" aria-label="실시간 공격 채팅">
         {exchanges.length === 0 && (
           <p className={styles.empty}>
             스캔을 시작하면 공격과 응답이 실시간으로 표시됩니다.

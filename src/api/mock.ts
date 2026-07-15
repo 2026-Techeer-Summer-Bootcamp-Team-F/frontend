@@ -156,6 +156,11 @@ interface ScanCallbacks {
   onDone: (status: 'done' | 'failed') => void;
   /** 실시간 공격 채팅용 이벤트(#26). 실제 SSE와 같은 attempt_started→attempt 순서로 흘린다. */
   onAttemptEvent?: (event: ScanAttemptStartedEvent | ScanAttemptEvent) => void;
+  /**
+   * 목표 1개의 마지막 공격이 끝난 시점. 실제 SSE의 progress(phase=objective_done)에 대응한다.
+   * 이게 없으면 데모 커버리지가 0%에 머물다 종료 순간 100%로 점프한다.
+   */
+  onObjectiveDone?: (objectiveId: number) => void;
 }
 
 /** 데모용 공격 대본 — 목표 2개(방어 → 변이 → 돌파) */
@@ -194,13 +199,16 @@ export const MOCK_RECON = { tools: [] as string[], defenses: [] as string[] };
 export const MOCK_OBJECTIVE_COUNT = new Set(MOCK_ATTACK_SCRIPT.map(s => s.objectiveId)).size;
 
 export function simulateScan(callbacks: ScanCallbacks): () => void {
-  const { onLog, onProgress, onDone, onAttemptEvent } = callbacks;
+  const { onLog, onProgress, onDone, onAttemptEvent, onObjectiveDone } = callbacks;
   const timers: ReturnType<typeof setTimeout>[] = [];
 
   // 채팅 대본: attempt_started(발사) → 1.4초 뒤 attempt(응답·판정). 실제 SSE와 같은 순서라
   // 타이핑 인디케이터가 자연스럽게 뜨고 사라진다.
   if (onAttemptEvent) {
     const perIndex: Record<number, number> = {};
+    // 목표별 마지막 대본 위치 — 그 attempt가 끝나면 objective_done에 해당
+    const lastOfObjective = new Map<number, number>();
+    MOCK_ATTACK_SCRIPT.forEach((s, i) => lastOfObjective.set(s.objectiveId, i));
     MOCK_ATTACK_SCRIPT.forEach((s, i) => {
       const attemptIndex = (perIndex[s.objectiveId] = (perIndex[s.objectiveId] ?? 0) + 1);
       const firedAt = 1500 + i * 3200;
@@ -225,6 +233,7 @@ export function simulateScan(callbacks: ScanCallbacks): () => void {
           target_response: s.response, target_response_truncated: false,
           canary_triggered: s.flag !== null, flag_token: s.flag,
         });
+        if (lastOfObjective.get(s.objectiveId) === i) onObjectiveDone?.(s.objectiveId);
       }, firedAt + 1400));
     });
   }
