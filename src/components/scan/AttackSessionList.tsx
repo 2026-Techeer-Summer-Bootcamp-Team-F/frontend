@@ -33,11 +33,12 @@ function deriveSessions(exchanges: ChatExchange[]): Session[] {
 interface Props {
   exchanges: ChatExchange[];
   selected: number | null;
-  onSelect: (objectiveId: number | null) => void;
+  onSelect: (objectiveId: number) => void;
+  newSessions: Set<number>;
   status: 'idle' | 'running' | 'done' | 'failed';
 }
 
-export function AttackSessionList({ exchanges, selected, onSelect, status }: Props) {
+export function AttackSessionList({ exchanges, selected, onSelect, newSessions, status }: Props) {
   const sessions = deriveSessions(exchanges);
 
   return (
@@ -57,20 +58,6 @@ export function AttackSessionList({ exchanges, selected, onSelect, status }: Pro
           </p>
         ) : (
           <>
-            <button
-              className={`${styles.item} ${selected === null ? styles.active : ''}`}
-              onClick={() => onSelect(null)}
-            >
-              <span className={`${styles.dot} ${styles.dotAll}`} />
-              <div className={styles.itemBody}>
-                <span className={styles.itemAtlas}>ALL</span>
-                <span className={styles.itemName}>전체 보기</span>
-              </div>
-              <span className={styles.itemCount}>{exchanges.length}</span>
-            </button>
-
-            <div className={styles.divider} />
-
             {sessions.map(s => {
               const name = ATLAS_LABELS[s.atlas] ?? s.atlasName ?? s.atlas;
               const isActive = selected === s.objectiveId;
@@ -98,6 +85,9 @@ export function AttackSessionList({ exchanges, selected, onSelect, status }: Pro
                     <span className={styles.itemName}>{name}</span>
                   </div>
                   <div className={styles.itemRight}>
+                    {newSessions.has(s.objectiveId) && (
+                      <span className={styles.newDot} title="새 세션" />
+                    )}
                     <span className={`${styles.statusTag} ${statusCls}`}>{statusLabel}</span>
                     <span className={styles.itemCount}>{s.attempts}</span>
                   </div>

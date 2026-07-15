@@ -80,13 +80,6 @@
   padding: 0 12px;
 }
 
-.divider {
-  height: 1px;
-  background: rgba(94, 203, 138, 0.08);
-  margin: 4px 4px;
-  flex-shrink: 0;
-}
-
 .item {
   width: 100%;
   display: flex;
@@ -120,7 +113,6 @@
   flex-shrink: 0;
 }
 
-.dotAll    { background: var(--text-muted); }
 .dotBreach { background: #e05252; }
 .dotSafe   { background: var(--accent); }
 .dotPending {
@@ -172,6 +164,21 @@
   padding: 1px 5px;
   border-radius: 4px;
   border: 1px solid;
+}
+
+.newDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+  animation: pulse-ring 1.4s infinite;
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(94, 203, 138, 0.6); }
+  70%  { box-shadow: 0 0 0 5px rgba(94, 203, 138, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(94, 203, 138, 0); }
 }
 
 .tagBreach  { color: #ff9d9d; border-color: rgba(224,82,82,0.4);    background: rgba(224,82,82,0.1); }

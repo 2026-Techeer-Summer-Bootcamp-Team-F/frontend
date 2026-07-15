@@ -49,11 +49,13 @@ export function RunScanPage() {
   const [objectives, setObjectives] = useState({ done: 0, total: 0 });
   const [loadingStart, setLoadingStart] = useState(false);
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<number | null>(null);
+  const [newObjectiveIds, setNewObjectiveIds] = useState<Set<number>>(new Set());
   const [elapsed, setElapsed] = useState(0);
   const logEndRef = useRef<HTMLDivElement>(null);
   const esRef = useRef<EventSource | null>(null);
   const cancelMockRef = useRef<(() => void) | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const seenObjectivesRef = useRef<Set<number>>(new Set());
 
   const tutorial = useTutorial('analysis', [
     {
@@ -67,6 +69,18 @@ export function RunScanPage() {
       desc: '스캔 진행 상황이 실시간으로 출력됩니다. 각 공격 시도의 결과와 최고 점수를 여기서 확인할 수 있습니다.',
     },
   ]);
+
+  // 새 공격 기법이 등장하면 선택 중인 세션이 아닐 때만 new 표시
+  useEffect(() => {
+    if (exchanges.length === 0) return;
+    const last = exchanges[exchanges.length - 1];
+    if (!seenObjectivesRef.current.has(last.objectiveId)) {
+      seenObjectivesRef.current.add(last.objectiveId);
+      if (last.objectiveId !== selectedObjectiveId) {
+        setNewObjectiveIds(prev => new Set([...prev, last.objectiveId]));
+      }
+    }
+  }, [exchanges, selectedObjectiveId]);
 
   useEffect(() => {
     if (!projectId) return;
@@ -252,6 +266,8 @@ export function RunScanPage() {
     setRecon(null);
     setObjectives({ done: 0, total: 0 });
     setSelectedObjectiveId(null);
+    setNewObjectiveIds(new Set());
+    seenObjectivesRef.current = new Set();
   };
 
   return (
@@ -379,7 +395,11 @@ export function RunScanPage() {
           <AttackSessionList
             exchanges={exchanges}
             selected={selectedObjectiveId}
-            onSelect={setSelectedObjectiveId}
+            onSelect={id => {
+              setSelectedObjectiveId(id);
+              setNewObjectiveIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+            }}
+            newSessions={newObjectiveIds}
             status={status}
           />
         </div>
