@@ -189,10 +189,12 @@ export function RunScanPage() {
         const verdict = d.verdict as string;
         const score = ((d.score ?? 0) * 100).toFixed(1);
         const op = d.mutation_op ? ` [${d.mutation_op}]` : '';
-        const errDetail = verdict === 'error' && d.error ? ` — ${d.error}` : '';
+        const errDetail = verdict === 'error'
+          ? ` — ${d.error ?? '대상 서버 응답 없음'}`
+          : '';
         addLog(
           `${atlasLabel(d.atlas)}${op} ${verdict} (${score}%)${errDetail}`,
-          verdict === 'breach' ? 'error' : 'info',
+          verdict === 'breach' ? 'error' : verdict === 'error' ? 'warn' : 'info',
         );
       } else if (eventType === 'finding') {
         addLog(`⚠ 취약점 발견: ${atlasLabel(d.atlas)} (심각도: ${d.severity ?? 'high'})`, 'error');
