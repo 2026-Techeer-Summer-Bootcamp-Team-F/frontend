@@ -68,6 +68,8 @@ export interface CodeLocation {
   snippet: string;
   atlas_id: string;
   reason: string;
+  fix?: string;                              // 앱 맞춤 수정 제안(코드래빗식) — 백엔드 #111
+  context?: { line: number; code: string }[]; // 앞뒤 코드 ±3줄 — 백엔드 #111
 }
 
 export interface Finding {

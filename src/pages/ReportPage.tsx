@@ -572,8 +572,15 @@ export function ReportPage() {
                     📄 {loc.file} <span className={styles.codeLine}>:{loc.line}</span>
                   </span>
                 </div>
-                <pre className={styles.codeSnippet}>{loc.snippet}</pre>
+                <pre className={styles.codeSnippet}>
+                  {loc.context && loc.context.length > 0
+                    ? loc.context
+                        .map(c => `${c.line === loc.line ? '►' : ' '} ${c.line}: ${c.code}`)
+                        .join('\n')
+                    : loc.snippet}
+                </pre>
                 <p className={styles.codeReason}>⚠ {loc.reason}</p>
+                {loc.fix && <p className={styles.codeFix}>🔧 이렇게 고쳐라: {loc.fix}</p>}
               </div>
             ))}
           </div>
