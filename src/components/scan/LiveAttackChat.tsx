@@ -270,9 +270,12 @@ export function LiveAttackChat({
       <div className={styles.chatFoot}>
         {status === 'running' && <span className={styles.livedot} />}
         <span className={styles.st}>
-          {status === 'running'
-            ? <>진화 엔진 · <b>gen {generation}</b> 진행 중</>
-            : <>진화 엔진 · <b>{answered.length}</b>회 시도 완료</>}
+          {status !== 'running'
+            ? <>진화 엔진 · <b>{answered.length}</b>회 시도 완료</>
+            /* 진화 progress가 오기 전(씨앗 발사 중)엔 generation이 0 — 'gen 0'은 노출하지 않는다 */
+            : generation === 0
+              ? <>진화 엔진 · <b>씨앗</b> 세대 발사 중</>
+              : <>진화 엔진 · <b>gen {generation}</b> 진행 중</>}
         </span>
         <span className={styles.push}>
           <span className={styles.m}>시도 <span className={styles.n}>{exchanges.length}</span></span>
