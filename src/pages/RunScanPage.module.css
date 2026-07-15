@@ -274,7 +274,7 @@
 /* 분석 2단: 좌 = Live Analysis Log, 우 = 실시간 공격 채팅(#26) */
 .analysisRow {
   display: grid;
-  grid-template-columns: 1fr 200px 1.3fr;
+  grid-template-columns: 1.4fr 200px 1.3fr;
   gap: 10px;
   align-items: stretch;
 }
