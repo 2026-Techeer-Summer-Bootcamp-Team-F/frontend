@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -207,7 +207,7 @@ export function ReportPage() {
   const [scanMeta, setScanMeta] = useState<{ started_at: string | null; finished_at: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedFindings, setExpandedFindings] = useState<Set<number>>(new Set());
+  const [modalFinding, setModalFinding] = useState<Finding | null>(null);
   const [pastOpen, setPastOpen] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [modalTech, setModalTech] = useState<HeatmapTechnique | null>(null);
@@ -284,21 +284,15 @@ export function ReportPage() {
     [findings],
   );
 
-  const toggleFinding = useCallback((id: number) => {
-    setExpandedFindings(prev => {
-      const next = new Set(prev);
-      prev.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  }, []);
-
   // Esc로 모달 닫기
   useEffect(() => {
-    if (!modalTech) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setModalTech(null); };
+    if (!modalTech && !modalFinding) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setModalTech(null); setModalFinding(null); }
+    };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [modalTech]);
+  }, [modalTech, modalFinding]);
 
   const gaugeOption = useMemo(() => {
     const value = report?.risk_score ?? 0;
@@ -551,34 +545,15 @@ export function ReportPage() {
             ) : (
               <div className={styles.findingList}>
                 {sortedFindings.map(f => {
-                  const isOpen = expandedFindings.has(f.findings_id);
                   const sevColor = SEVERITY_COLOR[f.severity];
                   return (
-                    <div key={f.findings_id} className={styles.find}>
-                      <div className={styles.fh} onClick={() => toggleFinding(f.findings_id)}>
+                    <div key={f.findings_id} className={styles.find} onClick={() => setModalFinding(f)}>
+                      <div className={styles.fh}>
                         <span className={styles.bdg} style={{ borderColor: sevColor, color: sevColor }}>{f.severity.toUpperCase()}</span>
                         <span className={styles.ft}>{f.title}</span>
                         <span className={styles.fa}>{f.atlas_technique_id}</span>
-<span className={styles.expandIcon}>{isOpen ? '▲' : '▼'}</span>
+                        <span className={styles.expandIcon}>↗</span>
                       </div>
-                      {isOpen && (
-                        <>
-                          <div className={styles.fev}>
-                            <div className={styles.ev}>
-                              <div className={styles.evK}>PROMPT</div>
-                              <pre>{f.evidence.prompt}</pre>
-                            </div>
-                            <div className={styles.ev}>
-                              <div className={styles.evK}>RESPONSE</div>
-                              <pre><HighlightFlags text={f.evidence.response} /></pre>
-                            </div>
-                          </div>
-                          {f.evidence.canary && (
-                            <div className={styles.loc}>⚠ <b>카나리 트리거</b> — {f.evidence.canary}</div>
-                          )}
-                          <MitigationBlock m={f.mitigation} />
-                        </>
-                      )}
                     </div>
                   );
                 })}
@@ -685,6 +660,41 @@ export function ReportPage() {
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── Finding 상세 모달 ── */}
+      {modalFinding && (
+        <div className={styles.modal} onClick={e => { if (e.target === e.currentTarget) setModalFinding(null); }}>
+          <div className={`${styles.mcard} ${styles.findingModal}`}>
+            <div className={styles.mtop}>
+              <span
+                className={styles.bdg}
+                style={{ borderColor: SEVERITY_COLOR[modalFinding.severity], color: SEVERITY_COLOR[modalFinding.severity] }}
+              >
+                {modalFinding.severity.toUpperCase()}
+              </span>
+              <span className={styles.mnm}>{modalFinding.title}</span>
+              <span className={styles.mid}>{modalFinding.atlas_technique_id}</span>
+              <button className={styles.mclose} onClick={() => setModalFinding(null)}>×</button>
+            </div>
+            <div className={styles.mbody}>
+              <div className={styles.fev}>
+                <div className={styles.ev}>
+                  <div className={styles.evK}>PROMPT</div>
+                  <pre>{modalFinding.evidence.prompt}</pre>
+                </div>
+                <div className={styles.ev}>
+                  <div className={styles.evK}>RESPONSE</div>
+                  <pre><HighlightFlags text={modalFinding.evidence.response} /></pre>
+                </div>
+              </div>
+              {modalFinding.evidence.canary && (
+                <div className={styles.loc}>⚠ <b>카나리 트리거</b> — {modalFinding.evidence.canary}</div>
+              )}
+              <MitigationBlock m={modalFinding.mitigation} />
+            </div>
+          </div>
         </div>
       )}
 

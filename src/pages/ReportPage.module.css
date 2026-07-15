@@ -260,6 +260,11 @@
 .mref { font-size: 12.5px; color: #7fd6a4; text-decoration: none; line-height: 1.5; word-break: break-word; }
 .mref:hover { text-decoration: underline; }
 
+.findingModal { width: min(780px, 94vw); }
+.findingModal .fev { padding: 0; }
+.findingModal .mit { margin: 0; }
+.findingModal .loc { margin: 0; }
+
 /* ── duration + past scans ── */
 .metaRow { display: flex; flex-direction: column; gap: 12px; }
 .durationBar {
