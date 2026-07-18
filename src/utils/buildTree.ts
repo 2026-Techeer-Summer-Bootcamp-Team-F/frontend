@@ -1,6 +1,7 @@
 import type { EvolutionNode } from '../api/scans';
 
 export interface EChartsTreeNode {
+  id: string;
   name: string;
   value: number;
   itemStyle: { color: string };
@@ -16,6 +17,7 @@ function toEChartsNode(node: EvolutionNode, childMap: Map<number, EvolutionNode[
   const label = `Gen${node.generation} · ${Math.min(100, Math.round(node.score * 100))}% · ${node.mutation_op || '—'}`;
   const children = (childMap.get(node.attempt_id) ?? []).map(c => toEChartsNode(c, childMap));
   return {
+    id: String(node.attempt_id),
     name: label,
     value: node.score,
     itemStyle: { color: node.verdict === 'breached' ? BREACH_COLOR : SAFE_COLOR },

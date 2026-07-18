@@ -288,7 +288,7 @@
   grid-template-columns: 1fr 220px;
   gap: 8px;
   min-width: 0;
-  flex: 1;
+  height: 440px;
 }
 
 .chatPanelWithTree {
@@ -296,7 +296,7 @@
   grid-template-columns: 1fr 220px 320px;
   gap: 8px;
   min-width: 0;
-  flex: 1;
+  height: 440px;
 }
 
 .terminal {

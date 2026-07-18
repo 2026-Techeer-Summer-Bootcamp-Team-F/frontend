@@ -58,7 +58,7 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName, latestImprovemen
       {nodes.length === 0 ? (
         <p className={styles.empty}>공격 시도를 기다리는 중...</p>
       ) : (
-        <EChart option={option} className={styles.chart} />
+        <EChart option={option} className={styles.chart} notMerge={false} />
       )}
 
       <div className={styles.thinking}>
