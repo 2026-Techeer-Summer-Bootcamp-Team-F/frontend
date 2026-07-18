@@ -273,7 +273,7 @@
 /* ── 분석 4단: 로그 | 채팅 | 세션 | 트리 ── */
 .analysisRow {
   display: grid;
-  grid-template-columns: 1fr 1.4fr 200px 300px;
+  grid-template-columns: 1.6fr 1.4fr 200px 300px;
   gap: 8px;
   align-items: stretch;
 }
