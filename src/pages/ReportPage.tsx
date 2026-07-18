@@ -255,6 +255,10 @@ export function ReportPage() {
   useEffect(() => {
     if (!scanId) return;
     const id = Number(scanId);
+    // scanId 전환 시 이전 요청이 늦게 끝나 다른 스캔 데이터를 덮어쓰지 않도록 차단
+    // (특히 scanMeta.target_id → 버전 관리 버튼이 엉뚱한 프로젝트로 이동). 이전 메타 초기화.
+    let cancelled = false;
+    setScanMeta(null);
     Promise.all([
       getScanReport(id),
       getScanHeatmap(id),
@@ -262,6 +266,7 @@ export function ReportPage() {
       getScan(id),
     ])
       .then(async ([r, h, f, meta]) => {
+        if (cancelled) return;
         setReport(r);
         setHeatmap(h.techniques ?? []);
         setFindings(f);
@@ -273,6 +278,7 @@ export function ReportPage() {
           const results = await Promise.allSettled(
             cells.map((c: { atlas_technique_id: string }) => fetchEvolution(id, c.atlas_technique_id))
           );
+          if (cancelled) return;
           const map = new Map<string, EvolutionNode[]>();
           results.forEach((r, i) => {
             if (r.status === 'fulfilled') {
@@ -288,18 +294,21 @@ export function ReportPage() {
         }
       })
       .catch(() => {
+        if (cancelled) return;
         setReport(MOCK_REPORT);
         setHeatmap(MOCK_HEATMAP);
         setFindings(MOCK_FINDINGS);
         setCodeLocations(MOCK_CODE_LOCATIONS);
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
 
-    getCodeLocations(id).then(locs => { if (locs.length) setCodeLocations(locs); });
+    getCodeLocations(id).then(locs => { if (!cancelled && locs.length) setCodeLocations(locs); });
 
     getScanSummary(id)
-      .then(summary => setAiSummary(summary))
-      .catch(() => setAiSummary(MOCK_REPORT.ai_summary ?? null));
+      .then(summary => { if (!cancelled) setAiSummary(summary); })
+      .catch(() => { if (!cancelled) setAiSummary(MOCK_REPORT.ai_summary ?? null); });
+
+    return () => { cancelled = true; };
   }, [scanId]);
 
   const sortedFindings = useMemo(

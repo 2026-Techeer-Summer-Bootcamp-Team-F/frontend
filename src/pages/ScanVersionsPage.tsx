@@ -71,8 +71,12 @@ export function ScanVersionsPage() {
   const [selVerdict, setSelVerdict] = useState(0);
   const [selFile, setSelFile] = useState(0);
 
-  // 이력 로드 → 최신 스캔 자동 선택.
+  // 이력 로드 → 최신 스캔 자동 선택. 프로젝트 전환 시 이전 데이터 즉시 초기화.
   useEffect(() => {
+    setHistory(null);
+    setHistoryError(false);
+    setSelScanId(null);
+    setDiff(null);
     if (!targetId) return;
     let alive = true;
     getScanHistory(targetId)
@@ -85,10 +89,14 @@ export function ScanVersionsPage() {
     return () => { alive = false; };
   }, [targetId]);
 
-  // 선택 스캔 → 버전 비교 로드.
+  // 선택 스캔 → 버전 비교 로드. 스캔 없음/전환 시 이전 diff 즉시 제거.
   useEffect(() => {
-    if (selScanId == null) return;
+    if (selScanId == null) {
+      setDiff(null);
+      return;
+    }
     let alive = true;
+    setDiff(null);
     setDiffLoading(true);
     setDiffError(false);
     setSelVerdict(0);

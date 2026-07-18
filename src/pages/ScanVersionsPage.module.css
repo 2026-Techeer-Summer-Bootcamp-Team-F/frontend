@@ -7,6 +7,7 @@
   --addbd: rgba(94, 203, 138, 0.40);
   --delbg: rgba(224, 82, 82, 0.10);
   --delbd: rgba(224, 82, 82, 0.38);
+
   max-width: 1500px;
   margin: 0 auto;
   padding: 22px 32px 44px;
