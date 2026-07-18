@@ -284,11 +284,19 @@
 }
 
 .chatPanel {
-  display: flex;
-  border: 1px solid var(--accent-border);
-  border-radius: 10px;
-  overflow: hidden;
-  height: 440px;
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.chatPanelWithTree {
+  display: grid;
+  grid-template-columns: 1fr 220px 320px;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
 }
 
 .terminal {

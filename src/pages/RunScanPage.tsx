@@ -12,6 +12,8 @@ import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
 import { atlasLabel } from '../shared/constants';
 import { LiveAttackChat, applyAttemptEvent, type ChatExchange } from '../components/scan/LiveAttackChat';
 import { AttackSessionList } from '../components/scan/AttackSessionList';
+import { EvolutionTreePanel } from '../components/scan/EvolutionTreePanel';
+import type { EvolutionNode } from '../api/scans';
 
 interface LogLine { id: number; msg: string; level: string }
 interface ProgressData {
@@ -50,6 +52,10 @@ export function RunScanPage() {
   const [loadingStart, setLoadingStart] = useState(false);
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<number | null>(null);
   const [newObjectiveIds, setNewObjectiveIds] = useState<Set<number>>(new Set());
+  const [treeNodes, setTreeNodes] = useState<Map<string, EvolutionNode[]>>(new Map());
+  const [latestImprovement, setLatestImprovement] = useState('');
+  const [selectedAtlasId, setSelectedAtlasId] = useState('');
+  const [selectedAtlasName, setSelectedAtlasName] = useState('');
   const [elapsed, setElapsed] = useState(0);
   const logEndRef = useRef<HTMLDivElement>(null);
   const esRef = useRef<EventSource | null>(null);
@@ -232,6 +238,24 @@ export function RunScanPage() {
           `${atlasLabel(d.atlas)}${op} ${verdict} (${score}%)${errDetail}`,
           verdict === 'breach' ? 'error' : verdict === 'error' ? 'warn' : 'info',
         );
+        // 진화 트리 노드 추가
+        const node: EvolutionNode = {
+          attempt_id: d.attempt_id,
+          parent_id: d.parent_id ?? null,
+          generation: d.generation ?? 0,
+          prompt_preview: ((d.attack_prompt ?? d.prompt ?? '') as string).slice(0, 120),
+          score: d.score ?? 0,
+          verdict: verdict === 'breach' ? 'breached' : 'safe',
+          mutation_op: d.mutation_op || 'seed',
+          improvement: d.improvement ?? '',
+        };
+        setTreeNodes(prev => {
+          const next = new Map(prev);
+          const arr = [...(next.get(d.atlas as string) ?? []), node];
+          next.set(d.atlas as string, arr);
+          return next;
+        });
+        if (d.improvement) setLatestImprovement(d.improvement as string);
       } else if (eventType === 'finding') {
         addLog(`⚠ 취약점 발견: ${atlasLabel(d.atlas)} (심각도: ${d.severity ?? 'high'})`, 'error');
       } else if (eventType === 'done') {
@@ -268,6 +292,10 @@ export function RunScanPage() {
     setSelectedObjectiveId(null);
     setNewObjectiveIds(new Set());
     seenObjectivesRef.current = new Set();
+    setTreeNodes(new Map());
+    setLatestImprovement('');
+    setSelectedAtlasId('');
+    setSelectedAtlasName('');
   };
 
   return (
@@ -381,7 +409,7 @@ export function RunScanPage() {
         </div>
       </section>
 
-        <div className={styles.chatPanel}>
+        <div className={selectedObjectiveId !== null ? styles.chatPanelWithTree : styles.chatPanel}>
           <LiveAttackChat
             exchanges={exchanges}
             status={status}
@@ -398,10 +426,24 @@ export function RunScanPage() {
             onSelect={id => {
               setSelectedObjectiveId(id);
               setNewObjectiveIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+              // 선택된 세션의 atlas 정보 추출
+              const ex = exchanges.find(e => e.objectiveId === id);
+              if (ex) {
+                setSelectedAtlasId(ex.atlas);
+                setSelectedAtlasName(ex.atlasName ?? '');
+              }
             }}
             newSessions={newObjectiveIds}
             status={status}
           />
+          {selectedObjectiveId !== null && (
+            <EvolutionTreePanel
+              nodes={treeNodes.get(selectedAtlasId) ?? []}
+              atlasId={selectedAtlasId}
+              atlasName={selectedAtlasName}
+              latestImprovement={latestImprovement}
+            />
+          )}
         </div>
       </div>
     </div>
