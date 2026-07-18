@@ -53,6 +53,7 @@ export function RunScanPage() {
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<number | null>(null);
   const [newObjectiveIds, setNewObjectiveIds] = useState<Set<number>>(new Set());
   const [treeNodes, setTreeNodes] = useState<Map<string, EvolutionNode[]>>(new Map());
+  const [seedsThinking, setSeedsThinking] = useState<Map<string, string>>(new Map());
   const [selectedAtlasId, setSelectedAtlasId] = useState('');
   const [selectedAtlasName, setSelectedAtlasName] = useState('');
   const [elapsed, setElapsed] = useState(0);
@@ -221,6 +222,14 @@ export function RunScanPage() {
           addLog(`[OBJECTIVE] 완료 — ${d.status ?? ''}`, d.status === 'breached' ? 'error' : 'info');
           setObjectives(prev => ({ ...prev, done: prev.done + 1 }));
         }
+      } else if (eventType === 'seeds_retrieved') {
+        const atlas = d.atlas as string;
+        const count = d.count as number;
+        addLog(`[SEED] ${atlasLabel(atlas)} — corpus에서 씨앗 ${count}개 선택`);
+        setSeedsThinking(prev => new Map(prev).set(
+          atlas,
+          `corpus에서 ${count}개 씨앗 프롬프트를 선택했습니다. 0세대 발사를 시작합니다...`
+        ));
       } else if (eventType === 'attempt_started') {
         // 발사 직전(#102) — 채팅에만 반영(공격 말풍선 + 타이핑). 터미널 로그는 기존대로
         // attempt에서만 찍는다(로그 중복 방지).
@@ -291,6 +300,7 @@ export function RunScanPage() {
     setNewObjectiveIds(new Set());
     seenObjectivesRef.current = new Set();
     setTreeNodes(new Map());
+    setSeedsThinking(new Map());
     setSelectedAtlasId('');
     setSelectedAtlasName('');
   };
@@ -437,7 +447,9 @@ export function RunScanPage() {
             atlasId={selectedAtlasId}
             atlasName={selectedAtlasName}
             latestImprovement={
-              (treeNodes.get(selectedAtlasId) ?? []).at(-1)?.improvement ?? ''
+              (treeNodes.get(selectedAtlasId) ?? []).at(-1)?.improvement
+              || seedsThinking.get(selectedAtlasId)
+              || ''
             }
           />
         </div>
