@@ -8,7 +8,6 @@ import {
   getScanFindings,
   getScanSummary,
   getScan,
-  listScans,
   getCodeLocations,
   fetchEvolution,
   type ScanReport,
@@ -16,7 +15,6 @@ import {
   type Finding,
   type MitigationDetail,
   type MitigationRef,
-  type Scan,
   type CodeLocation,
   type EvolutionNode,
   type EvolutionTree,
@@ -207,12 +205,10 @@ export function ReportPage() {
   const [report, setReport] = useState<ScanReport | null>(null);
   const [heatmap, setHeatmap] = useState<HeatmapTechnique[]>([]);
   const [findings, setFindings] = useState<Finding[]>([]);
-  const [pastScans, setPastScans] = useState<Scan[]>([]);
-  const [scanMeta, setScanMeta] = useState<{ started_at: string | null; finished_at: string | null } | null>(null);
+  const [scanMeta, setScanMeta] = useState<{ started_at: string | null; finished_at: string | null; target_id: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalFinding, setModalFinding] = useState<Finding | null>(null);
-  const [pastOpen, setPastOpen] = useState(false);
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [modalTech, setModalTech] = useState<HeatmapTechnique | null>(null);
   const [codeLocations, setCodeLocations] = useState<CodeLocation[]>([]);
@@ -263,15 +259,13 @@ export function ReportPage() {
       getScanReport(id),
       getScanHeatmap(id),
       getScanFindings(id),
-      listScans(),
       getScan(id),
     ])
-      .then(async ([r, h, f, s, meta]) => {
+      .then(async ([r, h, f, meta]) => {
         setReport(r);
         setHeatmap(h.techniques ?? []);
         setFindings(f);
-        setPastScans(s.filter(sc => sc.scan_id !== id).slice(0, 5));
-        setScanMeta({ started_at: meta.started_at, finished_at: meta.finished_at });
+        setScanMeta({ started_at: meta.started_at, finished_at: meta.finished_at, target_id: meta.target_id });
 
         // 트리 데이터 병렬 fetch
         const cells = h.techniques ?? [];
@@ -298,7 +292,6 @@ export function ReportPage() {
         setHeatmap(MOCK_HEATMAP);
         setFindings(MOCK_FINDINGS);
         setCodeLocations(MOCK_CODE_LOCATIONS);
-        setPastScans([]);
       })
       .finally(() => setLoading(false));
 
@@ -902,28 +895,15 @@ export function ReportPage() {
         </section>
       )}
 
-      {/* ── 과거 스캔 (PDF에선 제외) ── */}
-      {pastScans.length > 0 && (
+      {/* ── 스캔 버전 관리 진입 (PDF에선 제외) ── */}
+      {scanMeta?.target_id != null && (
         <div className={`${styles.metaRow} pdf-hide`}>
-          {pastScans.length > 0 && (
-            <div className={styles.win}>
-              <button className={styles.toggleHeader} onClick={() => setPastOpen(v => !v)}>
-                <span className={styles.tt}>past_scans</span>
-                <span className={styles.toggleIcon}>{pastOpen ? '▲' : '▼'}</span>
-              </button>
-              {pastOpen && (
-                <div className={styles.pastList}>
-                  {pastScans.map(sc => (
-                    <button key={sc.scan_id} className={styles.pastItem} onClick={() => navigate(`/report/${sc.scan_id}`)}>
-                      <span className={styles.pastId}>#{sc.scan_id}</span>
-                      <span className={`${styles.pastStatus} ${styles[sc.status]}`}>{sc.status}</span>
-                      <span className={styles.pastDate}>{sc.started_at?.slice(0, 10) ?? '—'}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          <div className={styles.win}>
+            <button className={styles.toggleHeader} onClick={() => navigate(`/versions/${scanMeta.target_id}`)}>
+              <span className={styles.tt}>past_scans</span>
+              <span className={styles.toggleIcon}>스캔 버전 관리 ›</span>
+            </button>
+          </div>
         </div>
       )}
 
