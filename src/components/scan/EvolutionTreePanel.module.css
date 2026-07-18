@@ -3,7 +3,7 @@
   flex-direction: column;
   background: var(--bg-title);
   border: 1px solid var(--accent-border);
-  border-radius: 8px;
+  border-radius: 10px;
   overflow: hidden;
   min-width: 0;
 }
