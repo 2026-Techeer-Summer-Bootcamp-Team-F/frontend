@@ -19,6 +19,7 @@ import {
   type Scan,
   type CodeLocation,
   type EvolutionNode,
+  type EvolutionTree,
 } from '../api/scans';
 import { buildEChartsTree, sliceNodes } from '../utils/buildTree';
 import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS } from '../api/mock';
