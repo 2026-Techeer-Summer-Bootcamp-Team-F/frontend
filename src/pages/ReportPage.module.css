@@ -423,3 +423,64 @@
 .sev_low      { color: #5a6a61; border-color: rgba(90,106,97,0.4);  background: rgba(90,106,97,0.08); }
 .codeLocReason { font-size: 11px; color: rgba(240,244,242,0.65); line-height: 1.5; }
 .codeLocSnippet { font-size: 10.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; color: #8fb8a8; margin: 0; background: #040807; border-radius: 4px; padding: 6px 8px; }
+
+/* ── Evolution Tree ── */
+.treeSection { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+
+.treeTabs { display: flex; gap: 4px; flex-wrap: wrap; }
+
+.treeTab {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  padding: 5px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--accent-border);
+  background: var(--bg-title);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.treeTab:hover { color: var(--text); border-color: var(--accent); }
+.treeTabActive { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+
+.treeBody { display: flex; flex-direction: column; gap: 8px; }
+
+.treeChart {
+  width: 100%;
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  background: var(--bg-title);
+}
+
+.playBtn {
+  align-self: flex-start;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  padding: 6px 16px;
+  border-radius: 5px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.playBtn:hover:not(:disabled) { background: var(--accent-dim); }
+.playBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.treeDetail {
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  padding: 14px;
+  background: var(--bg-title);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.treeDetailHeader { display: flex; align-items: center; gap: 8px; }
+.treeDetailScore { font-family: var(--font-ui); font-size: 13px; font-weight: 700; color: var(--text); }
+.treeDetailClose { margin-left: auto; background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; }
+.treeDetailLabel { font-family: var(--font-ui); font-size: 10px; letter-spacing: 0.12em; color: var(--text-muted); margin: 0; }
+.treeDetailText { font-family: var(--font-ui); font-size: 12px; color: var(--text); line-height: 1.6; margin: 0; white-space: pre-wrap; }
+.badgeBreach { font-family: var(--font-ui); font-size: 11px; padding: 2px 8px; border-radius: 3px; background: #3a1a1a; color: #e0525f; }
+.badgeSafe { font-family: var(--font-ui); font-size: 11px; padding: 2px 8px; border-radius: 3px; background: #1a2e20; color: #4caf8a; }

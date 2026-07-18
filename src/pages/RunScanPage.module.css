@@ -270,36 +270,28 @@
   color: var(--text-muted);
 }
 
-/* ── Terminal: fixed height + scroll ── */
-/* 분석 2단: 좌 = Live Analysis Log, 우 = 실시간 공격 채팅(#26) */
+/* ── 분석 4단: 로그 | 채팅 | 세션 | 트리 ── */
 .analysisRow {
   display: grid;
-  grid-template-columns: 1.6fr 2fr;
-  gap: 10px;
-  align-items: stretch;
+  grid-template-columns: 480px 420px 200px 420px;
+  grid-template-rows: 440px;
+  gap: 8px;
+  justify-content: center;
 }
 
-@media (max-width: 900px) {
-  .analysisRow { grid-template-columns: 1fr; }
+@media (max-width: 1100px) {
+  .analysisRow { grid-template-columns: 1fr 1fr; grid-template-rows: 480px 480px; }
 }
 
-.chatPanel {
-  display: flex;
-  border: 1px solid var(--accent-border);
-  border-radius: 10px;
-  overflow: hidden;
-  height: 440px;
-}
+/* chatPanel은 채팅·세션·트리 3개를 감싸는 서브그리드 역할 없이 직접 children으로 배치 */
+.chatPanel { display: contents; }
 
 .terminal {
   border: 1px solid var(--accent-border);
   border-radius: 10px;
   overflow: hidden;
-  /* 2단에서 채팅과 높이를 맞추기 위한 세로 플렉스(표시 내용·로그 로직은 그대로) */
   display: flex;
   flex-direction: column;
-  /* min-height가 아닌 확정 height — .analysisRow는 stretch 그리드라 행 높이가 두 카드 중
-     큰 쪽을 따른다. 여기가 auto면 로그가 쌓일 때 행째로 늘어나 채팅 높이 고정이 무너진다 */
   height: 440px;
 }
 

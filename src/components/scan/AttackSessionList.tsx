@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { ATLAS_LABELS } from '../../shared/constants';
 import type { ChatExchange } from './LiveAttackChat';
 import styles from './AttackSessionList.module.css';
@@ -40,6 +41,13 @@ interface Props {
 
 export function AttackSessionList({ exchanges, selected, onSelect, newSessions, status }: Props) {
   const sessions = deriveSessions(exchanges);
+  const itemsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = itemsRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [sessions.length]);
 
   return (
     <div className={styles.list}>
@@ -51,7 +59,7 @@ export function AttackSessionList({ exchanges, selected, onSelect, newSessions, 
         {status === 'running' && <span className={styles.live}><span className={styles.pulseDot} />LIVE</span>}
       </div>
 
-      <div className={styles.items}>
+      <div className={styles.items} ref={itemsRef}>
         {sessions.length === 0 ? (
           <p className={styles.empty}>
             스캔이 시작되면<br />공격 기법별 세션이<br />자동 생성됩니다.

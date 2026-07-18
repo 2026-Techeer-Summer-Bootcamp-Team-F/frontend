@@ -7,6 +7,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--accent-border);
+  border-radius: 10px;
 }
 
 /* 타이틀바 — 좌측 터미널과 같은 크롬 */

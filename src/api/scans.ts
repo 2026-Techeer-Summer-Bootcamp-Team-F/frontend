@@ -176,3 +176,27 @@ export async function getCodeLocations(scanId: number): Promise<CodeLocation[]> 
     return [];
   }
 }
+
+// ── Evolution Tree ──
+export interface EvolutionNode {
+  attempt_id: number;
+  parent_id: number | null;
+  generation: number;
+  prompt_preview: string;
+  score: number;
+  verdict: 'breached' | 'safe';
+  mutation_op: string;
+  improvement: string;
+}
+
+export interface EvolutionTree {
+  atlas_id: string;
+  nodes: EvolutionNode[];
+}
+
+export async function fetchEvolution(scanId: number, atlasId: string): Promise<EvolutionTree> {
+  const { data } = await apiClient.get<EvolutionTree>(
+    `/scans/${scanId}/evolution?atlas_id=${encodeURIComponent(atlasId)}`
+  );
+  return data;
+}

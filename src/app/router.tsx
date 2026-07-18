@@ -6,7 +6,6 @@ import { AuthCallbackPage } from '../pages/AuthCallbackPage';
 import { GitHubLogoutCallbackPage } from '../pages/GitHubLogoutCallbackPage';
 import { GitHubLogoutRedirectPage } from '../pages/GitHubLogoutRedirectPage';
 import { ImportRepoPage } from '../pages/ImportRepoPage';
-import { AgreementPage } from '../pages/AgreementPage';
 import { RegisterTargetPage } from '../pages/RegisterTargetPage';
 import { RunScanPage } from '../pages/RunScanPage';
 import { ReportPage } from '../pages/ReportPage';
@@ -24,7 +23,6 @@ export const router = createBrowserRouter([
     children: [
       // ③ Import Git Repository
       { path: 'repos', element: <ImportRepoPage /> },
-      { path: 'agreement', element: <AgreementPage /> },
       { path: 'projects/new', element: <RegisterTargetPage /> },
       // ⑤ AI Red Teaming Analysis (스캔 실행 + SSE)
       { path: 'analysis/:projectId', element: <RunScanPage /> },

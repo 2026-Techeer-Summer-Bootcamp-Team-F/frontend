@@ -98,7 +98,7 @@ export function ImportRepoPage() {
   );
 
   const handleImport = (repo: GitHubRepo) => {
-    navigate(`/agreement?repo=${encodeURIComponent(repo.full_name)}&url=${encodeURIComponent(repo.html_url)}`);
+    navigate(`/projects/new?repo=${encodeURIComponent(repo.full_name)}&url=${encodeURIComponent(repo.html_url)}`);
   };
 
   const handleDeleteProject = async (id: number) => {
