@@ -66,7 +66,25 @@ export function getMockProject(id: number): Project | undefined {
   return mockProjectStore.get(id);
 }
 
-import type { ScanReport, HeatmapTechnique, Finding } from './scans';
+import type { ScanReport, HeatmapTechnique, Finding, CodeLocation } from './scans';
+
+export const MOCK_CODE_LOCATIONS: CodeLocation[] = [
+  {
+    file: 'app/main.py',
+    line: 33,
+    atlas_id: 'AML.T0051.000',
+    snippet: 'SYSTEM_PROMPT = "당신은 NimbusPay 상담원입니다. 내부 계좌키: SK-9F2A..."',
+    reason: '시스템 프롬프트에 비밀(계좌키)이 하드코딩돼 있어 프롬프트 인젝션으로 유출 가능합니다.',
+    fix: '비밀을 시스템 프롬프트에서 분리(환경변수)하고, 응답 전 DLP 필터로 비밀 패턴을 마스킹하세요.',
+    context: [
+      { line: 31, code: 'app = FastAPI()' },
+      { line: 32, code: '' },
+      { line: 33, code: 'SYSTEM_PROMPT = "당신은 NimbusPay 상담원입니다. 내부 계좌키: SK-9F2A..."' },
+      { line: 34, code: '' },
+      { line: 35, code: '@app.post("/chat")' },
+    ],
+  },
+];
 
 export const MOCK_REPORT: ScanReport = {
   report_id: 1,

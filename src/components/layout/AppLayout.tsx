@@ -16,7 +16,7 @@ export function AppLayout({ children }: PropsWithChildren) {
 
   return (
     <div className={styles.shell}>
-      <header className={styles.nav}>
+      <header className={`${styles.nav} pdf-hide`}>
         <Brand to="/repos" />
 
         <nav className={styles.navLinks}>
