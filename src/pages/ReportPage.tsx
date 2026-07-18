@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -221,7 +221,7 @@ export function ReportPage() {
   const [selectedTreeAtlas, setSelectedTreeAtlas] = useState<string>('');
   const [visibleCount, setVisibleCount] = useState<number>(9999);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [treeDetail, setTreeDetail] = useState<EvolutionNode | null>(null);
+  const playTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const tutorial = useTutorial('report', [
     {
@@ -313,6 +313,8 @@ export function ReportPage() {
     [findings],
   );
 
+  useEffect(() => () => { playTimersRef.current.forEach(clearTimeout); }, []);
+
   // Esc로 모달 닫기
   useEffect(() => {
     if (!modalTech && !modalFinding) return;
@@ -371,16 +373,20 @@ export function ReportPage() {
   const handlePlay = () => {
     const allNodes = evolutionMap.get(selectedTreeAtlas) ?? [];
     if (allNodes.length === 0) return;
+    // 기존 타이머 취소
+    playTimersRef.current.forEach(clearTimeout);
+    playTimersRef.current = [];
     setIsPlaying(true);
     setVisibleCount(0);
     const sorted = [...allNodes].sort((a, b) =>
       a.generation !== b.generation ? a.generation - b.generation : a.attempt_id - b.attempt_id
     );
     sorted.forEach((_, i) => {
-      setTimeout(() => {
+      const id = setTimeout(() => {
         setVisibleCount(i + 1);
         if (i === sorted.length - 1) setIsPlaying(false);
       }, i * 120);
+      playTimersRef.current.push(id);
     });
   };
 
@@ -695,9 +701,11 @@ export function ReportPage() {
                 key={atlasId}
                 className={`${styles.treeTab} ${selectedTreeAtlas === atlasId ? styles.treeTabActive : ''}`}
                 onClick={() => {
+                  playTimersRef.current.forEach(clearTimeout);
+                  playTimersRef.current = [];
+                  setIsPlaying(false);
                   setSelectedTreeAtlas(atlasId);
                   setVisibleCount(evolutionMap.get(atlasId)?.length ?? 0);
-                  setTreeDetail(null);
                 }}
               >
                 {atlasLabel(atlasId)}
@@ -748,26 +756,6 @@ export function ReportPage() {
               );
             })()}
 
-            {/* 노드 클릭 상세 — treeDetail이 null이 아닐 때만 표시 */}
-            {treeDetail && (
-              <div className={styles.treeDetail}>
-                <div className={styles.treeDetailHeader}>
-                  <span className={treeDetail.verdict === 'breached' ? styles.badgeBreach : styles.badgeSafe}>
-                    {treeDetail.verdict === 'breached' ? '침투 성공' : '방어'}
-                  </span>
-                  <span className={styles.treeDetailScore}>{Math.round(treeDetail.score * 100)}%</span>
-                  <button className={styles.treeDetailClose} onClick={() => setTreeDetail(null)}>✕</button>
-                </div>
-                <p className={styles.treeDetailLabel}>프롬프트</p>
-                <p className={styles.treeDetailText}>{treeDetail.prompt_preview}</p>
-                {treeDetail.improvement && (
-                  <>
-                    <p className={styles.treeDetailLabel}>공격 전략 메모</p>
-                    <p className={styles.treeDetailText}>{treeDetail.improvement}</p>
-                  </>
-                )}
-              </div>
-            )}
           </div>
         </section>
       )}

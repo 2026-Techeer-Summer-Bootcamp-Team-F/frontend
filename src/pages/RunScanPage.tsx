@@ -53,7 +53,6 @@ export function RunScanPage() {
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<number | null>(null);
   const [newObjectiveIds, setNewObjectiveIds] = useState<Set<number>>(new Set());
   const [treeNodes, setTreeNodes] = useState<Map<string, EvolutionNode[]>>(new Map());
-  const [latestImprovement, setLatestImprovement] = useState('');
   const [selectedAtlasId, setSelectedAtlasId] = useState('');
   const [selectedAtlasName, setSelectedAtlasName] = useState('');
   const [elapsed, setElapsed] = useState(0);
@@ -255,7 +254,6 @@ export function RunScanPage() {
           next.set(d.atlas as string, arr);
           return next;
         });
-        if (d.improvement) setLatestImprovement(d.improvement as string);
       } else if (eventType === 'finding') {
         addLog(`⚠ 취약점 발견: ${atlasLabel(d.atlas)} (심각도: ${d.severity ?? 'high'})`, 'error');
       } else if (eventType === 'done') {
@@ -293,7 +291,6 @@ export function RunScanPage() {
     setNewObjectiveIds(new Set());
     seenObjectivesRef.current = new Set();
     setTreeNodes(new Map());
-    setLatestImprovement('');
     setSelectedAtlasId('');
     setSelectedAtlasName('');
   };
@@ -441,7 +438,9 @@ export function RunScanPage() {
               nodes={treeNodes.get(selectedAtlasId) ?? []}
               atlasId={selectedAtlasId}
               atlasName={selectedAtlasName}
-              latestImprovement={latestImprovement}
+              latestImprovement={
+                (treeNodes.get(selectedAtlasId) ?? []).at(-1)?.improvement ?? ''
+              }
             />
           )}
         </div>
