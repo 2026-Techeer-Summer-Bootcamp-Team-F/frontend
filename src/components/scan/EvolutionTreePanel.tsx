@@ -24,18 +24,23 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName, latestImprovemen
       {
         type: 'tree',
         data: treeData,
-        orient: 'LR',
+        orient: 'TB',
+        top: '8%',
+        bottom: '8%',
+        left: '5%',
+        right: '5%',
         symbol: 'circle',
-        symbolSize: 10,
+        symbolSize: 8,
+        roam: true,
         label: {
-          position: 'left',
-          verticalAlign: 'middle',
+          position: 'top',
+          verticalAlign: 'bottom',
           fontSize: 10,
           color: '#ccc',
-          distance: 8,
+          distance: 5,
         },
         leaves: {
-          label: { position: 'right', verticalAlign: 'middle' },
+          label: { position: 'bottom', verticalAlign: 'top', distance: 5 },
         },
         lineStyle: { color: '#445', width: 1.5 },
         expandAndCollapse: false,
@@ -45,7 +50,11 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName, latestImprovemen
     ],
   }), [treeData]);
 
-  const thinkingText = latestImprovement || 'corpus에서 초기 씨앗 프롬프트를 검색 중...';
+  const rawThinking = latestImprovement || 'corpus에서 초기 씨앗 프롬프트를 검색 중...';
+  const thinkingLines = rawThinking
+    .split(/(?<=[.。!?])\s+|[\n]/)
+    .map((s: string) => s.trim())
+    .filter(Boolean);
 
   return (
     <div className={styles.panel}>
@@ -65,7 +74,11 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName, latestImprovemen
 
       <div className={styles.thinking}>
         <p className={styles.thinkingLabel}>AI 사고 과정</p>
-        <p key={thinkingText} className={styles.thinkingText}>{thinkingText}</p>
+        <ul key={rawThinking} className={styles.thinkingList}>
+          {thinkingLines.map((line: string, i: number) => (
+            <li key={i} className={styles.thinkingItem}>{line}</li>
+          ))}
+        </ul>
       </div>
     </div>
   );
