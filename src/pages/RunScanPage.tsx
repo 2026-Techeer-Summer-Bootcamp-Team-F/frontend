@@ -406,7 +406,7 @@ export function RunScanPage() {
         </div>
       </section>
 
-        <div className={selectedObjectiveId !== null ? styles.chatPanelWithTree : styles.chatPanel}>
+        <div className={styles.chatPanel}>
           <LiveAttackChat
             exchanges={exchanges}
             status={status}
@@ -423,7 +423,6 @@ export function RunScanPage() {
             onSelect={id => {
               setSelectedObjectiveId(id);
               setNewObjectiveIds(prev => { const n = new Set(prev); n.delete(id); return n; });
-              // 선택된 세션의 atlas 정보 추출
               const ex = exchanges.find(e => e.objectiveId === id);
               if (ex) {
                 setSelectedAtlasId(ex.atlas);
@@ -433,16 +432,14 @@ export function RunScanPage() {
             newSessions={newObjectiveIds}
             status={status}
           />
-          {selectedObjectiveId !== null && (
-            <EvolutionTreePanel
-              nodes={treeNodes.get(selectedAtlasId) ?? []}
-              atlasId={selectedAtlasId}
-              atlasName={selectedAtlasName}
-              latestImprovement={
-                (treeNodes.get(selectedAtlasId) ?? []).at(-1)?.improvement ?? ''
-              }
-            />
-          )}
+          <EvolutionTreePanel
+            nodes={treeNodes.get(selectedAtlasId) ?? []}
+            atlasId={selectedAtlasId}
+            atlasName={selectedAtlasName}
+            latestImprovement={
+              (treeNodes.get(selectedAtlasId) ?? []).at(-1)?.improvement ?? ''
+            }
+          />
         </div>
       </div>
     </div>
