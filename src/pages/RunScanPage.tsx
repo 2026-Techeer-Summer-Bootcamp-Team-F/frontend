@@ -54,6 +54,8 @@ export function RunScanPage() {
   const [newObjectiveIds, setNewObjectiveIds] = useState<Set<number>>(new Set());
   const [treeNodes, setTreeNodes] = useState<Map<string, EvolutionNode[]>>(new Map());
   const [seedsThinking, setSeedsThinking] = useState<Map<string, string>>(new Map());
+  const [closingMessages, setClosingMessages] = useState<Map<string, string>>(new Map());
+  const objectiveToAtlasRef = useRef(new Map<number, string>());
   const [selectedAtlasId, setSelectedAtlasId] = useState('');
   const [selectedAtlasName, setSelectedAtlasName] = useState('');
   const [elapsed, setElapsed] = useState(0);
@@ -174,8 +176,17 @@ export function RunScanPage() {
         onLog: (msg, level) =>
           setLogs(prev => [...prev, { id: prev.length, msg, level }]),
         onProgress: data => setProgress(data),
-        onAttemptEvent: e => setExchanges(prev => applyAttemptEvent(prev, e)),
-        onObjectiveDone: () => setObjectives(prev => ({ ...prev, done: prev.done + 1 })),
+        onAttemptEvent: e => {
+          objectiveToAtlasRef.current.set(e.objective_id, e.atlas);
+          setExchanges(prev => applyAttemptEvent(prev, e));
+        },
+        onObjectiveDone: id => {
+          setObjectives(prev => ({ ...prev, done: prev.done + 1 }));
+          const atlas = objectiveToAtlasRef.current.get(id);
+          if (atlas) {
+            setClosingMessages(prev => new Map(prev).set(atlas, '이 기법의 공격을 종료합니다.'));
+          }
+        },
         onDone: st => {
           setStatus(st === 'done' ? 'done' : 'failed');
         },
@@ -221,6 +232,11 @@ export function RunScanPage() {
         } else if (d.phase === 'objective_done') {
           addLog(`[OBJECTIVE] 완료 — ${d.status ?? ''}`, d.status === 'breached' ? 'error' : 'info');
           setObjectives(prev => ({ ...prev, done: prev.done + 1 }));
+          const doneAtlas = (d.current_attack as { atlas?: string } | null)?.atlas ?? '';
+          if (doneAtlas) {
+            const resultMsg = d.status === 'breached' ? '취약점을 발견했습니다.' : '방어에 성공했습니다.';
+            setClosingMessages(prev => new Map(prev).set(doneAtlas, `${resultMsg} 이 기법의 공격을 종료합니다.`));
+          }
         }
       } else if (eventType === 'seeds_retrieved') {
         const atlas = d.atlas as string;
@@ -231,10 +247,10 @@ export function RunScanPage() {
           `corpus에서 ${count}개 씨앗 프롬프트를 선택했습니다. 0세대 발사를 시작합니다...`
         ));
       } else if (eventType === 'attempt_started') {
-        // 발사 직전(#102) — 채팅에만 반영(공격 말풍선 + 타이핑). 터미널 로그는 기존대로
-        // attempt에서만 찍는다(로그 중복 방지).
+        objectiveToAtlasRef.current.set(d.objective_id as number, d.atlas as string);
         setExchanges(prev => applyAttemptEvent(prev, d));
       } else if (eventType === 'attempt') {
+        objectiveToAtlasRef.current.set(d.objective_id as number, d.atlas as string);
         setExchanges(prev => applyAttemptEvent(prev, d));
         const verdict = d.verdict as string;
         const score = ((d.score ?? 0) * 100).toFixed(1);
@@ -301,6 +317,8 @@ export function RunScanPage() {
     seenObjectivesRef.current = new Set();
     setTreeNodes(new Map());
     setSeedsThinking(new Map());
+    setClosingMessages(new Map());
+    objectiveToAtlasRef.current = new Map();
     setSelectedAtlasId('');
     setSelectedAtlasName('');
   };
@@ -451,6 +469,8 @@ export function RunScanPage() {
               || seedsThinking.get(selectedAtlasId)
               || ''
             }
+            closingMessage={closingMessages.get(selectedAtlasId)}
+            status={status}
           />
         </div>
       </div>

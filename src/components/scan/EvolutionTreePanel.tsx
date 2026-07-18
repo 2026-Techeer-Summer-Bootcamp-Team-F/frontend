@@ -9,9 +9,11 @@ interface Props {
   atlasId: string;
   atlasName: string;
   latestImprovement: string;
+  closingMessage?: string;
+  status: 'idle' | 'running' | 'done' | 'failed';
 }
 
-export function EvolutionTreePanel({ nodes, atlasId, atlasName, latestImprovement }: Props) {
+export function EvolutionTreePanel({ nodes, atlasId, atlasName, latestImprovement, closingMessage, status }: Props) {
   const treeData = useMemo(() => buildEChartsTree(nodes), [nodes]);
 
   const option = useMemo(() => ({
@@ -50,7 +52,12 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName, latestImprovemen
     ],
   }), [treeData]);
 
-  const rawThinking = latestImprovement || 'corpus에서 초기 씨앗 프롬프트를 검색 중...';
+  const rawThinking =
+    (status === 'done' || status === 'failed')
+      ? '모든 공격 분석을 종료했습니다.'
+      : closingMessage
+      ?? latestImprovement
+      || 'corpus에서 초기 씨앗 프롬프트를 검색 중...';
   const thinkingLines = rawThinking
     .split(/(?<=[.。!?])\s+|[\n]/)
     .map((s: string) => s.trim())
