@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { listGitHubRepos, type GitHubRepo } from '../api/github';
 import { listProjects, deleteProject, type Project } from '../api/projects';
-import { listScans, type Scan } from '../api/scans';
 import { MOCK_REPOS } from '../api/mock';
 import styles from './ImportRepoPage.module.css';
 import { useTutorial } from '../hooks/useTutorial';
@@ -16,14 +15,6 @@ function timeAgo(iso: string) {
   const months = Math.floor(days / 30);
   return `${months}개월 전`;
 }
-
-const STATUS_COLOR: Record<string, string> = {
-  done: 'var(--accent)',
-  failed: 'var(--red)',
-  running: 'var(--orange)',
-  pending: 'var(--text-muted)',
-  cancelled: 'var(--text-muted)',
-};
 
 export function ImportRepoPage() {
   const navigate = useNavigate();
@@ -52,7 +43,7 @@ export function ImportRepoPage() {
     {
       selector: 'toggle-btn',
       title: '분석 기록',
-      desc: '이 버튼으로 해당 프로젝트의 과거 스캔 기록을 펼치거나 접을 수 있습니다. 완료된 스캔은 리포트로 바로 이동할 수 있습니다.',
+      desc: '이 버튼을 누르면 해당 프로젝트의 스캔 버전 관리 화면으로 이동합니다. 스캔 시기별 코드 변경점과 취약점 해결 여부를 확인할 수 있습니다.',
     },
     {
       selector: 'delete-btn',
@@ -67,13 +58,6 @@ export function ImportRepoPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
-
-  // 토글 열린 프로젝트 id set
-  const [openIds, setOpenIds] = useState<Set<number>>(new Set());
-  // 프로젝트별 스캔 기록: Map<target_id, Scan[]>
-  const [scanMap, setScanMap] = useState<Map<number, Scan[]>>(new Map());
-  // 스캔 기록 로딩 중인 프로젝트
-  const [loadingScans, setLoadingScans] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     Promise.all([listGitHubRepos(), listProjects()])
@@ -104,39 +88,6 @@ export function ImportRepoPage() {
   const handleDeleteProject = async (id: number) => {
     await deleteProject(id);
     setProjects(prev => prev.filter(p => p.target_id !== id));
-    setOpenIds(prev => { const n = new Set(prev); n.delete(id); return n; });
-    setScanMap(prev => { const n = new Map(prev); n.delete(id); return n; });
-  };
-
-  const handleToggle = async (targetId: number) => {
-    setOpenIds(prev => {
-      const next = new Set(prev);
-      next.has(targetId) ? next.delete(targetId) : next.add(targetId);
-      return next;
-    });
-
-    // 처음 열 때 스캔 기록 fetch
-    if (!openIds.has(targetId) && !scanMap.has(targetId)) {
-      setLoadingScans(prev => new Set(prev).add(targetId));
-      try {
-        // TODO: listScans(targetId) — target_id 필터 API 연동 후 교체
-        const all = await listScans();
-        const filtered = all.filter(s => (s as any).target_id === targetId);
-        setScanMap(prev => new Map(prev).set(targetId, filtered));
-      } catch {
-        setScanMap(prev => new Map(prev).set(targetId, []));
-      } finally {
-        setLoadingScans(prev => { const n = new Set(prev); n.delete(targetId); return n; });
-      }
-    }
-  };
-
-  const handleDeleteScan = (targetId: number, scanId: number) => {
-    // TODO: API 연동 후 실제 삭제 호출 추가
-    setScanMap(prev => {
-      const scans = prev.get(targetId) ?? [];
-      return new Map(prev).set(targetId, scans.filter(s => s.scan_id !== scanId));
-    });
   };
 
   return (
@@ -224,10 +175,6 @@ export function ImportRepoPage() {
               <p className={styles.empty}>아직 등록된 프로젝트가 없습니다.</p>
             )}
             {projects.map((p, pIdx) => {
-              const isOpen = openIds.has(p.target_id);
-              const scans = scanMap.get(p.target_id) ?? [];
-              const isLoadingScans = loadingScans.has(p.target_id);
-
               return (
                 <div key={p.target_id} className={styles.projectBlock}>
                   {/* 프로젝트 헤더 행 */}
@@ -251,11 +198,11 @@ export function ImportRepoPage() {
                       </button>
                       <button
                         className={styles.toggleBtn}
-                        onClick={() => handleToggle(p.target_id)}
-                        title="분석 기록"
+                        onClick={() => navigate(`/versions/${p.target_id}`)}
+                        title="스캔 버전 관리"
                         {...(pIdx === 0 ? { 'data-tutorial': 'toggle-btn' } : {})}
                       >
-                        {isOpen ? '▲' : '▼'}
+                        분석 기록
                       </button>
                       <button
                         className={styles.deleteBtn}
@@ -266,49 +213,6 @@ export function ImportRepoPage() {
                       </button>
                     </div>
                   </div>
-
-                  {/* 스캔 기록 패널 */}
-                  {isOpen && (
-                    <div className={styles.scanPanel}>
-                      <p className={styles.scanPanelLabel}>분석 기록</p>
-                      {isLoadingScans && (
-                        <p className={styles.scanEmpty}><span className={styles.blink}>█</span> 불러오는 중...</p>
-                      )}
-                      {!isLoadingScans && scans.length === 0 && (
-                        <p className={styles.scanEmpty}>분석 기록이 없습니다.</p>
-                      )}
-                      {scans.map(sc => (
-                        <div key={sc.scan_id} className={styles.scanRow}>
-                          <span className={styles.scanId}>#{sc.scan_id}</span>
-                          <span
-                            className={styles.scanStatus}
-                            style={{ color: STATUS_COLOR[sc.status] ?? 'var(--text-muted)' }}
-                          >
-                            {sc.status}
-                          </span>
-                          <span className={styles.scanDate}>
-                            {sc.started_at ? timeAgo(sc.started_at) : '—'}
-                          </span>
-                          <div className={styles.scanActions}>
-                            {sc.status === 'done' && (
-                              <button
-                                className={styles.reportBtn}
-                                onClick={() => navigate(`/report/${sc.scan_id}`)}
-                              >
-                                리포트
-                              </button>
-                            )}
-                            <button
-                              className={styles.scanDeleteBtn}
-                              onClick={() => handleDeleteScan(p.target_id, sc.scan_id)}
-                            >
-                              삭제
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               );
             })}
