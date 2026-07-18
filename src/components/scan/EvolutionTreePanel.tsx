@@ -56,8 +56,8 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName, latestImprovemen
     (status === 'done' || status === 'failed')
       ? '모든 공격 분석을 종료했습니다.'
       : closingMessage
-      ?? latestImprovement
-      || 'corpus에서 초기 씨앗 프롬프트를 검색 중...';
+      ?? (latestImprovement
+      || 'corpus에서 초기 씨앗 프롬프트를 검색 중...');
   const thinkingLines = rawThinking
     .split(/(?<=[.。!?])\s+|[\n]/)
     .map((s: string) => s.trim())
