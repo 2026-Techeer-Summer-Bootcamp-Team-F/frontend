@@ -10,6 +10,7 @@ import {
   getScan,
   listScans,
   getCodeLocations,
+  fetchEvolution,
   type ScanReport,
   type HeatmapTechnique,
   type Finding,
@@ -17,7 +18,9 @@ import {
   type MitigationRef,
   type Scan,
   type CodeLocation,
+  type EvolutionNode,
 } from '../api/scans';
+import { buildEChartsTree, sliceNodes } from '../utils/buildTree';
 import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS } from '../api/mock';
 import { atlasLabel } from '../shared/constants';
 import { EChart } from '../components/EChart';
@@ -213,6 +216,11 @@ export function ReportPage() {
   const [modalTech, setModalTech] = useState<HeatmapTechnique | null>(null);
   const [codeLocations, setCodeLocations] = useState<CodeLocation[]>([]);
   const [codeLocationsExpanded, setCodeLocationsExpanded] = useState(false);
+  const [evolutionMap, setEvolutionMap] = useState<Map<string, EvolutionNode[]>>(new Map());
+  const [selectedTreeAtlas, setSelectedTreeAtlas] = useState<string>('');
+  const [visibleCount, setVisibleCount] = useState<number>(9999);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [treeDetail, setTreeDetail] = useState<EvolutionNode | null>(null);
 
   const tutorial = useTutorial('report', [
     {
@@ -257,12 +265,32 @@ export function ReportPage() {
       listScans(),
       getScan(id),
     ])
-      .then(([r, h, f, s, meta]) => {
+      .then(async ([r, h, f, s, meta]) => {
         setReport(r);
         setHeatmap(h.techniques ?? []);
         setFindings(f);
         setPastScans(s.filter(sc => sc.scan_id !== id).slice(0, 5));
         setScanMeta({ started_at: meta.started_at, finished_at: meta.finished_at });
+
+        // 트리 데이터 병렬 fetch
+        const cells = h.techniques ?? [];
+        if (cells.length > 0) {
+          const results = await Promise.allSettled(
+            cells.map((c: { atlas_technique_id: string }) => fetchEvolution(id, c.atlas_technique_id))
+          );
+          const map = new Map<string, EvolutionNode[]>();
+          results.forEach((r, i) => {
+            if (r.status === 'fulfilled') {
+              map.set(cells[i].atlas_technique_id, r.value.nodes);
+            } else {
+              map.set(cells[i].atlas_technique_id, []);
+            }
+          });
+          setEvolutionMap(map);
+          const firstAtlas = cells[0]?.atlas_technique_id ?? '';
+          setSelectedTreeAtlas(firstAtlas);
+          setVisibleCount(map.get(firstAtlas)?.length ?? 0);
+        }
       })
       .catch(() => {
         setReport(MOCK_REPORT);
@@ -338,6 +366,22 @@ export function ReportPage() {
   }, [sevData, report?.stats.findings]);
 
   const breachedTechniques = heatmap.filter(t => t.status === 'breached');
+
+  const handlePlay = () => {
+    const allNodes = evolutionMap.get(selectedTreeAtlas) ?? [];
+    if (allNodes.length === 0) return;
+    setIsPlaying(true);
+    setVisibleCount(0);
+    const sorted = [...allNodes].sort((a, b) =>
+      a.generation !== b.generation ? a.generation - b.generation : a.attempt_id - b.attempt_id
+    );
+    sorted.forEach((_, i) => {
+      setTimeout(() => {
+        setVisibleCount(i + 1);
+        if (i === sorted.length - 1) setIsPlaying(false);
+      }, i * 120);
+    });
+  };
 
   if (loading) return <LoadingState />;
   if (error) return <p className={styles.error}>{error}</p>;
@@ -636,6 +680,95 @@ export function ReportPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── 진화 트리 섹션 ── */}
+      {evolutionMap.size > 0 && (
+        <section className={styles.treeSection}>
+          <h2 className={styles.sectionTitle}>EVOLUTION TREE</h2>
+
+          {/* 기법 탭 */}
+          <div className={styles.treeTabs}>
+            {Array.from(evolutionMap.keys()).map(atlasId => (
+              <button
+                key={atlasId}
+                className={`${styles.treeTab} ${selectedTreeAtlas === atlasId ? styles.treeTabActive : ''}`}
+                onClick={() => {
+                  setSelectedTreeAtlas(atlasId);
+                  setVisibleCount(evolutionMap.get(atlasId)?.length ?? 0);
+                  setTreeDetail(null);
+                }}
+              >
+                {atlasLabel(atlasId)}
+              </button>
+            ))}
+          </div>
+
+          {/* 트리 차트 */}
+          <div className={styles.treeBody}>
+            {(() => {
+              const allNodes = evolutionMap.get(selectedTreeAtlas) ?? [];
+              const visible = sliceNodes(allNodes, visibleCount);
+              const treeData = buildEChartsTree(visible);
+              const option = {
+                tooltip: {
+                  trigger: 'item',
+                  formatter: (p: { data: { tooltip?: { formatter?: string } } }) =>
+                    p.data?.tooltip?.formatter ?? '',
+                },
+                series: [{
+                  type: 'tree',
+                  data: treeData,
+                  orient: 'LR',
+                  symbol: 'circle',
+                  symbolSize: 10,
+                  label: { position: 'left', fontSize: 10, color: '#ccc', distance: 8 },
+                  leaves: { label: { position: 'right' } },
+                  lineStyle: { color: '#445', width: 1.5 },
+                  expandAndCollapse: false,
+                  animationDuration: 300,
+                }],
+              };
+              return (
+                <>
+                  <EChart
+                    option={option}
+                    className={styles.treeChart}
+                    style={{ height: 340 }}
+                  />
+                  <button
+                    className={styles.playBtn}
+                    onClick={handlePlay}
+                    disabled={isPlaying || allNodes.length === 0}
+                  >
+                    {isPlaying ? '재생 중...' : '▶ 재생'}
+                  </button>
+                </>
+              );
+            })()}
+
+            {/* 노드 클릭 상세 — treeDetail이 null이 아닐 때만 표시 */}
+            {treeDetail && (
+              <div className={styles.treeDetail}>
+                <div className={styles.treeDetailHeader}>
+                  <span className={treeDetail.verdict === 'breached' ? styles.badgeBreach : styles.badgeSafe}>
+                    {treeDetail.verdict === 'breached' ? '침투 성공' : '방어'}
+                  </span>
+                  <span className={styles.treeDetailScore}>{Math.round(treeDetail.score * 100)}%</span>
+                  <button className={styles.treeDetailClose} onClick={() => setTreeDetail(null)}>✕</button>
+                </div>
+                <p className={styles.treeDetailLabel}>프롬프트</p>
+                <p className={styles.treeDetailText}>{treeDetail.prompt_preview}</p>
+                {treeDetail.improvement && (
+                  <>
+                    <p className={styles.treeDetailLabel}>공격 전략 메모</p>
+                    <p className={styles.treeDetailText}>{treeDetail.improvement}</p>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
       )}
 
       {/* ── 과거 스캔 ── */}
