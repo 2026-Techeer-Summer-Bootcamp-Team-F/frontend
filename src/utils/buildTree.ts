@@ -13,7 +13,7 @@ const BREACH_COLOR = '#e0525f';
 const SAFE_COLOR = '#4caf8a';
 
 function toEChartsNode(node: EvolutionNode, childMap: Map<number, EvolutionNode[]>): EChartsTreeNode {
-  const label = `Gen${node.generation} · ${Math.round(node.score * 100)}% · ${node.mutation_op}`;
+  const label = `Gen${node.generation} · ${Math.min(100, Math.round(node.score * 100))}% · ${node.mutation_op || '—'}`;
   const children = (childMap.get(node.attempt_id) ?? []).map(c => toEChartsNode(c, childMap));
   return {
     name: label,
@@ -23,7 +23,7 @@ function toEChartsNode(node: EvolutionNode, childMap: Map<number, EvolutionNode[
     children,
     _meta: {
       attempt_id: node.attempt_id,
-      improvement: node.improvement,
+      improvement: node.improvement || '',
       prompt_preview: node.prompt_preview,
     },
   };
@@ -43,7 +43,11 @@ export function buildEChartsTree(nodes: EvolutionNode[]): EChartsTreeNode[] {
   return roots.map(r => toEChartsNode(r, childMap));
 }
 
-/** visibleCount 개수만큼만 노드를 포함한 서브셋 반환 (재생 애니메이션용) */
+/**
+ * generation 순으로 정렬 후 count개 노드 반환 (재생 애니메이션용).
+ * 주의: 슬라이스 경계에서 부모가 포함되지 않은 자식 노드는
+ * buildEChartsTree에서 독립 루트로 처리될 수 있음.
+ */
 export function sliceNodes(nodes: EvolutionNode[], count: number): EvolutionNode[] {
   const sorted = [...nodes].sort((a, b) =>
     a.generation !== b.generation ? a.generation - b.generation : a.attempt_id - b.attempt_id

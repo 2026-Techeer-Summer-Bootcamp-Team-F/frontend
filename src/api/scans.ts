@@ -177,6 +177,7 @@ export async function getCodeLocations(scanId: number): Promise<CodeLocation[]> 
   }
 }
 
+// ── Evolution Tree ──
 export interface EvolutionNode {
   attempt_id: number;
   parent_id: number | null;
