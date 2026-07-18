@@ -9,6 +9,7 @@ import { ImportRepoPage } from '../pages/ImportRepoPage';
 import { RegisterTargetPage } from '../pages/RegisterTargetPage';
 import { RunScanPage } from '../pages/RunScanPage';
 import { ReportPage } from '../pages/ReportPage';
+import { ScanVersionsPage } from '../pages/ScanVersionsPage';
 
 export const router = createBrowserRouter([
   { path: '/', element: <LoginPage /> },
@@ -28,6 +29,8 @@ export const router = createBrowserRouter([
       { path: 'analysis/:projectId', element: <RunScanPage /> },
       // ⑥ 결과 리포트
       { path: 'report/:scanId', element: <ReportPage /> },
+      // ⑦ 스캔 버전 관리(#37) — 시기별 코드 diff + 취약점 판정 변화
+      { path: 'versions/:projectId', element: <ScanVersionsPage /> },
     ],
   },
 ]);
