@@ -5,6 +5,7 @@ import { router } from './app/router';
 import { apiClient } from './api/client';
 import { getToken, saveToken } from './utils/auth';
 import './styles/globals.css';
+import './styles/print.css';
 
 // 데모용 자동 인증: 백엔드가 보호(JWT)되므로, 토큰이 없으면 mock dev-login으로
 // 토큰을 받아 저장한다(AUTH_MODE=mock 서버에서만 동작). 실패해도 앱은 그대로 렌더.

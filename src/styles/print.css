@@ -1,0 +1,43 @@
+/* 리포트 PDF — 전용 흰색 보고서(.pdf-report)만 인쇄. 나머지 UI는 display:none으로
+   레이아웃에서 제거(빈 페이지 방지). ⚠️ .report-page 는 CSS모듈이 아닌 '리터럴' 클래스라
+   선택자가 실제로 매칭됨(styles.page 는 해시되어 print.css에서 못 잡음). */
+.pdf-report {
+  display: none;
+}
+
+@media print {
+  /* pdf-hide(네비·PDF버튼·과거스캔) 제거 */
+  .pdf-hide {
+    display: none !important;
+  }
+  /* 리포트 페이지에서 pdf-report 외 형제(대시보드 전부) 레이아웃에서 제거 */
+  .report-page > *:not(.pdf-report) {
+    display: none !important;
+  }
+  .pdf-report {
+    display: block !important;
+  }
+  /* 셸/페이지가 차지하던 높이 제거 → 빈 페이지 방지 */
+  html,
+  body,
+  #root,
+  .report-page {
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+  /* 강조색(위험도·심각도) 인쇄 유지 */
+  .pdf-report,
+  .pdf-report *,
+  .pdf-report *::before,
+  .pdf-report *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  @page {
+    size: A4;
+    margin: 9mm;
+  }
+}

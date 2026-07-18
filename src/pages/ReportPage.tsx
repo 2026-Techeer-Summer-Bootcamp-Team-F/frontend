@@ -18,7 +18,7 @@ import {
   type Scan,
   type CodeLocation,
 } from '../api/scans';
-import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS } from '../api/mock';
+import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS, MOCK_CODE_LOCATIONS } from '../api/mock';
 import { atlasLabel } from '../shared/constants';
 import { EChart } from '../components/EChart';
 import styles from './ReportPage.module.css';
@@ -268,15 +268,16 @@ export function ReportPage() {
         setReport(MOCK_REPORT);
         setHeatmap(MOCK_HEATMAP);
         setFindings(MOCK_FINDINGS);
+        setCodeLocations(MOCK_CODE_LOCATIONS);
         setPastScans([]);
       })
       .finally(() => setLoading(false));
 
-    getCodeLocations(id).then(locs => setCodeLocations(locs));
+    getCodeLocations(id).then(locs => { if (locs.length) setCodeLocations(locs); });
 
     getScanSummary(id)
       .then(summary => setAiSummary(summary))
-      .catch(() => {});
+      .catch(() => setAiSummary(MOCK_REPORT.ai_summary ?? null));
   }, [scanId]);
 
   const sortedFindings = useMemo(
@@ -371,7 +372,134 @@ export function ReportPage() {
     : null;
 
   return (
-    <div className={styles.page}>
+    <div className={`${styles.page} report-page`}>
+      {/* ── PDF 전용: 흰색 보고서 레이아웃(화면 숨김·인쇄 시 이것만, 과거스캔 제외) ── */}
+      <div className="pdf-report" style={{ fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic",sans-serif', color: '#1a1a1a', background: '#fff', fontSize: 12, lineHeight: 1.5 }}>
+        {/* 헤더 */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #1a1a1a', paddingBottom: 12, marginBottom: 16 }}>
+          <div>
+            <div style={{ fontSize: 11, letterSpacing: 1.5, color: '#888', fontWeight: 600 }}>AI RED TEAM · 자동 모의해킹</div>
+            <div style={{ fontSize: 20, fontWeight: 700, marginTop: 2 }}>보안 진단 리포트</div>
+            <div style={{ fontSize: 11, color: '#666', marginTop: 4 }}>
+              스캔 #{scanId}
+              {scanMeta?.finished_at ? '  ·  ' + new Date(scanMeta.finished_at + 'Z').toLocaleString('ko-KR', { dateStyle: 'medium', timeStyle: 'short' }) : ''}
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 10, color: '#888' }}>종합 위험도</div>
+            <div style={{ fontSize: 26, fontWeight: 800, color: risk.color, lineHeight: 1 }}>{report.risk_score}<span style={{ fontSize: 13, color: '#aaa' }}>/100</span></div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: risk.color }}>{risk.label}</div>
+          </div>
+        </div>
+
+        {/* KPI 4칸 */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8, marginBottom: 18 }}>
+          {[
+            { l: '종합 위험도', v: `${report.risk_score}/100`, c: '#1a1a1a' },
+            { l: '총 공격 시도', v: `${report.stats.total_attempts}`, c: '#1a1a1a' },
+            { l: '침투 성공', v: `${report.stats.breached_attempts} (${breachPct.toFixed(0)}%)`, c: report.stats.breached_attempts > 0 ? '#c0392b' : '#2e7d46' },
+            { l: '취약점 발견', v: `${report.stats.findings}`, c: '#c0392b' },
+          ].map((k, i) => (
+            <div key={i} style={{ border: '1px solid #e0e0e0', borderRadius: 6, padding: '10px 12px', background: '#fafafa' }}>
+              <div style={{ fontSize: 10, color: '#888' }}>{k.l}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: k.c, marginTop: 2 }}>{k.v}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* 2열: 기법별 침투 / 심각도+취약점 */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.15fr 1fr', gap: 20, marginBottom: 18 }}>
+          {/* 기법별 침투 */}
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, borderBottom: '1px solid #ddd', paddingBottom: 4 }}>기법별 침투 현황</div>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+              <thead>
+                <tr style={{ color: '#888', textAlign: 'left' }}>
+                  <th style={{ padding: '4px 2px', fontWeight: 600 }}>기법</th>
+                  <th style={{ padding: '4px 2px', fontWeight: 600, textAlign: 'center' }}>시도</th>
+                  <th style={{ padding: '4px 2px', fontWeight: 600, textAlign: 'right' }}>상태</th>
+                </tr>
+              </thead>
+              <tbody>
+                {heatmap.map(t => {
+                  const st = t.status === 'breached' ? { t: '침투', c: '#c0392b' } : t.status === 'safe' ? { t: '방어', c: '#2e7d46' } : { t: '미테스트', c: '#999' };
+                  return (
+                    <tr key={t.atlas_technique_id} style={{ borderTop: '1px solid #eee' }}>
+                      <td style={{ padding: '5px 2px' }}>
+                        <div style={{ fontWeight: 600 }}>{t.name}</div>
+                        <div style={{ fontSize: 9, color: '#aaa' }}>{t.atlas_technique_id}</div>
+                      </td>
+                      <td style={{ padding: '5px 2px', textAlign: 'center' }}>{t.attempts}</td>
+                      <td style={{ padding: '5px 2px', textAlign: 'right', color: st.c, fontWeight: 700 }}>{st.t}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {/* 심각도 + 주요 취약점 */}
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, borderBottom: '1px solid #ddd', paddingBottom: 4 }}>심각도 분포</div>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+              {([['critical', 'CRITICAL', '#c0392b'], ['high', 'HIGH', '#e0842e'], ['medium', 'MEDIUM', '#c9a800'], ['low', 'LOW', '#888']] as const).map(([sev, lbl, c]) => (
+                <div key={sev} style={{ flex: 1, border: `1px solid ${c}33`, borderRadius: 5, padding: '6px 4px', textAlign: 'center', background: `${c}0d` }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: c }}>{sortedFindings.filter(f => f.severity === sev).length}</div>
+                  <div style={{ fontSize: 8, color: c, fontWeight: 600 }}>{lbl}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, borderBottom: '1px solid #ddd', paddingBottom: 4 }}>주요 취약점</div>
+            {sortedFindings.slice(0, 5).map(f => {
+              const sc = f.severity === 'critical' ? '#c0392b' : f.severity === 'high' ? '#e0842e' : f.severity === 'medium' ? '#c9a800' : '#888';
+              return (
+                <div key={f.findings_id} style={{ display: 'flex', gap: 6, alignItems: 'baseline', padding: '4px 0', borderTop: '1px solid #f0f0f0' }}>
+                  <span style={{ fontSize: 8, fontWeight: 700, color: '#fff', background: sc, borderRadius: 3, padding: '1px 5px', whiteSpace: 'nowrap' }}>{f.severity.toUpperCase()}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, flex: 1 }}>{f.title}</span>
+                  <span style={{ fontSize: 9, color: '#aaa', whiteSpace: 'nowrap' }}>{f.atlas_technique_id}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 취약 코드 위치 (많으면 자연스럽게 다음 페이지로) */}
+        {codeLocations.length > 0 && (
+          <div style={{ marginTop: 18 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, borderBottom: '1px solid #ddd', paddingBottom: 4 }}>취약 코드 위치</div>
+            {codeLocations.map((loc, i) => (
+              <div key={i} style={{ marginBottom: 12, breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 3 }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: '#fff', background: '#555', borderRadius: 3, padding: '1px 6px', whiteSpace: 'nowrap' }}>{atlasLabel(loc.atlas_id)}</span>
+                  <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#444' }}>{loc.file}<span style={{ color: '#bbb' }}>:{loc.line}</span></span>
+                </div>
+                <pre style={{ fontSize: 9.5, fontFamily: 'monospace', background: '#f6f7f8', border: '1px solid #e6e6e6', borderRadius: 4, padding: '8px 10px', margin: '3px 0', whiteSpace: 'pre-wrap', wordBreak: 'break-all', color: '#333', lineHeight: 1.55 }}>
+                  {loc.context && loc.context.length > 0
+                    ? loc.context.map(c => `${c.line === loc.line ? '►' : ' '} ${c.line}: ${c.code}`).join('\n')
+                    : loc.snippet}
+                </pre>
+                <div style={{ fontSize: 11, color: '#c0392b', margin: '3px 0' }}>⚠ {loc.reason}</div>
+                {loc.fix && <div style={{ fontSize: 11, color: '#2e7d46' }}>✓ fix: {loc.fix}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* AI 요약 (맨 마지막) */}
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6, borderBottom: '1px solid #ddd', paddingBottom: 4 }}>AI 분석 요약</div>
+          <div style={{ fontSize: 11.5, lineHeight: 1.7, color: '#333' }}>
+            {aiSummary
+              ? <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiSummary}</ReactMarkdown>
+              : <span style={{ color: '#aaa' }}>요약 생성 중…</span>}
+          </div>
+        </div>
+
+        <div style={{ marginTop: 18, paddingTop: 8, borderTop: '1px solid #e0e0e0', fontSize: 9, color: '#aaa', display: 'flex', justifyContent: 'space-between' }}>
+          <span>AI Red Team · 자동 모의해킹 리포트</span>
+          <span>{typeof window !== 'undefined' ? window.location.href : ''}</span>
+        </div>
+      </div>
+
       {tutorial.active && tutorial.currentStep && (
         <TutorialOverlay
           step={tutorial.currentStep}
@@ -398,6 +526,20 @@ export function ReportPage() {
           <span className={styles.riskBadge} style={{ color: risk.color, borderColor: risk.color, background: 'rgba(224,164,82,.06)' }}>
             RISK {report.risk_score}/100 · {risk.label}
           </span>
+          <button
+            type="button"
+            className="pdf-hide"
+            onClick={() => window.print()}
+            title="리포트를 PDF로 저장(과거 스캔 제외)"
+            style={{
+              marginLeft: 'auto', cursor: 'pointer',
+              background: 'rgba(76,139,245,.12)', color: '#7fa9f5',
+              border: '1px solid rgba(76,139,245,.4)', borderRadius: 6,
+              padding: '4px 12px', fontSize: 13, fontWeight: 600,
+            }}
+          >
+            📄 요약 PDF
+          </button>
         </div>
       </div>
 
@@ -638,9 +780,9 @@ export function ReportPage() {
         </div>
       )}
 
-      {/* ── 과거 스캔 ── */}
+      {/* ── 과거 스캔 (PDF에선 제외) ── */}
       {pastScans.length > 0 && (
-        <div className={styles.metaRow}>
+        <div className={`${styles.metaRow} pdf-hide`}>
           {pastScans.length > 0 && (
             <div className={styles.win}>
               <button className={styles.toggleHeader} onClick={() => setPastOpen(v => !v)}>
