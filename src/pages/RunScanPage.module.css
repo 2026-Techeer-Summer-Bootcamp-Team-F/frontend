@@ -274,8 +274,8 @@
 .analysisRow {
   display: grid;
   grid-template-columns: 340px 420px 200px 420px;
+  grid-template-rows: 440px;
   gap: 8px;
-  align-items: stretch;
 }
 
 @media (max-width: 1100px) {
