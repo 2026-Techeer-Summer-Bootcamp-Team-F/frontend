@@ -339,10 +339,10 @@ export function RunScanPage() {
   const aiThinkingText =
     (status === 'done' || status === 'failed')
       ? '모든 공격 분석을 종료했습니다.'
-      : closingMessages.get(selectedAtlasId)
-      ?? (treeNodes.get(selectedAtlasId) ?? []).at(-1)?.improvement
-      || seedsThinking.get(selectedAtlasId)
-      || (selectedAtlasId ? 'corpus에서 초기 씨앗 프롬프트를 검색 중...' : '세션을 선택하면 AI 사고 과정이 표시됩니다.');
+      : (closingMessages.get(selectedAtlasId)
+        || (treeNodes.get(selectedAtlasId) ?? []).at(-1)?.improvement
+        || seedsThinking.get(selectedAtlasId)
+        || (selectedAtlasId ? 'corpus에서 초기 씨앗 프롬프트를 검색 중...' : '세션을 선택하면 AI 사고 과정이 표시됩니다.'));
   const aiThinkingLines = aiThinkingText
     .split(/(?<=[.。!?])\s+|[\n]/)
     .map(s => s.trim())
