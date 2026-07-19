@@ -1,4 +1,11 @@
-﻿.page { display: flex; flex-direction: column; gap: 8px; }
+﻿/* nav(56px) + main padding top/bottom(80px) = 136px */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: calc(100vh - 136px);
+  min-height: 560px;
+}
 
 /* Header */
 .header { display: flex; flex-direction: column; gap: 4px; }
@@ -344,9 +351,7 @@
 .tabContent {
   flex: 1;
   min-height: 0;
-  height: calc(100vh - 210px);
-  min-height: 420px;
-  max-height: 720px;
+  overflow: hidden;
 }
 
 .tabContent > * {
@@ -374,6 +379,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  height: 100%;
   min-height: 0;
 }
 
