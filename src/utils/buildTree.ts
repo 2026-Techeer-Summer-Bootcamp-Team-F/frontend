@@ -125,11 +125,11 @@ export function buildEChartsTree(nodes: EvolutionNode[]): EChartsTreeNode[] {
     value: 0,
     symbolSize: 10,
     itemStyle: { color: '#4a6a7a' },
-    tooltip: { formatter: `corpus에서 ${roots.length}개 씨앗 프롬프트 선택` },
+    tooltip: { formatter: `공격 데이터베이스에서 프롬프트 ${roots.length}개 선택` },
     children: roots.map(r => toEChartsNode(r, childMap, bestByGen)),
     _meta: {
       attempt_id: -1,
-      improvement: `corpus에서 ${roots.length}개 씨앗 프롬프트를 검색해 선택했습니다.`,
+      improvement: `공격 데이터베이스에서 프롬프트 ${roots.length}개를 검색해 선택했습니다.`,
       prompt_preview: '',
       generation: -1,
       score: 0,
