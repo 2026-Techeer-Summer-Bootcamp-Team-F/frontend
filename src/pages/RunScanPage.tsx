@@ -563,12 +563,18 @@ export function RunScanPage() {
 
       {/* ── AI 사고 과정 ── */}
       <div className={styles.aiThinkingBar}>
-        <span className={styles.aiThinkingLabel}>AI 사고 과정</span>
-        <ul key={aiThinkingText} className={styles.aiThinkingList}>
-          {aiThinkingLines.map((line, i) => (
-            <li key={i} className={styles.aiThinkingItem}>{line}</li>
-          ))}
-        </ul>
+        <div className={styles.aiThinkingAvatar}>
+          <img src="/logo.png" alt="Hackie" />
+          <span className={styles.aiThinkingAvatarName}>Hackie</span>
+        </div>
+        <div className={styles.aiThinkingContent}>
+          <span className={styles.aiThinkingLabel}>AI 사고 과정</span>
+          <ul key={aiThinkingText} className={styles.aiThinkingList}>
+            {aiThinkingLines.map((line, i) => (
+              <li key={i} className={styles.aiThinkingItem}>{line}</li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
