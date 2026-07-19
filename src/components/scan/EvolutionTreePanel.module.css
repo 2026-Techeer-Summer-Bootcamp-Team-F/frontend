@@ -18,11 +18,17 @@
   border-bottom: 1px solid var(--accent-border);
 }
 
+.dots { display: flex; gap: 6px; }
+.dot  { display: block; width: 12px; height: 12px; border-radius: 50%; }
+.g    { background: #28c840; }
+.y    { background: #febc2e; }
+.gr   { background: #3a3a3a; }
+
 .title {
   font-family: var(--font-ui);
   font-size: 12px;
   letter-spacing: 0.16em;
-  color: var(--accent);
+  color: var(--text-muted);
 }
 
 .atlasTag {

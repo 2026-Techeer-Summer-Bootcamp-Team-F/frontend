@@ -475,11 +475,6 @@ export function RunScanPage() {
         {activeTab === 'log' && (
           <section className={styles.terminal} data-tutorial="term-body">
             <div className={styles.termTitle}>
-              <div className={styles.dots}>
-                <span className={`${styles.dot} ${styles.g}`} />
-                <span className={`${styles.dot} ${styles.y}`} />
-                <span className={`${styles.dot} ${styles.gr}`} />
-              </div>
               <span>redi@console — Live Analysis Log</span>
             </div>
             <div className={styles.termBody}>

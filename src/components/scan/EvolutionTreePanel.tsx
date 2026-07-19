@@ -77,6 +77,11 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
   return (
     <div className={styles.panel}>
       <div className={styles.header}>
+        <div className={styles.dots}>
+          <span className={`${styles.dot} ${styles.g}`} />
+          <span className={`${styles.dot} ${styles.y}`} />
+          <span className={`${styles.dot} ${styles.gr}`} />
+        </div>
         <span className={styles.title}>EVOLUTION TREE</span>
         <span className={styles.atlasTag}>{atlasId}</span>
         {atlasName && <span className={styles.atlasTag}>{atlasName}</span>}
