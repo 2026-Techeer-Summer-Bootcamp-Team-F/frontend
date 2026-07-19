@@ -471,6 +471,15 @@ export function RunScanPage() {
                 <span className={`${styles.dot} ${styles.gr}`} />
               </div>
               <span>redi@console — Live Analysis Log</span>
+              {status === 'running' && (
+                <span className={styles.termStatus}>
+                  <span className={styles.blink}>█</span>
+                  <span className={styles.termTimer}>{fmtElapsed(elapsed)}</span>
+                </span>
+              )}
+              {status === 'done' && (
+                <span className={styles.termTimerDone}>{fmtElapsed(elapsed)}</span>
+              )}
             </div>
             <div className={styles.termBody}>
               {logs.length === 0 && (
