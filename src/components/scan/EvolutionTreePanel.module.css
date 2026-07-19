@@ -12,13 +12,15 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 14px;
+  padding: 0 16px;
+  height: 39px;
+  box-sizing: border-box;
   border-bottom: 1px solid var(--accent-border);
 }
 
 .title {
   font-family: var(--font-ui);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.16em;
   color: var(--accent);
 }
