@@ -15,6 +15,8 @@ import { AttackSessionList } from '../components/scan/AttackSessionList';
 import { EvolutionTreePanel } from '../components/scan/EvolutionTreePanel';
 import type { EvolutionNode } from '../api/scans';
 
+type Tab = 'log' | 'chat' | 'tree';
+
 interface LogLine { id: number; msg: string; level: string }
 interface ProgressData {
   generation: number;
@@ -24,14 +26,6 @@ interface ProgressData {
   current_attack: { name: string; atlas: string; status: string } | null;
   summary: { completed: number; total: number; success: number; failed: number; running: number } | null;
 }
-
-const TARGET_MODELS = [
-  { value: 'current', label: '정찰값 사용 (current)' },
-  { value: 'gpt-4o', label: 'GPT-4o' },
-  { value: 'gpt-4o-mini', label: 'GPT-4o-mini' },
-  { value: 'claude', label: 'Claude' },
-  { value: 'local', label: 'Local (Ollama)' },
-];
 
 export function RunScanPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -45,7 +39,6 @@ export function RunScanPage() {
   const [status, setStatus] = useState<'idle' | 'running' | 'done' | 'failed'>('idle');
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [progress, setProgress] = useState<ProgressData | null>(null);
-  // 실시간 공격 채팅(#26) — 터미널 로그와 같은 EventSource를 공유한다
   const [exchanges, setExchanges] = useState<ChatExchange[]>([]);
   const [recon, setRecon] = useState<{ tools: string[]; defenses: string[] } | null>(null);
   const [objectives, setObjectives] = useState({ done: 0, total: 0 });
@@ -55,16 +48,19 @@ export function RunScanPage() {
   const [treeNodes, setTreeNodes] = useState<Map<string, EvolutionNode[]>>(new Map());
   const [seedsThinking, setSeedsThinking] = useState<Map<string, string>>(new Map());
   const [closingMessages, setClosingMessages] = useState<Map<string, string>>(new Map());
-  const objectiveToAtlasRef = useRef(new Map<number, string>());
   const [selectedAtlasId, setSelectedAtlasId] = useState('');
   const [selectedAtlasName, setSelectedAtlasName] = useState('');
   const [elapsed, setElapsed] = useState(0);
+  const [activeTab, setActiveTab] = useState<Tab>('log');
+
   const logEndRef = useRef<HTMLDivElement>(null);
   const esRef = useRef<EventSource | null>(null);
   const cancelMockRef = useRef<(() => void) | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const objectiveToAtlasRef = useRef(new Map<number, string>());
   const seenObjectivesRef = useRef<Set<number>>(new Set());
-  const userSelectedRef = useRef(false); // 사용자가 직접 세션을 선택했는지 여부
+  const userSelectedRef = useRef(false);
+  const userChangedTabRef = useRef(false);
 
   const tutorial = useTutorial('analysis', [
     {
@@ -79,11 +75,12 @@ export function RunScanPage() {
     },
   ]);
 
-  // 새 세션 등장 시: 사용자가 직접 선택하지 않은 경우 자동으로 최신 세션을 선택
+  // 새 세션 등장 시 자동 선택 + 첫 세션이면 채팅 탭으로 전환
   useEffect(() => {
     if (exchanges.length === 0) return;
     const last = exchanges[exchanges.length - 1];
     if (!seenObjectivesRef.current.has(last.objectiveId)) {
+      const isFirst = seenObjectivesRef.current.size === 0;
       seenObjectivesRef.current.add(last.objectiveId);
       if (!userSelectedRef.current) {
         setSelectedObjectiveId(last.objectiveId);
@@ -91,6 +88,9 @@ export function RunScanPage() {
         setSelectedAtlasName(last.atlasName ?? '');
       } else {
         setNewObjectiveIds(prev => new Set([...prev, last.objectiveId]));
+      }
+      if (isFirst && !userChangedTabRef.current) {
+        setActiveTab('chat');
       }
     }
   }, [exchanges]);
@@ -157,6 +157,8 @@ export function RunScanPage() {
     if (!projectId || selected.size === 0) return;
     if (Notification.permission === 'default') Notification.requestPermission();
     setLoadingStart(true);
+    setActiveTab('log');
+    userChangedTabRef.current = false;
     try {
       const config: ScanConfig = {
         attack_types: Array.from(selected),
@@ -174,7 +176,6 @@ export function RunScanPage() {
       setLogs([{ id: 0, msg: 'Attack modules loading... (demo mode)', level: 'info' }]);
       const mockScanId = 9999;
       setScanId(mockScanId);
-      // 데모엔 recon/start progress 이벤트가 없어 채팅 서브헤더·커버리지를 직접 채운다
       setRecon(MOCK_RECON);
       setObjectives({ done: 0, total: MOCK_OBJECTIVE_COUNT });
       cancelMockRef.current = simulateScan({
@@ -225,7 +226,6 @@ export function RunScanPage() {
           current_attack: d.current_attack ?? prev?.current_attack ?? null,
           summary: d.summary ?? prev?.summary ?? null,
         }));
-        // progress 이벤트 → 터미널 로그
         if (d.phase === 'recon') {
           addLog(`[RECON] 정찰 완료 — tools: ${(d.tools ?? []).join(', ') || '없음'}, defenses: ${(d.defenses ?? []).join(', ') || '없음'}`);
           setRecon({ tools: d.tools ?? [], defenses: d.defenses ?? [] });
@@ -267,7 +267,6 @@ export function RunScanPage() {
           `${atlasLabel(d.atlas)}${op} ${verdict} (${score}%)${errDetail}`,
           verdict === 'breach' ? 'error' : verdict === 'error' ? 'warn' : 'info',
         );
-        // 진화 트리 노드 추가
         const node: EvolutionNode = {
           attempt_id: d.attempt_id,
           parent_id: d.parent_id ?? null,
@@ -321,12 +320,20 @@ export function RunScanPage() {
     setNewObjectiveIds(new Set());
     seenObjectivesRef.current = new Set();
     userSelectedRef.current = false;
+    userChangedTabRef.current = false;
     setTreeNodes(new Map());
     setSeedsThinking(new Map());
     setClosingMessages(new Map());
     objectiveToAtlasRef.current = new Map();
     setSelectedAtlasId('');
     setSelectedAtlasName('');
+    setActiveTab('log');
+  };
+
+  const switchTab = (tab: Tab) => {
+    userChangedTabRef.current = true;
+    setActiveTab(tab);
+    if (tab === 'chat') setNewObjectiveIds(new Set());
   };
 
   const aiThinkingText =
@@ -341,6 +348,8 @@ export function RunScanPage() {
     .map(s => s.trim())
     .filter(Boolean);
 
+  const chatBadge = newObjectiveIds.size > 0 && activeTab !== 'chat';
+
   return (
     <div className={styles.page}>
       {tutorial.active && tutorial.currentStep && (
@@ -353,6 +362,7 @@ export function RunScanPage() {
           onSkip={tutorial.skip}
         />
       )}
+
       {/* ── Header ── */}
       <div className={styles.header}>
         <p className={styles.label}>STEP 3 / 3 — AI RED TEAMING ANALYSIS</p>
@@ -397,85 +407,129 @@ export function RunScanPage() {
         </div>
       </div>
 
-      {/* ── 분석 4단: 터미널 로그 | 공격 채팅 | 세션 목록 | 진화 트리 ── */}
-      <div className={styles.analysisRow}>
-      {/* ── Live log (fixed height, scrollable) ── */}
-      <section className={styles.terminal}>
-        <div className={styles.termTitle}>
-          <div className={styles.dots}>
-            <span className={`${styles.dot} ${styles.g}`} />
-            <span className={`${styles.dot} ${styles.y}`} />
-            <span className={`${styles.dot} ${styles.gr}`} />
-          </div>
-          <span>redi@console — Live Analysis Log</span>
-          {status === 'idle' && <span className={styles.waiting}>대기 중</span>}
-          {status === 'running' && (
-            <span className={styles.analyzing}>
-              <span className={styles.blink}>█</span> 분석 중...
-              <span className={styles.timer}>{fmtElapsed(elapsed)}</span>
-            </span>
+      {/* ── 탭 바 ── */}
+      <div className={styles.tabBar}>
+        <button
+          className={`${styles.tabBtn} ${activeTab === 'log' ? styles.tabActive : ''}`}
+          onClick={() => switchTab('log')}
+        >
+          <span className={styles.tabDots}>
+            <span className={`${styles.miniDot} ${styles.g}`} />
+            <span className={`${styles.miniDot} ${styles.y}`} />
+            <span className={`${styles.miniDot} ${styles.gr}`} />
+          </span>
+          터미널 로그
+        </button>
+        <button
+          className={`${styles.tabBtn} ${activeTab === 'chat' ? styles.tabActive : ''}`}
+          onClick={() => switchTab('chat')}
+        >
+          공격 채팅
+          {chatBadge && (
+            <span className={styles.tabBadge}>{newObjectiveIds.size}</span>
           )}
-          {status === 'done' && (
-            <span className={styles.timerDone}>{fmtElapsed(elapsed)}</span>
-          )}
-        </div>
-        <div className={styles.termBody} data-tutorial="term-body">
-          {logs.length === 0 && (
-            <p className={styles.termEmpty}>스캔을 시작하면 실시간 로그가 표시됩니다.</p>
-          )}
-          {logs.map(line => (
-            <p key={line.id} className={`${styles.logLine} ${styles[line.level] ?? ''}`}>
-              <span className={styles.logPrompt}>›</span> {line.msg}
-            </p>
-          ))}
-          {status === 'running' && (
-            <p className={styles.logLine}>
-              <span className={styles.logPrompt}>›</span>
-              <span className={styles.cursor} />
-            </p>
-          )}
-          {status === 'done' && (
-            <p className={`${styles.logLine} ${styles.done}`}>
-              ✓ 스캔 완료
-            </p>
-          )}
-          <div ref={logEndRef} />
-        </div>
-      </section>
+        </button>
+        <button
+          className={`${styles.tabBtn} ${activeTab === 'tree' ? styles.tabActive : ''}`}
+          onClick={() => switchTab('tree')}
+        >
+          진화 트리
+        </button>
 
-        <div className={styles.chatPanel}>
-          <LiveAttackChat
-            exchanges={exchanges}
-            status={status}
-            targetName={project?.project_name ?? '표적'}
-            recon={recon}
-            generation={progress?.generation ?? 0}
-            objectivesDone={objectives.done}
-            objectivesTotal={objectives.total}
-            selectedObjectiveId={selectedObjectiveId}
-          />
-          <AttackSessionList
-            exchanges={exchanges}
-            selected={selectedObjectiveId}
-            onSelect={id => {
-              userSelectedRef.current = true;
-              setSelectedObjectiveId(id);
-              setNewObjectiveIds(prev => { const n = new Set(prev); n.delete(id); return n; });
-              const ex = exchanges.find(e => e.objectiveId === id);
-              if (ex) {
-                setSelectedAtlasId(ex.atlas);
-                setSelectedAtlasName(ex.atlasName ?? '');
-              }
-            }}
-            newSessions={newObjectiveIds}
-            status={status}
-          />
+        <div className={styles.tabSpacer} />
+
+        {status === 'running' && (
+          <span className={styles.tabStatus}>
+            <span className={styles.blink}>█</span>
+            <span className={styles.tabTimer}>{fmtElapsed(elapsed)}</span>
+          </span>
+        )}
+        {status === 'done' && (
+          <span className={styles.tabTimerDone}>{fmtElapsed(elapsed)}</span>
+        )}
+        {status === 'idle' && (
+          <span className={styles.tabIdle}>대기 중</span>
+        )}
+      </div>
+
+      {/* ── 탭 콘텐츠 ── */}
+      <div className={styles.tabContent}>
+
+        {/* 터미널 로그 탭 */}
+        {activeTab === 'log' && (
+          <section className={styles.terminal} data-tutorial="term-body">
+            <div className={styles.termTitle}>
+              <div className={styles.dots}>
+                <span className={`${styles.dot} ${styles.g}`} />
+                <span className={`${styles.dot} ${styles.y}`} />
+                <span className={`${styles.dot} ${styles.gr}`} />
+              </div>
+              <span>redi@console — Live Analysis Log</span>
+            </div>
+            <div className={styles.termBody}>
+              {logs.length === 0 && (
+                <p className={styles.termEmpty}>스캔을 시작하면 실시간 로그가 표시됩니다.</p>
+              )}
+              {logs.map(line => (
+                <p key={line.id} className={`${styles.logLine} ${styles[line.level] ?? ''}`}>
+                  <span className={styles.logPrompt}>›</span> {line.msg}
+                </p>
+              ))}
+              {status === 'running' && (
+                <p className={styles.logLine}>
+                  <span className={styles.logPrompt}>›</span>
+                  <span className={styles.cursor} />
+                </p>
+              )}
+              {status === 'done' && (
+                <p className={`${styles.logLine} ${styles.done}`}>✓ 스캔 완료</p>
+              )}
+              <div ref={logEndRef} />
+            </div>
+          </section>
+        )}
+
+        {/* 공격 채팅 탭 */}
+        {activeTab === 'chat' && (
+          <div className={styles.chatTabLayout}>
+            <LiveAttackChat
+              exchanges={exchanges}
+              status={status}
+              targetName={project?.project_name ?? '표적'}
+              recon={recon}
+              generation={progress?.generation ?? 0}
+              objectivesDone={objectives.done}
+              objectivesTotal={objectives.total}
+              selectedObjectiveId={selectedObjectiveId}
+            />
+            <AttackSessionList
+              exchanges={exchanges}
+              selected={selectedObjectiveId}
+              onSelect={id => {
+                userSelectedRef.current = true;
+                setSelectedObjectiveId(id);
+                setNewObjectiveIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+                const ex = exchanges.find(e => e.objectiveId === id);
+                if (ex) {
+                  setSelectedAtlasId(ex.atlas);
+                  setSelectedAtlasName(ex.atlasName ?? '');
+                }
+              }}
+              newSessions={newObjectiveIds}
+              status={status}
+            />
+          </div>
+        )}
+
+        {/* 진화 트리 탭 */}
+        {activeTab === 'tree' && (
           <EvolutionTreePanel
             nodes={treeNodes.get(selectedAtlasId) ?? []}
             atlasId={selectedAtlasId}
             atlasName={selectedAtlasName}
           />
-        </div>
+        )}
+
       </div>
 
       {/* ── AI 사고 과정 ── */}

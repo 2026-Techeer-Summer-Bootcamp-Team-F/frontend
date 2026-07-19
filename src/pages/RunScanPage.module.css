@@ -251,39 +251,122 @@
   color: var(--text-muted);
 }
 
-/* ── 분석 4단: 로그 | 채팅 | 세션 | 트리 ── */
-.analysisRow {
+/* ── 탭 바 ── */
+.tabBar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-title);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  padding: 4px;
+  flex-shrink: 0;
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+  white-space: nowrap;
+}
+.tabBtn:hover { background: var(--accent-dim); color: var(--text); }
+
+.tabActive {
+  background: var(--bg-card);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.tabBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 8px;
+  line-height: 1;
+}
+
+.tabDots { display: flex; gap: 3px; align-items: center; }
+.miniDot { display: block; width: 8px; height: 8px; border-radius: 50%; }
+
+.tabSpacer { flex: 1; }
+
+.tabStatus {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--accent);
+  padding: 0 8px;
+}
+
+.tabTimer {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+}
+
+.tabTimerDone {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  padding: 0 8px;
+}
+
+.tabIdle {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 0 8px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* ── 탭 콘텐츠 ── */
+.tabContent {
+  flex: 1;
+  min-height: 0;
+  height: calc(100vh - 210px);
+  min-height: 420px;
+  max-height: 720px;
+}
+
+.tabContent > * {
+  height: 100%;
+}
+
+/* 공격 채팅 탭: 채팅 + 세션 목록 나란히 */
+.chatTabLayout {
   display: grid;
-  grid-template-columns: minmax(240px, 1.1fr) minmax(240px, 1.3fr) minmax(140px, 0.5fr) minmax(240px, 1fr);
-  height: calc(100vh - 200px);
-  min-height: 440px;
-  max-height: 700px;
+  grid-template-columns: 1fr 200px;
   gap: 8px;
+  height: 100%;
 }
 
-@media (max-width: 1100px) {
-  .analysisRow {
-    grid-template-columns: minmax(200px, 1fr) minmax(200px, 1.2fr) minmax(110px, 0.42fr) minmax(200px, 0.9fr);
-  }
-}
-
-@media (max-width: 860px) {
-  .analysisRow {
-    grid-template-columns: 1fr 1fr;
-    height: auto;
-    min-height: 0;
-    max-height: none;
-  }
-}
-
-@media (max-width: 560px) {
-  .analysisRow {
+@media (max-width: 640px) {
+  .chatTabLayout {
     grid-template-columns: 1fr;
+    grid-template-rows: 1fr auto;
   }
 }
-
-/* chatPanel은 채팅·세션·트리 3개를 감싸는 서브그리드 역할 없이 직접 children으로 배치 */
-.chatPanel { display: contents; }
 
 .terminal {
   border: 1px solid var(--accent-border);
@@ -312,38 +395,6 @@
 .y  { background: #febc2e; }
 .gr { background: #3a3a3a; }
 
-.waiting {
-  margin-left: auto;
-  font-size: 11px;
-  color: var(--text-muted);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.analyzing {
-  margin-left: auto;
-  font-size: 11px;
-  color: var(--accent);
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.timer {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  color: var(--accent);
-  letter-spacing: 0.05em;
-  padding-left: 6px;
-  border-left: 1px solid var(--accent-border);
-}
-
-.timerDone {
-  margin-left: auto;
-  font-family: var(--font-ui);
-  font-size: 12px;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
-}
 
 .termBody {
   background: var(--bg-card);
