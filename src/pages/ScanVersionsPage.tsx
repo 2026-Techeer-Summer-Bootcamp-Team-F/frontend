@@ -256,8 +256,8 @@ export function ScanVersionsPage() {
               <span className={styles.rt}>
                 {curScan && (diff?.base_scan_id != null ? `#${diff.base_scan_id} → #${curScan.scan_id}` : `#${curScan.scan_id}`)}
               </span>
-              {/* 현재 선택 스캔의 결과 리포트로 이동(스캔 미선택 시 숨김). */}
-              {curScan && (
+              {/* 현재 선택 스캔의 결과 리포트로 이동(스캔 미선택·로딩 중 숨김). */}
+              {curScan && !diffLoading && (
                 <Link to={`/report/${curScan.scan_id}`} className={styles.reportlink}>
                   이 스캔 리포트 보기 →
                 </Link>
