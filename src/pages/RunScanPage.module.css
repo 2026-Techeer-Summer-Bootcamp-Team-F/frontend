@@ -1,7 +1,7 @@
 ﻿.page { display: flex; flex-direction: column; gap: 8px; }
 
 /* Header */
-.header { display: flex; flex-direction: column; gap: 8px; }
+.header { display: flex; flex-direction: column; gap: 4px; }
 
 .label {
   font-family: var(--font-ui);
@@ -11,11 +11,31 @@
   margin: 0;
 }
 
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .title {
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 900;
   margin: 0;
+  min-width: 0;
+}
+
+@media (max-width: 860px) {
+  .title { font-size: 22px; }
 }
 
 .runningBadge {
@@ -32,45 +52,6 @@
 }
 
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-/* ── Hero: gif + button, centered ── */
-.hero {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 0;
-  margin-top: -16px;
-}
-
-/* Hackie */
-.hackieWrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  margin-bottom: -40px;
-}
-
-.hackie {
-  width: 380px;
-  height: 380px;
-  object-fit: contain;
-  filter: drop-shadow(0 0 10px rgba(80, 200, 120, 0.2));
-  transition: filter 0.3s;
-  pointer-events: none;
-}
-
-.hackieRunning {
-  filter: drop-shadow(0 0 22px rgba(80, 200, 120, 0.6));
-}
-
-.hackieDone {
-  font-family: var(--font-ui);
-  font-size: 12px;
-  color: var(--accent);
-  margin: 0;
-}
 
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 .blink { animation: blink 0.8s step-end infinite; }
@@ -273,14 +254,32 @@
 /* ── 분석 4단: 로그 | 채팅 | 세션 | 트리 ── */
 .analysisRow {
   display: grid;
-  grid-template-columns: 480px 420px 200px 420px;
-  grid-template-rows: 440px;
+  grid-template-columns: minmax(240px, 1.1fr) minmax(240px, 1.3fr) minmax(140px, 0.5fr) minmax(240px, 1fr);
+  height: calc(100vh - 200px);
+  min-height: 440px;
+  max-height: 700px;
   gap: 8px;
-  justify-content: center;
 }
 
 @media (max-width: 1100px) {
-  .analysisRow { grid-template-columns: 1fr 1fr; grid-template-rows: 480px 480px; }
+  .analysisRow {
+    grid-template-columns: minmax(200px, 1fr) minmax(200px, 1.2fr) minmax(110px, 0.42fr) minmax(200px, 0.9fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .analysisRow {
+    grid-template-columns: 1fr 1fr;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .analysisRow {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* chatPanel은 채팅·세션·트리 3개를 감싸는 서브그리드 역할 없이 직접 children으로 배치 */
@@ -292,7 +291,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 440px;
+  min-height: 0;
 }
 
 .termTitle {
@@ -387,4 +386,57 @@
   background: var(--accent);
   vertical-align: text-bottom;
   animation: blink 1.1s step-end infinite;
+}
+
+/* ── AI 사고 과정 바 ── */
+.aiThinkingBar {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  background: var(--bg-title);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  flex-shrink: 0;
+}
+
+.aiThinkingLabel {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  white-space: nowrap;
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+
+.aiThinkingList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 20px;
+  animation: aiThinkFadeIn 0.3s ease;
+}
+
+.aiThinkingItem {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text);
+  line-height: 1.6;
+  padding-left: 11px;
+  position: relative;
+}
+
+.aiThinkingItem::before {
+  content: '›';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
+@keyframes aiThinkFadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
 }

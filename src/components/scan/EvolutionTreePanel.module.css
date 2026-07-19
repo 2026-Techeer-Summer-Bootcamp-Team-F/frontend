@@ -37,47 +37,6 @@
   min-height: 300px;
 }
 
-.thinking {
-  border-top: 1px solid var(--accent-border);
-  padding: 10px 14px;
-  min-height: 64px;
-}
-
-.thinkingLabel {
-  font-family: var(--font-ui);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-}
-
-.thinkingList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  animation: fadeIn 0.3s ease;
-}
-
-.thinkingItem {
-  font-family: var(--font-ui);
-  font-size: 11px;
-  color: var(--text);
-  line-height: 1.5;
-  padding-left: 12px;
-  position: relative;
-}
-
-.thinkingItem::before {
-  content: '›';
-  position: absolute;
-  left: 0;
-  color: var(--accent);
-  font-size: 11px;
-}
-
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -91,4 +50,57 @@
   font-family: var(--font-ui);
   font-size: 12px;
   color: var(--text-muted);
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 9999;
+  min-width: 180px;
+  max-width: 280px;
+  background: var(--bg-title, #1a1e2a);
+  border: 1px solid var(--accent-border, #2d3a4a);
+  border-radius: 6px;
+  padding: 8px 10px;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.tooltipHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.tooltipVerdict {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.tooltipMeta {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tooltipPrompt {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text);
+  line-height: 1.5;
+  margin: 0;
+  word-break: break-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

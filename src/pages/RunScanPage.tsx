@@ -64,6 +64,7 @@ export function RunScanPage() {
   const cancelMockRef = useRef<(() => void) | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const seenObjectivesRef = useRef<Set<number>>(new Set());
+  const userSelectedRef = useRef(false); // 사용자가 직접 세션을 선택했는지 여부
 
   const tutorial = useTutorial('analysis', [
     {
@@ -78,17 +79,21 @@ export function RunScanPage() {
     },
   ]);
 
-  // 새 공격 기법이 등장하면 선택 중인 세션이 아닐 때만 new 표시
+  // 새 세션 등장 시: 사용자가 직접 선택하지 않은 경우 자동으로 최신 세션을 선택
   useEffect(() => {
     if (exchanges.length === 0) return;
     const last = exchanges[exchanges.length - 1];
     if (!seenObjectivesRef.current.has(last.objectiveId)) {
       seenObjectivesRef.current.add(last.objectiveId);
-      if (last.objectiveId !== selectedObjectiveId) {
+      if (!userSelectedRef.current) {
+        setSelectedObjectiveId(last.objectiveId);
+        setSelectedAtlasId(last.atlas);
+        setSelectedAtlasName(last.atlasName ?? '');
+      } else {
         setNewObjectiveIds(prev => new Set([...prev, last.objectiveId]));
       }
     }
-  }, [exchanges, selectedObjectiveId]);
+  }, [exchanges]);
 
   useEffect(() => {
     if (!projectId) return;
@@ -269,7 +274,7 @@ export function RunScanPage() {
           generation: d.generation ?? 0,
           prompt_preview: ((d.attack_prompt ?? d.prompt ?? '') as string).slice(0, 120),
           score: d.score ?? 0,
-          verdict: verdict === 'breach' ? 'breached' : 'safe',
+          verdict: verdict === 'breach' ? 'breached' : verdict === 'error' ? 'error' : 'safe',
           mutation_op: d.mutation_op || 'seed',
           improvement: d.improvement ?? '',
         };
@@ -315,6 +320,7 @@ export function RunScanPage() {
     setSelectedObjectiveId(null);
     setNewObjectiveIds(new Set());
     seenObjectivesRef.current = new Set();
+    userSelectedRef.current = false;
     setTreeNodes(new Map());
     setSeedsThinking(new Map());
     setClosingMessages(new Map());
@@ -322,6 +328,18 @@ export function RunScanPage() {
     setSelectedAtlasId('');
     setSelectedAtlasName('');
   };
+
+  const aiThinkingText =
+    (status === 'done' || status === 'failed')
+      ? '모든 공격 분석을 종료했습니다.'
+      : closingMessages.get(selectedAtlasId)
+      ?? (treeNodes.get(selectedAtlasId) ?? []).at(-1)?.improvement
+      || seedsThinking.get(selectedAtlasId)
+      || (selectedAtlasId ? 'corpus에서 초기 씨앗 프롬프트를 검색 중...' : '세션을 선택하면 AI 사고 과정이 표시됩니다.');
+  const aiThinkingLines = aiThinkingText
+    .split(/(?<=[.。!?])\s+|[\n]/)
+    .map(s => s.trim())
+    .filter(Boolean);
 
   return (
     <div className={styles.page}>
@@ -338,57 +356,48 @@ export function RunScanPage() {
       {/* ── Header ── */}
       <div className={styles.header}>
         <p className={styles.label}>STEP 3 / 3 — AI RED TEAMING ANALYSIS</p>
-        <h1 className={styles.title}>
-          {project?.project_name ?? '분석 설정'}
-          {status === 'running' && <span className={styles.runningBadge}> RUNNING</span>}
-          {status === 'done' && <span className={styles.doneBadge}> DONE</span>}
-        </h1>
-      </div>
-
-      {/* ── Hero: gif + button (centered top) ── */}
-      <div className={styles.hero}>
-        <div className={styles.hackieWrap}>
-          <img
-            src="/hackie.gif"
-            alt="Hackie"
-            className={`${styles.hackie} ${status === 'running' ? styles.hackieRunning : ''}`}
-          />
-          {status === 'done' && <p className={styles.hackieDone}>✓ 스캔 완료</p>}
-        </div>
-
-        {status === 'idle' && (
-          <button
-            className={styles.startBtn}
-            data-tutorial="start-btn"
-            onClick={handleStart}
-            disabled={loadingStart || selected.size === 0}
-          >
-            {loadingStart ? '시작 중...' : '›_ Start Scan'}
-          </button>
-        )}
-        {status === 'running' && (
-          <button className={styles.cancelBtn} onClick={handleCancel}>
-            ▪ 스캔 취소
-          </button>
-        )}
-        {status === 'done' && (
-          <div className={styles.btnRow}>
-            <button className={styles.reportBtn} onClick={() => navigate(`/report/${scanId}`)}>
-              ›_ 스캔 결과 리포트 보기
-            </button>
-            <button className={styles.restartBtn} onClick={handleRestart}>
-              ↺ 다시 스캔
-            </button>
+        <div className={styles.titleRow}>
+          <h1 className={styles.title}>
+            {project?.project_name ?? '분석 설정'}
+            {status === 'running' && <span className={styles.runningBadge}> RUNNING</span>}
+            {status === 'done' && <span className={styles.doneBadge}> DONE</span>}
+          </h1>
+          <div className={styles.headerActions}>
+            {status === 'idle' && (
+              <button
+                className={styles.startBtn}
+                data-tutorial="start-btn"
+                onClick={handleStart}
+                disabled={loadingStart || selected.size === 0}
+              >
+                {loadingStart ? '시작 중...' : '›_ Start Scan'}
+              </button>
+            )}
+            {status === 'running' && (
+              <button className={styles.cancelBtn} onClick={handleCancel}>
+                ▪ 스캔 취소
+              </button>
+            )}
+            {status === 'done' && (
+              <div className={styles.btnRow}>
+                <button className={styles.reportBtn} onClick={() => navigate(`/report/${scanId}`)}>
+                  ›_ 스캔 결과 리포트 보기
+                </button>
+                <button className={styles.restartBtn} onClick={handleRestart}>
+                  ↺ 다시 스캔
+                </button>
+              </div>
+            )}
+            {status === 'failed' && (
+              <button className={styles.restartBtn} onClick={handleRestart}>
+                ↺ 다시 스캔
+              </button>
+            )}
           </div>
-        )}
-        {status === 'failed' && (
-          <button className={styles.restartBtn} onClick={handleRestart}>
-            ↺ 다시 스캔
-          </button>
-        )}
+        </div>
       </div>
 
-      {/* ── 분석 3단: 터미널 로그 | 기법별 세션 목록 | 선택된 세션 공격 채팅 ── */}
+      {/* ── 분석 4단: 터미널 로그 | 공격 채팅 | 세션 목록 | 진화 트리 ── */}
       <div className={styles.analysisRow}>
       {/* ── Live log (fixed height, scrollable) ── */}
       <section className={styles.terminal}>
@@ -449,6 +458,7 @@ export function RunScanPage() {
             exchanges={exchanges}
             selected={selectedObjectiveId}
             onSelect={id => {
+              userSelectedRef.current = true;
               setSelectedObjectiveId(id);
               setNewObjectiveIds(prev => { const n = new Set(prev); n.delete(id); return n; });
               const ex = exchanges.find(e => e.objectiveId === id);
@@ -464,15 +474,18 @@ export function RunScanPage() {
             nodes={treeNodes.get(selectedAtlasId) ?? []}
             atlasId={selectedAtlasId}
             atlasName={selectedAtlasName}
-            latestImprovement={
-              (treeNodes.get(selectedAtlasId) ?? []).at(-1)?.improvement
-              || seedsThinking.get(selectedAtlasId)
-              || ''
-            }
-            closingMessage={closingMessages.get(selectedAtlasId)}
-            status={status}
           />
         </div>
+      </div>
+
+      {/* ── AI 사고 과정 ── */}
+      <div className={styles.aiThinkingBar}>
+        <span className={styles.aiThinkingLabel}>AI 사고 과정</span>
+        <ul key={aiThinkingText} className={styles.aiThinkingList}>
+          {aiThinkingLines.map((line, i) => (
+            <li key={i} className={styles.aiThinkingItem}>{line}</li>
+          ))}
+        </ul>
       </div>
     </div>
   );

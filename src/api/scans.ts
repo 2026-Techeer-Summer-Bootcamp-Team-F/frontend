@@ -184,7 +184,7 @@ export interface EvolutionNode {
   generation: number;
   prompt_preview: string;
   score: number;
-  verdict: 'breached' | 'safe';
+  verdict: 'breached' | 'safe' | 'error';
   mutation_op: string;
   improvement: string;
 }
