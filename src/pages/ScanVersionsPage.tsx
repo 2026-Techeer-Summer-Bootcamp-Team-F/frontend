@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import {
   getScanHistory,
   getVersionDiff,
@@ -256,6 +256,12 @@ export function ScanVersionsPage() {
               <span className={styles.rt}>
                 {curScan && (diff?.base_scan_id != null ? `#${diff.base_scan_id} → #${curScan.scan_id}` : `#${curScan.scan_id}`)}
               </span>
+              {/* 현재 선택 스캔의 결과 리포트로 이동(스캔 미선택·로딩 중 숨김). */}
+              {curScan && !diffLoading && (
+                <Link to={`/report/${curScan.scan_id}`} className={styles.reportlink}>
+                  이 스캔 리포트 보기 →
+                </Link>
+              )}
             </div>
             <div className={styles.hintline}>↓ 행을 클릭하면 위 코드 변경점 헤더가 해당 취약점으로 바뀝니다.</div>
             <div>
