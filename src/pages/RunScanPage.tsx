@@ -576,11 +576,12 @@ export function RunScanPage() {
         </div>
         <div className={styles.aiThinkingContent}>
           <span className={styles.aiThinkingLabel}>AI 사고 과정</span>
-          <ul key={aiThinkingText} className={styles.aiThinkingList}>
-            {aiThinkingLines.map((line, i) => (
-              <li key={i} className={styles.aiThinkingItem}>{line}</li>
-            ))}
-          </ul>
+          <p
+            key={aiThinkingLines.at(-1)}
+            className={styles.aiThinkingSentence}
+          >
+            › {aiThinkingLines.at(-1) ?? ''}
+          </p>
         </div>
       </div>
     </div>

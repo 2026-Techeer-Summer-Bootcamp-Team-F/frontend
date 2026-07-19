@@ -504,33 +504,16 @@
   color: var(--accent);
 }
 
-.aiThinkingList {
-  list-style: none;
+.aiThinkingSentence {
   margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 20px;
-  animation: aiThinkFadeIn 0.3s ease;
-}
-
-.aiThinkingItem {
   font-family: var(--font-ui);
   font-size: 11px;
   color: var(--text);
   line-height: 1.6;
-  padding-left: 11px;
-  position: relative;
+  animation: aiSentenceIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.aiThinkingItem::before {
-  content: '›';
-  position: absolute;
-  left: 0;
-  color: var(--accent);
-}
-
-@keyframes aiThinkFadeIn {
-  from { opacity: 0; transform: translateY(3px); }
+@keyframes aiSentenceIn {
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
