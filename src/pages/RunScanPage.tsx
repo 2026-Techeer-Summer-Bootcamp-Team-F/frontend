@@ -52,6 +52,7 @@ export function RunScanPage() {
   const [selectedAtlasName, setSelectedAtlasName] = useState('');
   const [elapsed, setElapsed] = useState(0);
   const [activeTab, setActiveTab] = useState<Tab>('log');
+  const [latestFinishedAtlasId, setLatestFinishedAtlasId] = useState('');
 
   // 트리 탭 전용 세션 선택 (채팅 탭과 독립)
   const [treeSelectedObjectiveId, setTreeSelectedObjectiveId] = useState<number | null>(null);
@@ -201,7 +202,9 @@ export function RunScanPage() {
           setObjectives(prev => ({ ...prev, done: prev.done + 1 }));
           const atlas = objectiveToAtlasRef.current.get(id);
           if (atlas) {
-            setClosingMessages(prev => new Map(prev).set(atlas, '이 기법의 공격을 종료합니다.'));
+            const msg = `[${atlasLabel(atlas)}] 이 기법의 공격을 종료합니다.`;
+            setClosingMessages(prev => new Map(prev).set(atlas, msg));
+            setLatestFinishedAtlasId(atlas);
           }
         },
         onDone: st => {
@@ -251,7 +254,9 @@ export function RunScanPage() {
           const doneAtlas = (d.current_attack as { atlas?: string } | null)?.atlas ?? '';
           if (doneAtlas) {
             const resultMsg = d.status === 'breached' ? '취약점을 발견했습니다.' : '방어에 성공했습니다.';
-            setClosingMessages(prev => new Map(prev).set(doneAtlas, `${resultMsg} 이 기법의 공격을 종료합니다.`));
+            const msg = `[${atlasLabel(doneAtlas)}] ${resultMsg} 이 기법의 공격을 종료합니다.`;
+            setClosingMessages(prev => new Map(prev).set(doneAtlas, msg));
+            setLatestFinishedAtlasId(doneAtlas);
           }
         }
       } else if (eventType === 'seeds_retrieved') {
@@ -342,6 +347,7 @@ export function RunScanPage() {
     setTreeSelectedObjectiveId(null);
     setTreeSelectedAtlasId('');
     setTreeSelectedAtlasName('');
+    setLatestFinishedAtlasId('');
     setActiveTab('log');
   };
 
@@ -358,6 +364,7 @@ export function RunScanPage() {
       : (closingMessages.get(activeAtlasId)
         || (treeNodes.get(activeAtlasId) ?? []).at(-1)?.improvement
         || seedsThinking.get(activeAtlasId)
+        || closingMessages.get(latestFinishedAtlasId)
         || (activeAtlasId ? 'corpus에서 초기 씨앗 프롬프트를 검색 중...' : '세션을 선택하면 AI 사고 과정이 표시됩니다.'));
   const aiThinkingLines = aiThinkingText
     .split(/(?<=[.。!?])\s+|[\n]/)
