@@ -540,6 +540,11 @@ export function RunScanPage() {
         {/* 진화 트리 탭 */}
         {activeTab === 'tree' && (
           <div className={styles.treeTabLayout}>
+            <EvolutionTreePanel
+              nodes={treeNodes.get(treeSelectedAtlasId) ?? []}
+              atlasId={treeSelectedAtlasId}
+              atlasName={treeSelectedAtlasName}
+            />
             <AttackSessionList
               exchanges={exchanges}
               selected={treeSelectedObjectiveId}
@@ -555,11 +560,6 @@ export function RunScanPage() {
               }}
               newSessions={newObjectiveIds}
               status={status}
-            />
-            <EvolutionTreePanel
-              nodes={treeNodes.get(treeSelectedAtlasId) ?? []}
-              atlasId={treeSelectedAtlasId}
-              atlasName={treeSelectedAtlasName}
             />
           </div>
         )}

@@ -366,10 +366,10 @@
   height: 100%;
 }
 
-/* 진화 트리 탭: 세션 목록 + 트리 나란히 */
+/* 진화 트리 탭: 트리 + 세션 목록 나란히 */
 .treeTabLayout {
   display: grid;
-  grid-template-columns: 200px 1fr;
+  grid-template-columns: 1fr 200px;
   gap: 8px;
   height: 100%;
 }
