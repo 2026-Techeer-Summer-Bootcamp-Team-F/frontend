@@ -46,13 +46,11 @@ export function RunScanPage() {
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<number | null>(null);
   const [newObjectiveIds, setNewObjectiveIds] = useState<Set<number>>(new Set());
   const [treeNodes, setTreeNodes] = useState<Map<string, EvolutionNode[]>>(new Map());
-  const [seedsThinking, setSeedsThinking] = useState<Map<string, string>>(new Map());
-  const [closingMessages, setClosingMessages] = useState<Map<string, string>>(new Map());
   const [selectedAtlasId, setSelectedAtlasId] = useState('');
   const [selectedAtlasName, setSelectedAtlasName] = useState('');
   const [elapsed, setElapsed] = useState(0);
   const [activeTab, setActiveTab] = useState<Tab>('log');
-  const [latestFinishedAtlasId, setLatestFinishedAtlasId] = useState('');
+  const [globalThinking, setGlobalThinking] = useState('스캔을 시작하면 AI 사고 과정이 표시됩니다.');
 
   // 트리 탭 전용 세션 선택 (채팅 탭과 독립)
   const [treeSelectedObjectiveId, setTreeSelectedObjectiveId] = useState<number | null>(null);
@@ -171,6 +169,7 @@ export function RunScanPage() {
     setLoadingStart(true);
     setActiveTab('log');
     userChangedTabRef.current = false;
+    setGlobalThinking('공격 모듈을 로드하고 있습니다...');
     try {
       const config: ScanConfig = {
         attack_types: Array.from(selected),
@@ -203,12 +202,12 @@ export function RunScanPage() {
           const atlas = objectiveToAtlasRef.current.get(id);
           if (atlas) {
             const msg = `[${atlasLabel(atlas)}] 이 기법의 공격을 종료합니다.`;
-            setClosingMessages(prev => new Map(prev).set(atlas, msg));
-            setLatestFinishedAtlasId(atlas);
+            setGlobalThinking(msg);
           }
         },
         onDone: st => {
           setStatus(st === 'done' ? 'done' : 'failed');
+          setGlobalThinking('모든 공격 분석을 종료했습니다.');
         },
       });
     } finally {
@@ -243,9 +242,11 @@ export function RunScanPage() {
         if (d.phase === 'recon') {
           addLog(`[RECON] 정찰 완료 — tools: ${(d.tools ?? []).join(', ') || '없음'}, defenses: ${(d.defenses ?? []).join(', ') || '없음'}`);
           setRecon({ tools: d.tools ?? [], defenses: d.defenses ?? [] });
+          setGlobalThinking('표적을 정찰합니다. 방어 수단과 취약점을 분석 중입니다.');
         } else if (d.phase === 'start') {
           addLog(`[SCAN] 목표 ${d.objectives ?? 0}개 확인, 진화 루프 시작`);
           setObjectives({ done: 0, total: d.objectives ?? 0 });
+          setGlobalThinking(`${d.objectives ?? 0}개 공격 목표를 확인했습니다. 진화 루프를 시작합니다.`);
         } else if (d.phase === 'evolve') {
           addLog(`[GEN ${d.generation}] 최고 점수 ${((d.best_score ?? 0) * 100).toFixed(1)}%`);
         } else if (d.phase === 'objective_done') {
@@ -255,18 +256,14 @@ export function RunScanPage() {
           if (doneAtlas) {
             const resultMsg = d.status === 'breached' ? '취약점을 발견했습니다.' : '방어에 성공했습니다.';
             const msg = `[${atlasLabel(doneAtlas)}] ${resultMsg} 이 기법의 공격을 종료합니다.`;
-            setClosingMessages(prev => new Map(prev).set(doneAtlas, msg));
-            setLatestFinishedAtlasId(doneAtlas);
+            setGlobalThinking(msg);
           }
         }
       } else if (eventType === 'seeds_retrieved') {
         const atlas = d.atlas as string;
         const count = d.count as number;
         addLog(`[SEED] ${atlasLabel(atlas)} — corpus에서 씨앗 ${count}개 선택`);
-        setSeedsThinking(prev => new Map(prev).set(
-          atlas,
-          `corpus에서 ${count}개 씨앗 프롬프트를 선택했습니다. 0세대 발사를 시작합니다...`
-        ));
+        setGlobalThinking(`[${atlasLabel(atlas)}] corpus에서 씨앗 ${count}개를 선택했습니다. 0세대 발사를 시작합니다.`);
       } else if (eventType === 'attempt_started') {
         objectiveToAtlasRef.current.set(d.objective_id as number, d.atlas as string);
         setExchanges(prev => applyAttemptEvent(prev, d));
@@ -283,6 +280,7 @@ export function RunScanPage() {
           `${atlasLabel(d.atlas)}${op} ${verdict} (${score}%)${errDetail}`,
           verdict === 'breach' ? 'error' : verdict === 'error' ? 'warn' : 'info',
         );
+        if (d.improvement) setGlobalThinking(d.improvement as string);
         const node: EvolutionNode = {
           attempt_id: d.attempt_id,
           parent_id: d.parent_id ?? null,
@@ -303,6 +301,7 @@ export function RunScanPage() {
         addLog(`⚠ 취약점 발견: ${atlasLabel(d.atlas)} (심각도: ${d.severity ?? 'high'})`, 'error');
       } else if (eventType === 'done') {
         setStatus(d.status === 'done' ? 'done' : 'failed');
+        setGlobalThinking('모든 공격 분석을 종료했습니다.');
         es.close();
       }
     };
@@ -339,15 +338,13 @@ export function RunScanPage() {
     treeUserSelectedRef.current = false;
     userChangedTabRef.current = false;
     setTreeNodes(new Map());
-    setSeedsThinking(new Map());
-    setClosingMessages(new Map());
     objectiveToAtlasRef.current = new Map();
     setSelectedAtlasId('');
     setSelectedAtlasName('');
     setTreeSelectedObjectiveId(null);
     setTreeSelectedAtlasId('');
     setTreeSelectedAtlasName('');
-    setLatestFinishedAtlasId('');
+    setGlobalThinking('스캔을 시작하면 AI 사고 과정이 표시됩니다.');
     setActiveTab('log');
   };
 
@@ -357,16 +354,7 @@ export function RunScanPage() {
     if (tab === 'chat') setNewObjectiveIds(new Set());
   };
 
-  const activeAtlasId = activeTab === 'tree' ? treeSelectedAtlasId : selectedAtlasId;
-  const aiThinkingText =
-    (status === 'done' || status === 'failed')
-      ? '모든 공격 분석을 종료했습니다.'
-      : (closingMessages.get(activeAtlasId)
-        || (treeNodes.get(activeAtlasId) ?? []).at(-1)?.improvement
-        || seedsThinking.get(activeAtlasId)
-        || closingMessages.get(latestFinishedAtlasId)
-        || (activeAtlasId ? 'corpus에서 초기 씨앗 프롬프트를 검색 중...' : '세션을 선택하면 AI 사고 과정이 표시됩니다.'));
-  const aiThinkingLines = aiThinkingText
+  const aiThinkingLines = globalThinking
     .split(/(?<=[.。!?])\s+|[\n]/)
     .map(s => s.trim())
     .filter(Boolean);
@@ -577,7 +565,7 @@ export function RunScanPage() {
         <div className={styles.aiThinkingContent}>
           <span className={styles.aiThinkingLabel}>AI 사고 과정</span>
           <p
-            key={aiThinkingLines.at(-1)}
+            key={globalThinking}
             className={styles.aiThinkingSentence}
           >
             › {aiThinkingLines.at(-1) ?? ''}
