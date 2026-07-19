@@ -429,11 +429,6 @@ export function RunScanPage() {
           className={`${styles.tabBtn} ${activeTab === 'log' ? styles.tabActive : ''}`}
           onClick={() => switchTab('log')}
         >
-          <span className={styles.tabDots}>
-            <span className={`${styles.miniDot} ${styles.g}`} />
-            <span className={`${styles.miniDot} ${styles.y}`} />
-            <span className={`${styles.miniDot} ${styles.gr}`} />
-          </span>
           터미널 로그
         </button>
         <button
@@ -475,6 +470,11 @@ export function RunScanPage() {
         {activeTab === 'log' && (
           <section className={styles.terminal} data-tutorial="term-body">
             <div className={styles.termTitle}>
+              <div className={styles.dots}>
+                <span className={`${styles.dot} ${styles.g}`} />
+                <span className={`${styles.dot} ${styles.y}`} />
+                <span className={`${styles.dot} ${styles.gr}`} />
+              </div>
               <span>redi@console — Live Analysis Log</span>
             </div>
             <div className={styles.termBody}>

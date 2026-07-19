@@ -392,6 +392,12 @@
   min-height: 0;
 }
 
+.dots { display: flex; gap: 6px; }
+.dot { display: block; width: 12px; height: 12px; border-radius: 50%; }
+.g  { background: #28c840; }
+.y  { background: #febc2e; }
+.gr { background: #3a3a3a; }
+
 .termTitle {
   display: flex;
   align-items: center;
