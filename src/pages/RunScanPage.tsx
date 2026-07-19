@@ -201,7 +201,7 @@ export function RunScanPage() {
           setObjectives(prev => ({ ...prev, done: prev.done + 1 }));
           const atlas = objectiveToAtlasRef.current.get(id);
           if (atlas) {
-            const msg = `[${atlasLabel(atlas)}] 이 기법의 공격을 종료합니다.`;
+            const msg = `${atlasLabel(atlas)}: 이 기법의 공격을 종료합니다.`;
             setGlobalThinking(msg);
           }
         },
@@ -255,7 +255,7 @@ export function RunScanPage() {
           const doneAtlas = (d.current_attack as { atlas?: string } | null)?.atlas ?? '';
           if (doneAtlas) {
             const resultMsg = d.status === 'breached' ? '취약점을 발견했습니다.' : '방어에 성공했습니다.';
-            const msg = `[${atlasLabel(doneAtlas)}] ${resultMsg} 이 기법의 공격을 종료합니다.`;
+            const msg = `${atlasLabel(doneAtlas)}: ${resultMsg} 이 기법의 공격을 종료합니다.`;
             setGlobalThinking(msg);
           }
         }
@@ -263,7 +263,7 @@ export function RunScanPage() {
         const atlas = d.atlas as string;
         const count = d.count as number;
         addLog(`[SEED] ${atlasLabel(atlas)} — corpus에서 씨앗 ${count}개 선택`);
-        setGlobalThinking(`[${atlasLabel(atlas)}] corpus에서 씨앗 ${count}개를 선택했습니다. 0세대 발사를 시작합니다.`);
+        setGlobalThinking(`${atlasLabel(atlas)}: corpus에서 씨앗 ${count}개를 선택했습니다. 0세대 발사를 시작합니다.`);
       } else if (eventType === 'attempt_started') {
         objectiveToAtlasRef.current.set(d.objective_id as number, d.atlas as string);
         setExchanges(prev => applyAttemptEvent(prev, d));
@@ -280,7 +280,7 @@ export function RunScanPage() {
           `${atlasLabel(d.atlas)}${op} ${verdict} (${score}%)${errDetail}`,
           verdict === 'breach' ? 'error' : verdict === 'error' ? 'warn' : 'info',
         );
-        if (d.improvement) setGlobalThinking(d.improvement as string);
+        if (d.improvement) setGlobalThinking(`${atlasLabel(d.atlas as string)}: ${d.improvement as string}`);
         const node: EvolutionNode = {
           attempt_id: d.attempt_id,
           parent_id: d.parent_id ?? null,
