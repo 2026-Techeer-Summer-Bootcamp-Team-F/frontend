@@ -53,6 +53,11 @@ export function RunScanPage() {
   const [elapsed, setElapsed] = useState(0);
   const [activeTab, setActiveTab] = useState<Tab>('log');
 
+  // 트리 탭 전용 세션 선택 (채팅 탭과 독립)
+  const [treeSelectedObjectiveId, setTreeSelectedObjectiveId] = useState<number | null>(null);
+  const [treeSelectedAtlasId, setTreeSelectedAtlasId] = useState('');
+  const [treeSelectedAtlasName, setTreeSelectedAtlasName] = useState('');
+
   const logEndRef = useRef<HTMLDivElement>(null);
   const esRef = useRef<EventSource | null>(null);
   const cancelMockRef = useRef<(() => void) | null>(null);
@@ -60,6 +65,7 @@ export function RunScanPage() {
   const objectiveToAtlasRef = useRef(new Map<number, string>());
   const seenObjectivesRef = useRef<Set<number>>(new Set());
   const userSelectedRef = useRef(false);
+  const treeUserSelectedRef = useRef(false);
   const userChangedTabRef = useRef(false);
 
   const tutorial = useTutorial('analysis', [
@@ -88,6 +94,11 @@ export function RunScanPage() {
         setSelectedAtlasName(last.atlasName ?? '');
       } else {
         setNewObjectiveIds(prev => new Set([...prev, last.objectiveId]));
+      }
+      if (!treeUserSelectedRef.current) {
+        setTreeSelectedObjectiveId(last.objectiveId);
+        setTreeSelectedAtlasId(last.atlas);
+        setTreeSelectedAtlasName(last.atlasName ?? '');
       }
       if (isFirst && !userChangedTabRef.current) {
         setActiveTab('chat');
@@ -320,6 +331,7 @@ export function RunScanPage() {
     setNewObjectiveIds(new Set());
     seenObjectivesRef.current = new Set();
     userSelectedRef.current = false;
+    treeUserSelectedRef.current = false;
     userChangedTabRef.current = false;
     setTreeNodes(new Map());
     setSeedsThinking(new Map());
@@ -327,6 +339,9 @@ export function RunScanPage() {
     objectiveToAtlasRef.current = new Map();
     setSelectedAtlasId('');
     setSelectedAtlasName('');
+    setTreeSelectedObjectiveId(null);
+    setTreeSelectedAtlasId('');
+    setTreeSelectedAtlasName('');
     setActiveTab('log');
   };
 
@@ -336,13 +351,14 @@ export function RunScanPage() {
     if (tab === 'chat') setNewObjectiveIds(new Set());
   };
 
+  const activeAtlasId = activeTab === 'tree' ? treeSelectedAtlasId : selectedAtlasId;
   const aiThinkingText =
     (status === 'done' || status === 'failed')
       ? '모든 공격 분석을 종료했습니다.'
-      : (closingMessages.get(selectedAtlasId)
-        || (treeNodes.get(selectedAtlasId) ?? []).at(-1)?.improvement
-        || seedsThinking.get(selectedAtlasId)
-        || (selectedAtlasId ? 'corpus에서 초기 씨앗 프롬프트를 검색 중...' : '세션을 선택하면 AI 사고 과정이 표시됩니다.'));
+      : (closingMessages.get(activeAtlasId)
+        || (treeNodes.get(activeAtlasId) ?? []).at(-1)?.improvement
+        || seedsThinking.get(activeAtlasId)
+        || (activeAtlasId ? 'corpus에서 초기 씨앗 프롬프트를 검색 중...' : '세션을 선택하면 AI 사고 과정이 표시됩니다.'));
   const aiThinkingLines = aiThinkingText
     .split(/(?<=[.。!?])\s+|[\n]/)
     .map(s => s.trim())
@@ -523,11 +539,29 @@ export function RunScanPage() {
 
         {/* 진화 트리 탭 */}
         {activeTab === 'tree' && (
-          <EvolutionTreePanel
-            nodes={treeNodes.get(selectedAtlasId) ?? []}
-            atlasId={selectedAtlasId}
-            atlasName={selectedAtlasName}
-          />
+          <div className={styles.treeTabLayout}>
+            <AttackSessionList
+              exchanges={exchanges}
+              selected={treeSelectedObjectiveId}
+              onSelect={id => {
+                treeUserSelectedRef.current = true;
+                setTreeSelectedObjectiveId(id);
+                setNewObjectiveIds(prev => { const n = new Set(prev); n.delete(id); return n; });
+                const ex = exchanges.find(e => e.objectiveId === id);
+                if (ex) {
+                  setTreeSelectedAtlasId(ex.atlas);
+                  setTreeSelectedAtlasName(ex.atlasName ?? '');
+                }
+              }}
+              newSessions={newObjectiveIds}
+              status={status}
+            />
+            <EvolutionTreePanel
+              nodes={treeNodes.get(treeSelectedAtlasId) ?? []}
+              atlasId={treeSelectedAtlasId}
+              atlasName={treeSelectedAtlasName}
+            />
+          </div>
         )}
 
       </div>
