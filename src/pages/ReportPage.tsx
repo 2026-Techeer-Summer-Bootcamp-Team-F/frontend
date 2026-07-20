@@ -868,7 +868,9 @@ export function ReportPage() {
               );
               const visible = stepMode ? sortedNodes.slice(0, stepIndex) : sortedNodes;
               const treeData = buildEChartsTree(visible);
-              const currentThinking = stepMode ? (sortedNodes[stepIndex - 1]?.improvement ?? '') : '';
+              const currentNode = stepMode ? sortedNodes[stepIndex - 1] : null;
+              const VERDICT_COLOR_MAP: Record<string, string> = { breached: '#e0525f', safe: '#4caf8a', error: '#888', seed_pool: '#4a6a7a' };
+              const VERDICT_LABEL_MAP: Record<string, string> = { breached: '침투 성공', safe: '방어됨', error: '오류', seed_pool: 'SEED POOL' };
               const option = {
                 tooltip: { show: false },
                 series: [{
@@ -886,51 +888,7 @@ export function ReportPage() {
               };
               return (
                 <>
-                  {treeData.length > 0 ? (
-                    <EChart
-                      option={option}
-                      notMerge={false}
-                      onEvents={treeOnEvents}
-                      className={styles.treeChart}
-                      style={{ height: 340 }}
-                    />
-                  ) : (
-                    <div className={styles.treeChart} style={{ height: 340 }} />
-                  )}
-
-                  <div className={styles.treeLegend}>
-                    <div className={styles.treeLegendGroup}>
-                      {([
-                        { color: '#4a6a7a', label: 'SEED POOL' },
-                        { color: '#e0525f', label: '침투 성공' },
-                        { color: '#4caf8a', label: '방어됨' },
-                        { color: '#888',    label: '오류' },
-                      ] as const).map(({ color, label }) => (
-                        <span key={label} className={styles.treeLegendItem}>
-                          <i className={styles.treeLegendDot} style={{ background: color }} />
-                          {label}
-                        </span>
-                      ))}
-                    </div>
-                    <div className={styles.treeLegendGroup}>
-                      {([
-                        { color: '#4a6a7a', label: 'seed' },
-                        { color: '#5ba87a', label: 'expand' },
-                        { color: '#d48a3a', label: 'crossover' },
-                        { color: '#7a6aaa', label: 'rephrase' },
-                        { color: '#4a7aaa', label: 'translate' },
-                        { color: '#aaaa4a', label: 'shorten' },
-                        { color: '#aa4a4a', label: 'inject' },
-                        { color: '#cc5a3a', label: 'jailbreak' },
-                      ] as const).map(({ color, label }) => (
-                        <span key={label} className={styles.treeLegendItem}>
-                          <i className={styles.treeLegendLine} style={{ background: color }} />
-                          {label}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
+                  {/* ── 단계별 보기 컨트롤 ── */}
                   <div className={styles.treeControls}>
                     {!stepMode ? (
                       <button
@@ -966,20 +924,76 @@ export function ReportPage() {
                     )}
                   </div>
 
-                  {currentThinking && (
+                  {/* ── AI 사고 과정 (단계별 보기 중 항상 표시) ── */}
+                  {stepMode && currentNode && (
                     <div className={styles.replayThinking}>
                       <div className={styles.replayThinkingAvatar}>
                         <img src="/logo.png" alt="Hackie" />
                         <span className={styles.replayThinkingAvatarName}>Hackie</span>
                       </div>
                       <div className={styles.replayThinkingContent}>
-                        <span className={styles.replayThinkingLabel}>AI 사고 과정</span>
-                        <p key={currentThinking} className={styles.replayThinkingSentence}>
-                          › {currentThinking}
+                        <div className={styles.replayThinkingHeader}>
+                          <span className={styles.replayThinkingLabel}>AI 사고 과정</span>
+                          <span className={styles.stepNodeBadge} style={{ background: VERDICT_COLOR_MAP[currentNode.verdict] ?? '#888' }}>
+                            {VERDICT_LABEL_MAP[currentNode.verdict] ?? currentNode.verdict}
+                          </span>
+                          <span className={styles.stepNodeMeta}>
+                            Gen {currentNode.generation} · {Math.min(100, Math.round(currentNode.score * 100))}% · {currentNode.mutation_op}
+                          </span>
+                        </div>
+                        <p key={currentNode.attempt_id} className={styles.replayThinkingSentence}>
+                          › {currentNode.improvement || '(사고 과정 데이터 없음)'}
                         </p>
                       </div>
                     </div>
                   )}
+
+                  {/* ── 트리 차트 ── */}
+                  {treeData.length > 0 ? (
+                    <EChart
+                      option={option}
+                      notMerge={false}
+                      onEvents={treeOnEvents}
+                      className={styles.treeChart}
+                      style={{ height: 340 }}
+                    />
+                  ) : (
+                    <div className={styles.treeChart} style={{ height: 340 }} />
+                  )}
+
+                  {/* ── 범례 ── */}
+                  <div className={styles.treeLegend}>
+                    <div className={styles.treeLegendGroup}>
+                      {([
+                        { color: '#4a6a7a', label: 'SEED POOL' },
+                        { color: '#e0525f', label: '침투 성공' },
+                        { color: '#4caf8a', label: '방어됨' },
+                        { color: '#888',    label: '오류' },
+                      ] as const).map(({ color, label }) => (
+                        <span key={label} className={styles.treeLegendItem}>
+                          <i className={styles.treeLegendDot} style={{ background: color }} />
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                    <div className={styles.treeLegendGroup}>
+                      {([
+                        { color: '#4a6a7a', label: 'seed' },
+                        { color: '#5ba87a', label: 'expand' },
+                        { color: '#d48a3a', label: 'crossover' },
+                        { color: '#7a6aaa', label: 'rephrase' },
+                        { color: '#4a7aaa', label: 'translate' },
+                        { color: '#aaaa4a', label: 'shorten' },
+                        { color: '#aa4a4a', label: 'inject' },
+                        { color: '#cc5a3a', label: 'jailbreak' },
+                      ] as const).map(({ color, label }) => (
+                        <span key={label} className={styles.treeLegendItem}>
+                          <i className={styles.treeLegendLine} style={{ background: color }} />
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </>
               );
             })()}
