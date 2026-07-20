@@ -4,6 +4,7 @@ import { buildEChartsTree, sliceNodes, type EChartsTreeNode } from '../../utils/
 import type { EvolutionNode } from '../../api/scans';
 import { describePrompt } from '../../api/scans';
 import styles from './EvolutionTreePanel.module.css';
+import { atlasLabel } from '../../shared/constants';
 
 interface Props {
   nodes: EvolutionNode[];
@@ -73,7 +74,7 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName, onThinking }: Pr
     sorted.forEach((node, i) => {
       const id = setTimeout(() => {
         setVisibleCount(i + 1);
-        if (node.improvement) onThinking?.(node.improvement);
+        if (node.improvement) onThinking?.(`${atlasLabel(atlasId)}: ${node.improvement}`);
         if (i === sorted.length - 1) setIsPlaying(false);
       }, i * 120);
       playTimersRef.current.push(id);
