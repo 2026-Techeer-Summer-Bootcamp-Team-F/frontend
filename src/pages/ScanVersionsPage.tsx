@@ -147,7 +147,7 @@ export function ScanVersionsPage() {
 
       <div className={styles.layout}>
         {/* ── 좌: 스캔 이력 ── */}
-        <div className={styles.panel}>
+        <div className={`${styles.panel} ${styles.panelHistory}`}>
           <div className={styles.ptitle}>
             <span className={`${styles.dot} ${styles.dg}`} />
             <span className={`${styles.dot} ${styles.dy}`} />
@@ -264,7 +264,7 @@ export function ScanVersionsPage() {
               )}
             </div>
             <div className={styles.hintline}>↓ 행을 클릭하면 위 코드 변경점 헤더가 해당 취약점으로 바뀝니다.</div>
-            <div>
+            <div className={styles.resbody}>
               {diff?.baseline && (
                 <div className={styles.emptydiff}>최초 스캔이라 비교할 이전 버전이 없습니다.</div>
               )}

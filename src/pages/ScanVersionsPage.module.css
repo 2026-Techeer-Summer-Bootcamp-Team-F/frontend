@@ -74,7 +74,10 @@
 .rt { margin-left: auto; font-family: var(--font-ui); font-size: 10.5px; color: var(--text-muted); }
 
 /* ── 좌: 스캔 이력 ── */
-.scanlist { padding: 6px 4px 10px; flex: 1; overflow: auto; }
+.panelHistory { max-height: 70vh; }
+.scanlist { padding: 6px 4px 10px; flex: 1; overflow-y: auto; }
+
+.resbody { overflow-y: auto; max-height: 280px; }
 .srow {
   position: relative;
   display: flex;
