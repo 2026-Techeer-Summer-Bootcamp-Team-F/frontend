@@ -63,7 +63,7 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
         roam: true,
         label: { show: false },
         leaves: { label: { show: false } },
-        lineStyle: { width: 1.5 },
+        lineStyle: { width: 1.5, curveness: 0 },
         expandAndCollapse: false,
         animationDuration: 400,
         animationDurationUpdate: 300,

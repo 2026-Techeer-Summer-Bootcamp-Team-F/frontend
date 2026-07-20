@@ -217,6 +217,7 @@ export function ReportPage() {
   const [selectedTreeAtlas, setSelectedTreeAtlas] = useState<string>('');
   const [visibleCount, setVisibleCount] = useState<number>(9999);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [playKey, setPlayKey] = useState(0);
   const playTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const tutorial = useTutorial('report', [
@@ -379,6 +380,7 @@ export function ReportPage() {
     // 기존 타이머 취소
     playTimersRef.current.forEach(clearTimeout);
     playTimersRef.current = [];
+    setPlayKey(k => k + 1); // EChart 강제 재마운트 → 기존 노드 초기화
     setIsPlaying(true);
     setVisibleCount(0);
     const sorted = [...allNodes].sort((a, b) =>
@@ -877,7 +879,7 @@ export function ReportPage() {
                   symbolSize: 10,
                   label: { position: 'left', fontSize: 10, color: '#ccc', distance: 8 },
                   leaves: { label: { position: 'right' } },
-                  lineStyle: { color: '#445', width: 1.5 },
+                  lineStyle: { color: '#445', width: 1.5, curveness: 0 },
                   expandAndCollapse: false,
                   animationDuration: 300,
                 }],
@@ -885,7 +887,9 @@ export function ReportPage() {
               return (
                 <>
                   <EChart
+                    key={playKey}
                     option={option}
+                    notMerge={false}
                     className={styles.treeChart}
                     style={{ height: 340 }}
                   />
