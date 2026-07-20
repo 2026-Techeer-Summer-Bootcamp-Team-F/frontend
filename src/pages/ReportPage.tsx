@@ -18,9 +18,8 @@ import {
   type MitigationRef,
   type CodeLocation,
   type EvolutionNode,
-  type EvolutionTree,
 } from '../api/scans';
-import { buildEChartsTree, sliceNodes, type EChartsTreeNode } from '../utils/buildTree';
+import { buildEChartsTree, type EChartsTreeNode } from '../utils/buildTree';
 import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS, MOCK_CODE_LOCATIONS } from '../api/mock';
 import { atlasLabel } from '../shared/constants';
 import { EChart } from '../components/EChart';
@@ -853,6 +852,7 @@ export function ReportPage() {
                   setStepMode(false);
                   setStepIndex(1);
                   setSelectedTreeAtlas(atlasId);
+                  setTreeNodeTooltip(null);
                 }}
               >
                 {atlasLabel(atlasId)}
@@ -867,7 +867,7 @@ export function ReportPage() {
               const sortedNodes = [...allNodes].sort((a, b) =>
                 a.generation !== b.generation ? a.generation - b.generation : a.attempt_id - b.attempt_id
               );
-              const visible = stepMode ? sliceNodes(allNodes, stepIndex) : allNodes;
+              const visible = stepMode ? sortedNodes.slice(0, stepIndex) : sortedNodes;
               const treeData = buildEChartsTree(visible);
               const currentThinking = stepMode ? (sortedNodes[stepIndex - 1]?.improvement ?? '') : '';
               const option = {
