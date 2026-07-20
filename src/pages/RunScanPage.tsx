@@ -534,7 +534,6 @@ export function RunScanPage() {
               nodes={treeNodes.get(treeSelectedAtlasId) ?? []}
               atlasId={treeSelectedAtlasId}
               atlasName={treeSelectedAtlasName}
-              onThinking={setGlobalThinking}
             />
             <AttackSessionList
               exchanges={exchanges}

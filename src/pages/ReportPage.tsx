@@ -293,7 +293,6 @@ export function ReportPage() {
           setEvolutionMap(map);
           const firstAtlas = cells[0]?.atlas_technique_id ?? '';
           setSelectedTreeAtlas(firstAtlas);
-          setVisibleCount(map.get(firstAtlas)?.length ?? 0);
         }
       })
       .catch(() => {
