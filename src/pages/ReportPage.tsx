@@ -960,7 +960,14 @@ export function ReportPage() {
         const isLoading = treeDescLoadingRef.current.has(m.attempt_id);
         const desc = treeDescCacheRef.current.get(m.attempt_id);
         return (
-          <div className={styles.treeTooltip} style={{ left: treeNodeTooltip.x + 14, top: treeNodeTooltip.y + 14 }}>
+          <div
+            className={styles.treeTooltip}
+            style={{
+              left: treeNodeTooltip.x + 14,
+              top: treeNodeTooltip.y + 14,
+              ...(m.verdict === 'seed_pool' && { maxWidth: 'max-content' }),
+            }}
+          >
             <div className={styles.treeTooltipHeader}>
               <span className={styles.treeTooltipVerdict} style={{ background: VERDICT_COLOR[m.verdict] ?? '#888' }}>
                 {VERDICT_LABEL[m.verdict] ?? m.verdict}
@@ -971,7 +978,11 @@ export function ReportPage() {
                 </span>
               )}
             </div>
-            {m.verdict === 'seed_pool' && <p className={styles.treeTooltipDesc}>{m.improvement}</p>}
+            {m.verdict === 'seed_pool' && (
+              <p className={styles.treeTooltipDesc} style={{ whiteSpace: 'nowrap', overflow: 'visible', display: 'block' }}>
+                {m.improvement}
+              </p>
+            )}
             {m.verdict !== 'seed_pool' && isLoading && <p className={styles.treeTooltipDesc} style={{ opacity: 0.5 }}>분석 중...</p>}
             {m.verdict !== 'seed_pool' && !isLoading && desc && <p className={styles.treeTooltipDesc}>{desc}</p>}
           </div>

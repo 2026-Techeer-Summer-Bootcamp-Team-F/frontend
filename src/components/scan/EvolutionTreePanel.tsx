@@ -114,7 +114,11 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
       {tooltip && meta && (
         <div
           className={styles.tooltip}
-          style={{ left: tooltip.x + 14, top: tooltip.y + 14 }}
+          style={{
+            left: tooltip.x + 14,
+            top: tooltip.y + 14,
+            ...(meta.verdict === 'seed_pool' && { maxWidth: 'max-content' }),
+          }}
         >
           <div className={styles.tooltipHeader}>
             <span
@@ -130,7 +134,9 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
             )}
           </div>
           {meta.verdict === 'seed_pool' && (
-            <p className={styles.tooltipPrompt}>{meta.improvement}</p>
+            <p className={styles.tooltipPrompt} style={{ whiteSpace: 'nowrap', overflow: 'visible', display: 'block' }}>
+              {meta.improvement}
+            </p>
           )}
           {meta.verdict !== 'seed_pool' && (() => {
             const isLoading = descLoadingRef.current.has(meta.attempt_id);
