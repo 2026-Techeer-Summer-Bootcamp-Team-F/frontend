@@ -9,6 +9,7 @@ interface Props {
   nodes: EvolutionNode[];
   atlasId: string;
   atlasName: string;
+  onThinking?: (text: string) => void;
 }
 
 interface TooltipState {
@@ -42,17 +43,13 @@ const MUTATION_LINE_COLOR: Record<string, string> = {
   jailbreak: '#cc5a3a',
 };
 
-export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
+export function EvolutionTreePanel({ nodes, atlasId, atlasName, onThinking }: Props) {
   const [visibleCount, setVisibleCount] = useState(nodes.length);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [replayThinking, setReplayThinking] = useState('');
   const playTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
-    if (!isPlaying) {
-      setVisibleCount(nodes.length);
-      setReplayThinking('');
-    }
+    if (!isPlaying) setVisibleCount(nodes.length);
   }, [nodes.length, isPlaying]);
 
   useEffect(() => () => { playTimersRef.current.forEach(clearTimeout); }, []);
@@ -70,14 +67,13 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
     playTimersRef.current = [];
     setIsPlaying(true);
     setVisibleCount(0);
-    setReplayThinking('');
     const sorted = [...nodes].sort((a, b) =>
       a.generation !== b.generation ? a.generation - b.generation : a.attempt_id - b.attempt_id
     );
     sorted.forEach((node, i) => {
       const id = setTimeout(() => {
         setVisibleCount(i + 1);
-        if (node.improvement) setReplayThinking(node.improvement);
+        if (node.improvement) onThinking?.(node.improvement);
         if (i === sorted.length - 1) setIsPlaying(false);
       }, i * 120);
       playTimersRef.current.push(id);
@@ -190,21 +186,6 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
               {isPlaying ? '재생 중...' : '▶ 재생'}
             </button>
           </div>
-
-          {replayThinking && (
-            <div className={styles.thinkingBar}>
-              <div className={styles.thinkingAvatar}>
-                <img src="/logo.png" alt="Hackie" />
-                <span className={styles.thinkingAvatarName}>Hackie</span>
-              </div>
-              <div className={styles.thinkingContent}>
-                <span className={styles.thinkingLabel}>AI 사고 과정</span>
-                <p key={replayThinking} className={styles.thinkingSentence}>
-                  › {replayThinking}
-                </p>
-              </div>
-            </div>
-          )}
         </>
       )}
 
