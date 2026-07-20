@@ -218,6 +218,7 @@ export function ReportPage() {
   const [selectedTreeAtlas, setSelectedTreeAtlas] = useState<string>('');
   const [visibleCount, setVisibleCount] = useState<number>(9999);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [replayThinking, setReplayThinking] = useState('');
   const playTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const treeDescCacheRef = useRef<Map<number, string>>(new Map());
   const treeDescLoadingRef = useRef<Set<number>>(new Set());
@@ -386,12 +387,14 @@ export function ReportPage() {
     playTimersRef.current = [];
     setIsPlaying(true);
     setVisibleCount(0);
+    setReplayThinking('');
     const sorted = [...allNodes].sort((a, b) =>
       a.generation !== b.generation ? a.generation - b.generation : a.attempt_id - b.attempt_id
     );
-    sorted.forEach((_, i) => {
+    sorted.forEach((node, i) => {
       const id = setTimeout(() => {
         setVisibleCount(i + 1);
+        if (node.improvement) setReplayThinking(node.improvement);
         if (i === sorted.length - 1) setIsPlaying(false);
       }, i * 120);
       playTimersRef.current.push(id);
@@ -876,6 +879,7 @@ export function ReportPage() {
                   playTimersRef.current.forEach(clearTimeout);
                   playTimersRef.current = [];
                   setIsPlaying(false);
+                  setReplayThinking('');
                   setSelectedTreeAtlas(atlasId);
                   setVisibleCount(evolutionMap.get(atlasId)?.length ?? 0);
                 }}
@@ -926,6 +930,20 @@ export function ReportPage() {
                   >
                     {isPlaying ? '재생 중...' : '▶ 재생'}
                   </button>
+                  {replayThinking && (
+                    <div className={styles.replayThinking}>
+                      <div className={styles.replayThinkingAvatar}>
+                        <img src="/logo.png" alt="Hackie" />
+                        <span className={styles.replayThinkingAvatarName}>Hackie</span>
+                      </div>
+                      <div className={styles.replayThinkingContent}>
+                        <span className={styles.replayThinkingLabel}>AI 사고 과정</span>
+                        <p key={replayThinking} className={styles.replayThinkingSentence}>
+                          › {replayThinking}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </>
               );
             })()}

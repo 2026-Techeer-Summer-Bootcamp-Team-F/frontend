@@ -500,6 +500,58 @@
   overflow: hidden;
 }
 
+.replayThinking {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 16px;
+  background: var(--bg-title);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+.replayThinkingAvatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.replayThinkingAvatar img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+.replayThinkingAvatarName {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.replayThinkingContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding-top: 2px;
+}
+.replayThinkingLabel {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+.replayThinkingSentence {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text);
+  line-height: 1.6;
+  animation: replayThinkingIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes replayThinkingIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .treeDetail {
   border: 1px solid var(--accent-border);
   border-radius: 6px;
