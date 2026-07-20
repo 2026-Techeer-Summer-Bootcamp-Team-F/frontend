@@ -129,9 +129,11 @@ function Sparkline({ points }: { points: { scanId: number; value: number }[] }) 
         <circle key={p.scanId} cx={p.x} cy={p.y} r={i === xy.length - 1 ? 5 : 4}
                 fill="var(--accent)" />
       ))}
-      {xy.map(p => (
-        <text key={p.scanId} x={p.x} y="86" textAnchor="middle" fill="var(--text-muted)"
-              fontSize="11" fontFamily="monospace">
+      {/* 양 끝 라벨은 가운데 정렬하면 뷰박스 밖으로 잘리므로 안쪽으로 붙인다. */}
+      {xy.map((p, i) => (
+        <text key={p.scanId} x={p.x} y="86"
+              textAnchor={i === 0 ? 'start' : i === xy.length - 1 ? 'end' : 'middle'}
+              fill="var(--text-muted)" fontSize="11" fontFamily="monospace">
           #{p.scanId} · {p.value}
         </text>
       ))}
