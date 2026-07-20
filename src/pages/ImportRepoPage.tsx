@@ -205,6 +205,13 @@ export function ImportRepoPage() {
                         분석 기록
                       </button>
                       <button
+                        className={styles.toggleBtn}
+                        onClick={() => navigate(`/projects/new?edit=${p.target_id}`)}
+                        title="표적 정보 수정 (URL·설정 등)"
+                      >
+                        수정
+                      </button>
+                      <button
                         className={styles.deleteBtn}
                         onClick={() => handleDeleteProject(p.target_id)}
                         {...(pIdx === 0 ? { 'data-tutorial': 'delete-btn' } : {})}

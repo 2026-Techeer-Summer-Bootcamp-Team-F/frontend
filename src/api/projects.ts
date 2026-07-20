@@ -39,6 +39,15 @@ export async function createProject(payload: CreateProjectPayload): Promise<Proj
   return data;
 }
 
+// 표적 정보 부분 수정(PATCH /projects/{id}). config는 서버에서 통째 교체되므로
+// 호출 측이 config 전체를 담아 보내야 한다(기존값 프리필 후 제출).
+export type UpdateProjectPayload = Partial<CreateProjectPayload>;
+
+export async function updateProject(id: number, payload: UpdateProjectPayload): Promise<Project> {
+  const { data } = await apiClient.patch<Project>(`/projects/${id}`, payload);
+  return data;
+}
+
 export interface DetectResult {
   detected: boolean;
   source: string;

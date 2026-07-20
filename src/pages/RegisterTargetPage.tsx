@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { createProject, detectConfig } from '../api/projects';
+import { createProject, updateProject, getProject, detectConfig } from '../api/projects';
 import styles from './RegisterTargetPage.module.css';
 
 // 흔한 챗봇 API 프리셋 — 자동감지 실패 시 원클릭 폴백(promptfoo/garak식).
@@ -32,6 +32,7 @@ export function RegisterTargetPage() {
   const [params] = useSearchParams();
   const repoFullName = params.get('repo') ?? '';
   const repoUrl = params.get('url') ?? '';
+  const editId = params.get('edit');   // 있으면 편집 모드(기존 표적 수정)
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +76,39 @@ export function RegisterTargetPage() {
     return () => { cancelled = true; };
   }, [repoFullName]);
 
+  // 편집 모드: 기존 표적 정보를 불러와 폼에 프리필(URL·설정·인증·용도 등).
+  useEffect(() => {
+    if (!editId) return;
+    let cancelled = false;
+    getProject(Number(editId))
+      .then(p => {
+        if (cancelled) return;
+        const cfg = p.config ?? {};
+        // config.headers 에서 인증 헤더 복원(Content-Type 제외한 첫 헤더 → "Name: value").
+        let authHeader = '';
+        for (const [k, v] of Object.entries(cfg.headers ?? {})) {
+          if (k.toLowerCase() === 'content-type') continue;
+          authHeader = `${k}: ${v}`;
+          break;
+        }
+        setForm(prev => ({
+          ...prev,
+          project_name: p.project_name ?? prev.project_name,
+          url: cfg.url ?? '',
+          method: cfg.method ?? prev.method,
+          body_template: cfg.body_template ?? prev.body_template,
+          response_path: cfg.response_path ?? prev.response_path,
+          auth_header: authHeader,
+          purpose: p.purpose ?? '',
+          system_prompt: p.system_prompt ?? '',
+          repo_url: p.repo_url ?? '',
+          actor_type: p.actor_type === 'browser' ? 'browser' : 'http',
+        }));
+      })
+      .catch(() => { if (!cancelled) setError('표적 정보를 불러오지 못했습니다.'); });
+    return () => { cancelled = true; };
+  }, [editId]);
+
   const set = (k: keyof typeof form) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
       setForm(prev => ({ ...prev, [k]: e.target.value }));
@@ -115,10 +149,13 @@ export function RegisterTargetPage() {
       repo_url: form.repo_url || undefined,
     };
     try {
-      const project = await createProject(payload);
+      const project = editId
+        ? await updateProject(Number(editId), payload)
+        : await createProject(payload);
       navigate(`/analysis/${project.target_id}`);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : '프로젝트 등록에 실패했습니다.';
+      const msg = e instanceof Error ? e.message
+        : (editId ? '표적 정보 수정에 실패했습니다.' : '프로젝트 등록에 실패했습니다.');
       setError(msg);
     } finally {
       setLoading(false);
@@ -128,9 +165,11 @@ export function RegisterTargetPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <p className={styles.label}>STEP 2 / 3</p>
+        <p className={styles.label}>{editId ? '표적 정보 수정' : 'STEP 2 / 3'}</p>
         <h1 className={styles.title}>
-          필요 정보 <span className={styles.accent}>입력</span>
+          {editId
+            ? <>표적 정보 <span className={styles.accent}>수정</span></>
+            : <>필요 정보 <span className={styles.accent}>입력</span></>}
         </h1>
         {repoFullName && (
           <p className={styles.repoTag}>
@@ -261,7 +300,9 @@ export function RegisterTargetPage() {
         {error && <p className={styles.error}>⚠ {error}</p>}
 
         <button className={styles.submitBtn} type="submit" disabled={loading}>
-          {loading ? '등록 중...' : '›_ 프로젝트 등록 → 분석 설정'}
+          {loading
+            ? (editId ? '수정 중...' : '등록 중...')
+            : (editId ? '›_ 표적 정보 수정 저장' : '›_ 프로젝트 등록 → 분석 설정')}
         </button>
       </form>
     </div>

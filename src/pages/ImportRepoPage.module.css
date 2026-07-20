@@ -230,7 +230,7 @@
 .scanBtn:hover { background: #72d99b; }
 
 .deleteBtn {
-  padding: 5px 10px;
+  padding: 5px 12px;
   background: transparent;
   color: var(--text-muted);
   font-family: var(--font-ui);
@@ -245,10 +245,11 @@
 
 /* ── 토글 버튼 ── */
 .toggleBtn {
-  padding: 5px 8px;
+  padding: 5px 12px;
   background: transparent;
   color: var(--text-muted);
-  font-size: 10px;
+  font-family: var(--font-ui);
+  font-size: 12px;
   border: 1px solid var(--accent-border);
   border-radius: 5px;
   cursor: pointer;
