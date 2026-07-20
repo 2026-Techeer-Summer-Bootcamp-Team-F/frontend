@@ -972,7 +972,6 @@ export function ReportPage() {
               )}
             </div>
             {m.verdict === 'seed_pool' && <p className={styles.treeTooltipDesc}>{m.improvement}</p>}
-            {m.verdict === 'seed_pool' && m.prompt_preview && <p className={styles.treeTooltipDesc}>{m.prompt_preview}</p>}
             {m.verdict !== 'seed_pool' && isLoading && <p className={styles.treeTooltipDesc} style={{ opacity: 0.5 }}>분석 중...</p>}
             {m.verdict !== 'seed_pool' && !isLoading && desc && <p className={styles.treeTooltipDesc}>{desc}</p>}
           </div>

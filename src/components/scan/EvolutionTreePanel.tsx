@@ -132,9 +132,6 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
           {meta.verdict === 'seed_pool' && (
             <p className={styles.tooltipPrompt}>{meta.improvement}</p>
           )}
-          {meta.verdict === 'seed_pool' && meta.prompt_preview && (
-            <p className={styles.tooltipPrompt}>{meta.prompt_preview}</p>
-          )}
           {meta.verdict !== 'seed_pool' && (() => {
             const isLoading = descLoadingRef.current.has(meta.attempt_id);
             const desc = descCacheRef.current.get(meta.attempt_id);
