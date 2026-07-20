@@ -119,6 +119,12 @@ export function buildEChartsTree(nodes: EvolutionNode[]): EChartsTreeNode[] {
   const roots = nodes.filter(n => n.parent_id === null);
   if (roots.length === 0) return [];
 
+  const seedPreviews = roots
+    .filter(r => r.prompt_preview)
+    .slice(0, 3)
+    .map(r => `· ${r.prompt_preview.length > 40 ? r.prompt_preview.slice(0, 40) + '…' : r.prompt_preview}`)
+    .join('\n');
+
   const seedPool: EChartsTreeNode = {
     id: '__seed_pool__',
     name: 'SEED POOL',
@@ -130,7 +136,7 @@ export function buildEChartsTree(nodes: EvolutionNode[]): EChartsTreeNode[] {
     _meta: {
       attempt_id: -1,
       improvement: `공격 데이터베이스에서 프롬프트 ${roots.length}개를 검색해 선택했습니다.`,
-      prompt_preview: '',
+      prompt_preview: seedPreviews,
       generation: -1,
       score: 0,
       verdict: 'seed_pool',

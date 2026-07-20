@@ -107,6 +107,7 @@
   line-height: 1.5;
   margin: 0;
   word-break: break-all;
+  white-space: pre-line;
   display: -webkit-box;
   -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;

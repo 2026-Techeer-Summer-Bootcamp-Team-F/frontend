@@ -112,11 +112,11 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
               </span>
             )}
           </div>
-          {meta.prompt_preview && (
-            <p className={styles.tooltipPrompt}>{meta.prompt_preview}</p>
-          )}
           {meta.verdict === 'seed_pool' && (
             <p className={styles.tooltipPrompt}>{meta.improvement}</p>
+          )}
+          {meta.prompt_preview && (
+            <p className={styles.tooltipPrompt}>{meta.prompt_preview}</p>
           )}
         </div>
       )}
