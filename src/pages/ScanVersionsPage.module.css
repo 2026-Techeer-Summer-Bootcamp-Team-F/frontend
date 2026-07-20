@@ -2,7 +2,6 @@
    앱 그린 테마(globals.css) 재사용, 제목은 var(--font-display)(앱 타이틀과 동일). */
 
 .page {
-  --mono: 'JetBrains Mono', ui-monospace, monospace;
   --addbg: rgba(94, 203, 138, 0.10);
   --addbd: rgba(94, 203, 138, 0.40);
   --delbg: rgba(224, 82, 82, 0.10);
@@ -18,7 +17,7 @@
 /* ── 헤더 ── */
 .phead { margin-bottom: 16px; }
 .ey {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -72,7 +71,7 @@
 .dy { background: #febc2e; }
 .dgr { background: #3a3a3a; }
 .lab { font-weight: 600; color: #cfe6d8; }
-.rt { margin-left: auto; font-family: var(--mono); font-size: 10.5px; color: var(--text-muted); }
+.rt { margin-left: auto; font-family: var(--font-ui); font-size: 10.5px; color: var(--text-muted); }
 
 /* ── 좌: 스캔 이력 ── */
 .scanlist { padding: 6px 4px 10px; flex: 1; overflow: auto; }
@@ -111,8 +110,8 @@
 .breach .node { border-color: var(--red); }
 .cap { min-width: 0; }
 .cap .v { font-weight: 700; font-size: 13.5px; }
-.tag { font-family: var(--mono); font-size: 10px; color: var(--text-muted); font-weight: 500; margin-left: 6px; }
-.cap .d { font-family: var(--mono); font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
+.tag { font-family: var(--font-ui); font-size: 10px; color: var(--text-muted); font-weight: 500; margin-left: 6px; }
+.cap .d { font-family: var(--font-ui); font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
 .rb { margin-left: auto; text-align: right; white-space: nowrap; }
 .badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px; border: 1px solid; }
 .badge.ok { color: var(--accent); background: var(--accent-dim); border-color: var(--accent-border); }
@@ -131,7 +130,7 @@
   border-bottom: 1px solid var(--accent-border);
 }
 .tech {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   color: var(--orange);
   border: 1px solid rgba(224, 164, 82, 0.3);
@@ -147,7 +146,7 @@
   flex-wrap: wrap;
 }
 .ftab {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 11px;
   color: var(--text-muted);
   padding: 6px 12px;
@@ -166,7 +165,7 @@
 .col { min-width: 0; }
 .colh {
   padding: 8px 14px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   color: var(--text-muted);
   background: #0a0f0c;
@@ -179,7 +178,7 @@
 .colh .k { color: #cfe6d8; font-weight: 600; }
 .code {
   padding: 8px 0 12px;
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 11.5px;
   line-height: 1.7;
   overflow: auto;
@@ -197,7 +196,7 @@
 /* ── 우하: 결과 ── */
 /* 헤더 우측 리포트 이동 버튼(범위 표시 옆) — 앱 그린 테마 통일. */
 .reportlink {
-  font-family: var(--mono);
+  font-family: var(--font-ui);
   font-size: 10.5px;
   font-weight: 600;
   color: var(--accent);
@@ -233,8 +232,8 @@
 .resitem.sel { background: rgba(94, 203, 138, 0.07); box-shadow: inset 3px 0 0 var(--accent); }
 .tname { min-width: 210px; }
 .tname .t { font-weight: 600; font-size: 13px; }
-.tname .id { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
-.flow { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 11.5px; }
+.tname .id { font-family: var(--font-ui); font-size: 10px; color: var(--text-muted); }
+.flow { display: flex; align-items: center; gap: 10px; font-family: var(--font-ui); font-size: 11.5px; }
 .flow .before { color: var(--red); }
 .flow .after { color: var(--accent); }
 .flow .arrow { color: var(--text-muted); }
