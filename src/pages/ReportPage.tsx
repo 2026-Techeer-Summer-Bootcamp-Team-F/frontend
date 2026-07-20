@@ -869,6 +869,9 @@ export function ReportPage() {
               const visible = stepMode ? sortedNodes.slice(0, stepIndex) : sortedNodes;
               const treeData = buildEChartsTree(visible);
               const currentNode = stepMode ? sortedNodes[stepIndex - 1] : null;
+              const lastImprovement = stepMode
+                ? (sortedNodes.slice(0, stepIndex).map(n => n.improvement).filter(Boolean).at(-1) ?? '')
+                : '';
               const VERDICT_COLOR_MAP: Record<string, string> = { breached: '#e0525f', safe: '#4caf8a', error: '#888', seed_pool: '#4a6a7a' };
               const VERDICT_LABEL_MAP: Record<string, string> = { breached: '침투 성공', safe: '방어됨', error: '오류', seed_pool: 'SEED POOL' };
               const option = {
@@ -942,10 +945,7 @@ export function ReportPage() {
                           </span>
                         </div>
                         <p key={currentNode.attempt_id} className={styles.replayThinkingSentence}>
-                          › {currentNode.improvement
-                              || (currentNode.generation === 0
-                                  ? '공격 데이터베이스에서 선택된 초기 프롬프트입니다.'
-                                  : `${currentNode.mutation_op} 연산으로 변형된 프롬프트입니다.`)}
+                          › {currentNode.improvement || lastImprovement || '공격 데이터베이스에서 선택된 초기 프롬프트입니다.'}
                         </p>
                       </div>
                     </div>
