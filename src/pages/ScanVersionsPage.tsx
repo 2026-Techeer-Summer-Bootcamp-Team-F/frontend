@@ -133,7 +133,7 @@ function Sparkline({ points }: { points: { scanId: number; value: number }[] }) 
       {xy.map((p, i) => (
         <text key={p.scanId} x={p.x} y="86"
               textAnchor={i === 0 ? 'start' : i === xy.length - 1 ? 'end' : 'middle'}
-              fill="var(--text-muted)" fontSize="11" fontFamily="monospace">
+              fill="var(--text-muted)" fontSize="11" fontFamily="var(--font-ui)">
           #{p.scanId} · {p.value}
         </text>
       ))}
@@ -399,7 +399,7 @@ export function ScanVersionsPage() {
           <div className={styles.sec}>
             <div className={styles.sh}>
               <span className={styles.secNo}>§3</span><h2>Finding 델타</h2>
-              <span className={styles.secR}>이전 대비</span>
+              <span className={styles.secR}>이전 대비 · 기법 단위</span>
             </div>
             <div className={styles.fcols}>
               <FindingCard title="✓ 사라짐" cls={styles.solved} rows={findingDelta.solved} />

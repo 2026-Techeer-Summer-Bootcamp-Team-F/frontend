@@ -131,7 +131,19 @@ export function compareTechniques(
   return rows;
 }
 
-/** 스캔이 달라도 같은 취약점을 가리키도록 기법+제목을 키로 쓴다(findings_id는 스캔마다 다름). */
+/** 심각도 정렬용 가중치 — 같은 기법에 여러 finding이 묶일 때 대표를 고르는 데 쓴다. */
+const SEVERITY_RANK: Record<Finding['severity'], number> = {
+  critical: 3, high: 2, medium: 1, low: 0,
+};
+
+/**
+ * 스캔이 달라도 같은 취약점을 가리키도록 기법+제목을 키로 쓴다.
+ *
+ * findings_id는 스캔마다 새로 발급돼 두 스캔을 잇는 키가 될 수 없다(그걸 키로 쓰면
+ * 모든 항목이 "사라짐+신규"로만 잡히고 "잔존"이 영영 나오지 않는다). 백엔드가 title을
+ * technique_name으로 채우므로 이 키는 사실상 기법 단위이고, 그래서 §3은 finding 건수가
+ * 아니라 **기법 단위 집계**다(화면에도 그렇게 표기한다).
+ */
 function findingKey(f: Finding): string {
   return `${f.atlas_technique_id}||${f.title}`;
 }
@@ -147,10 +159,11 @@ function toFindingRow(f: Finding, lowSampleIds: Set<string>): FindingRow {
 }
 
 /**
- * 두 스캔의 findings를 대조해 해결/신규/잔존으로 나눈다(§3).
+ * 두 스캔의 findings를 대조해 해결/신규/잔존으로 나눈다(§3, 기법 단위).
  *
  * techRows의 저표본 기법에 걸린 finding은 lowSample로 표시해 "재확인 권장" 문구를 띄운다.
- * 같은 키가 한 스캔에 여러 건이면 첫 건만 대표로 남긴다(목록 표시용이라 중복은 불필요).
+ * 같은 키가 한 스캔에 여러 건이면 가장 심각한 것을 대표로 남긴다 — 첫 건을 쓰면 critical이
+ * medium 뒤에 묻혀 심각도가 실제보다 낮게 보일 수 있다.
  */
 export function compareFindings(
   prevFindings: Finding[],
@@ -160,7 +173,11 @@ export function compareFindings(
   const lowSampleIds = new Set(techRows.filter(r => r.lowSample).map(r => r.atlasId));
   const dedupe = (list: Finding[]) => {
     const m = new Map<string, Finding>();
-    for (const f of list) if (!m.has(findingKey(f))) m.set(findingKey(f), f);
+    for (const f of list) {
+      const key = findingKey(f);
+      const cur = m.get(key);
+      if (!cur || SEVERITY_RANK[f.severity] > SEVERITY_RANK[cur.severity]) m.set(key, f);
+    }
     return m;
   };
   const prev = dedupe(prevFindings);
@@ -184,10 +201,18 @@ function nameList(rows: TechRow[]): string {
   return `${names.slice(0, NAME_LIST_MAX).join(', ')} 외 ${names.length - NAME_LIST_MAX}건`;
 }
 
+/**
+ * 위험도가 이만큼은 움직여야 "전반적 개선/후퇴"로 단정한다.
+ *
+ * 상단 배지(overallVerdict)와 §5 요약(buildComparisonSummary)이 같은 값을 써야 한다 —
+ * 기준이 어긋나면 배지는 "큰 변화 없음"인데 요약은 "위험도 상승"이라고 말하는 모순이 생긴다.
+ */
+export const RISK_VERDICT_DELTA = 5;
+
 /** 위험도 변화 → 상단 비교 바의 종합 판정. 변화 폭이 작으면 단정하지 않는다. */
 export function overallVerdict(riskDelta: number): { text: string; tone: Tone } {
-  if (riskDelta <= -5) return { text: '▼ 전반적 개선', tone: 'accent' };
-  if (riskDelta >= 5) return { text: '▲ 전반적 후퇴', tone: 'danger' };
+  if (riskDelta <= -RISK_VERDICT_DELTA) return { text: '▼ 전반적 개선', tone: 'accent' };
+  if (riskDelta >= RISK_VERDICT_DELTA) return { text: '▲ 전반적 후퇴', tone: 'danger' };
   return { text: '— 큰 변화 없음', tone: 'muted' };
 }
 
@@ -205,7 +230,7 @@ export function buildComparisonSummary(
   const riskDelta = (cur.risk_score ?? 0) - (prev.risk_score ?? 0);
   const seg: SummarySegment[] = [{ text: `지난 스캔(#${prev.scan_id}) 대비 `, tone: 'plain' }];
 
-  if (Math.abs(riskDelta) < 1) {
+  if (Math.abs(riskDelta) < RISK_VERDICT_DELTA) {
     seg.push({ text: '종합 위험도는 사실상 그대로입니다', tone: 'muted' });
   } else {
     const dir = riskDelta < 0 ? '하락' : '상승';
