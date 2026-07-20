@@ -92,9 +92,7 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
       </div>
 
       {nodes.length === 0 ? (
-        <p className={styles.empty}>
-          {atlasId ? '공격 시도를 기다리는 중...' : '세션을 선택하면\n진화 트리가 표시됩니다'}
-        </p>
+        atlasId ? <p className={styles.empty}>공격 시도를 기다리는 중...</p> : <div className={styles.chart} />
       ) : (
         <>
           {treeData.length > 0
