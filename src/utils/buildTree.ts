@@ -119,11 +119,15 @@ export function buildEChartsTree(nodes: EvolutionNode[]): EChartsTreeNode[] {
   const roots = nodes.filter(n => n.parent_id === null);
   if (roots.length === 0) return [];
 
-  const seedPreviews = roots
+  const seedPreviewLines = roots
     .filter(r => r.prompt_preview)
     .slice(0, 3)
-    .map(r => `· ${r.prompt_preview.length > 40 ? r.prompt_preview.slice(0, 40) + '…' : r.prompt_preview}`)
-    .join('\n');
+    .map(r => `· ${r.prompt_preview.length > 40 ? r.prompt_preview.slice(0, 40) + '…' : r.prompt_preview}`);
+
+  // EvolutionTreePanel 커스텀 툴팁용 (pre-line 렌더링)
+  const seedPreviews = seedPreviewLines.join('\n');
+  // ReportPage ECharts 네이티브 툴팁용 (HTML 렌더링)
+  const seedPreviewsHtml = seedPreviewLines.join('<br/>');
 
   const seedPool: EChartsTreeNode = {
     id: '__seed_pool__',
@@ -131,7 +135,7 @@ export function buildEChartsTree(nodes: EvolutionNode[]): EChartsTreeNode[] {
     value: 0,
     symbolSize: 10,
     itemStyle: { color: '#4a6a7a' },
-    tooltip: { formatter: `공격 데이터베이스에서 프롬프트 ${roots.length}개 선택` },
+    tooltip: { formatter: `공격 데이터베이스에서 프롬프트 ${roots.length}개 선택${seedPreviewsHtml ? '<br/>' + seedPreviewsHtml : ''}` },
     children: roots.map(r => toEChartsNode(r, childMap, bestByGen)),
     _meta: {
       attempt_id: -1,
