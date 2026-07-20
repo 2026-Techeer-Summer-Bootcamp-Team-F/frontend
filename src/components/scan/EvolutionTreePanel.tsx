@@ -1,6 +1,6 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { EChart } from '../EChart';
-import { buildEChartsTree, type EChartsTreeNode } from '../../utils/buildTree';
+import { buildEChartsTree, sliceNodes, type EChartsTreeNode } from '../../utils/buildTree';
 import type { EvolutionNode } from '../../api/scans';
 import { describePrompt } from '../../api/scans';
 import styles from './EvolutionTreePanel.module.css';
@@ -31,12 +31,58 @@ const VERDICT_COLOR: Record<string, string> = {
   seed_pool: '#4a6a7a',
 };
 
+const MUTATION_LINE_COLOR: Record<string, string> = {
+  seed:      '#4a6a7a',
+  expand:    '#5ba87a',
+  crossover: '#d48a3a',
+  rephrase:  '#7a6aaa',
+  translate: '#4a7aaa',
+  shorten:   '#aaaa4a',
+  inject:    '#aa4a4a',
+  jailbreak: '#cc5a3a',
+};
+
 export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
-  const treeData = useMemo(() => buildEChartsTree(nodes), [nodes]);
+  const [visibleCount, setVisibleCount] = useState(nodes.length);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [replayThinking, setReplayThinking] = useState('');
+  const playTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => {
+    if (!isPlaying) {
+      setVisibleCount(nodes.length);
+      setReplayThinking('');
+    }
+  }, [nodes.length, isPlaying]);
+
+  useEffect(() => () => { playTimersRef.current.forEach(clearTimeout); }, []);
+
+  const visibleNodes = useMemo(() => sliceNodes(nodes, visibleCount), [nodes, visibleCount]);
+  const treeData = useMemo(() => buildEChartsTree(visibleNodes), [visibleNodes]);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const descCacheRef = useRef<Map<number, string>>(new Map());
   const descLoadingRef = useRef<Set<number>>(new Set());
   const [, setDescVersion] = useState(0);
+
+  const handlePlay = () => {
+    if (nodes.length === 0) return;
+    playTimersRef.current.forEach(clearTimeout);
+    playTimersRef.current = [];
+    setIsPlaying(true);
+    setVisibleCount(0);
+    setReplayThinking('');
+    const sorted = [...nodes].sort((a, b) =>
+      a.generation !== b.generation ? a.generation - b.generation : a.attempt_id - b.attempt_id
+    );
+    sorted.forEach((node, i) => {
+      const id = setTimeout(() => {
+        setVisibleCount(i + 1);
+        if (node.improvement) setReplayThinking(node.improvement);
+        if (i === sorted.length - 1) setIsPlaying(false);
+      }, i * 120);
+      playTimersRef.current.push(id);
+    });
+  };
 
   const onEvents = useMemo(() => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -108,7 +154,58 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
           {atlasId ? '공격 시도를 기다리는 중...' : '세션을 선택하면\n진화 트리가 표시됩니다'}
         </p>
       ) : (
-        <EChart option={option} onEvents={onEvents} className={styles.chart} notMerge={false} />
+        <>
+          <EChart option={option} onEvents={onEvents} className={styles.chart} notMerge={false} />
+
+          <div className={styles.legend}>
+            <div className={styles.legendGroup}>
+              {([
+                { color: VERDICT_COLOR.seed_pool, label: 'SEED POOL' },
+                { color: VERDICT_COLOR.breached,  label: '침투 성공' },
+                { color: VERDICT_COLOR.safe,       label: '방어됨' },
+                { color: VERDICT_COLOR.error,      label: '오류' },
+              ] as const).map(({ color, label }) => (
+                <span key={label} className={styles.legendItem}>
+                  <i className={styles.legendDot} style={{ background: color }} />
+                  {label}
+                </span>
+              ))}
+            </div>
+            <div className={styles.legendGroup}>
+              {Object.entries(MUTATION_LINE_COLOR).map(([op, color]) => (
+                <span key={op} className={styles.legendItem}>
+                  <i className={styles.legendLine} style={{ background: color }} />
+                  {op}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.controls}>
+            <button
+              className={styles.playBtn}
+              onClick={handlePlay}
+              disabled={isPlaying}
+            >
+              {isPlaying ? '재생 중...' : '▶ 재생'}
+            </button>
+          </div>
+
+          {replayThinking && (
+            <div className={styles.thinkingBar}>
+              <div className={styles.thinkingAvatar}>
+                <img src="/logo.png" alt="Hackie" />
+                <span className={styles.thinkingAvatarName}>Hackie</span>
+              </div>
+              <div className={styles.thinkingContent}>
+                <span className={styles.thinkingLabel}>AI 사고 과정</span>
+                <p key={replayThinking} className={styles.thinkingSentence}>
+                  › {replayThinking}
+                </p>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {tooltip && meta && (

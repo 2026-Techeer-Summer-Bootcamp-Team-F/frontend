@@ -923,6 +923,40 @@ export function ReportPage() {
                   ) : (
                     <div className={styles.treeChart} style={{ height: 340 }} />
                   )}
+
+                  <div className={styles.treeLegend}>
+                    <div className={styles.treeLegendGroup}>
+                      {([
+                        { color: '#4a6a7a', label: 'SEED POOL' },
+                        { color: '#e0525f', label: '침투 성공' },
+                        { color: '#4caf8a', label: '방어됨' },
+                        { color: '#888',    label: '오류' },
+                      ] as const).map(({ color, label }) => (
+                        <span key={label} className={styles.treeLegendItem}>
+                          <i className={styles.treeLegendDot} style={{ background: color }} />
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                    <div className={styles.treeLegendGroup}>
+                      {([
+                        { color: '#4a6a7a', label: 'seed' },
+                        { color: '#5ba87a', label: 'expand' },
+                        { color: '#d48a3a', label: 'crossover' },
+                        { color: '#7a6aaa', label: 'rephrase' },
+                        { color: '#4a7aaa', label: 'translate' },
+                        { color: '#aaaa4a', label: 'shorten' },
+                        { color: '#aa4a4a', label: 'inject' },
+                        { color: '#cc5a3a', label: 'jailbreak' },
+                      ] as const).map(({ color, label }) => (
+                        <span key={label} className={styles.treeLegendItem}>
+                          <i className={styles.treeLegendLine} style={{ background: color }} />
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
                   <button
                     className={styles.playBtn}
                     onClick={handlePlay}
