@@ -41,26 +41,7 @@ export const MOCK_ATTACK_TYPES: AttackType[] = [
   { key: 'token_smuggling', label: 'Token Smuggling', atlas: 'AML.T0053.000', category: 'evasion' },
 ];
 
-let mockIdCounter = 100;
 const mockProjectStore = new Map<number, Project>();
-
-export function makeMockProject(payload: CreateProjectPayload): Project {
-  const project: Project = {
-    target_id: mockIdCounter++,
-    project_name: payload.project_name,
-    actor_type: payload.actor_type,
-    config: payload.config,
-    purpose: payload.purpose ?? null,
-    system_prompt: payload.system_prompt ?? null,
-    repo_url: payload.repo_url ?? null,
-    model: null,
-    defences: {},
-    tools: {},
-    created_at: new Date().toISOString(),
-  };
-  mockProjectStore.set(project.target_id, project);
-  return project;
-}
 
 export function getMockProject(id: number): Project | undefined {
   return mockProjectStore.get(id);

@@ -124,12 +124,3 @@ export function buildEChartsTree(nodes: EvolutionNode[]): EChartsTreeNode[] {
   return [seedPool];
 }
 
-/**
- * generation 순으로 정렬 후 count개 노드 반환 (재생 애니메이션용).
- */
-export function sliceNodes(nodes: EvolutionNode[], count: number): EvolutionNode[] {
-  const sorted = [...nodes].sort((a, b) =>
-    a.generation !== b.generation ? a.generation - b.generation : a.attempt_id - b.attempt_id
-  );
-  return sorted.slice(0, count);
-}

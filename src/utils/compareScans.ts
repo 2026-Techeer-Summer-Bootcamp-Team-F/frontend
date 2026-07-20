@@ -8,9 +8,9 @@ import type { Finding, HeatmapTechnique } from '../api/scans';
 import type { ScanHistoryItem } from '../api/versions';
 
 /** |Δbest_score|가 이 값 미만이면 "사실상 변화 없음"으로 본다. */
-export const NEGLIGIBLE_DELTA = 0.05;
+const NEGLIGIBLE_DELTA = 0.05;
 /** 어느 한쪽 스캔의 기법 시도 수가 이 값 미만이면 저표본(노이즈 가능)으로 경고한다. */
-export const LOW_SAMPLE_ATTEMPTS = 3;
+const LOW_SAMPLE_ATTEMPTS = 3;
 /** 문장·라벨에 기법 이름을 나열할 때 최대 개수(나머지는 "외 N건"). */
 const NAME_LIST_MAX = 3;
 
@@ -62,7 +62,7 @@ export interface SummarySegment {
  * score는 최대값, attempts는 합계로 둔다(백엔드 _technique_status와 같은 규칙).
  * 미측정(untested)은 비교 기준이 될 수 없어 제외한다.
  */
-export function mergeTechniques(cells: HeatmapTechnique[]): Map<string, TechSide & { name: string }> {
+function mergeTechniques(cells: HeatmapTechnique[]): Map<string, TechSide & { name: string }> {
   const out = new Map<string, TechSide & { name: string }>();
   for (const c of cells) {
     if (c.status === 'untested') continue;
