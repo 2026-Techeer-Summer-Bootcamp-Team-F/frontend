@@ -942,7 +942,10 @@ export function ReportPage() {
                           </span>
                         </div>
                         <p key={currentNode.attempt_id} className={styles.replayThinkingSentence}>
-                          › {currentNode.improvement || '(사고 과정 데이터 없음)'}
+                          › {currentNode.improvement
+                              || (currentNode.generation === 0
+                                  ? '공격 데이터베이스에서 선택된 초기 프롬프트입니다.'
+                                  : `${currentNode.mutation_op} 연산으로 변형된 프롬프트입니다.`)}
                         </p>
                       </div>
                     </div>
