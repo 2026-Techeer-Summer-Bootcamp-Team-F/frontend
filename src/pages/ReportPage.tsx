@@ -18,9 +18,8 @@ import {
   type MitigationRef,
   type CodeLocation,
   type EvolutionNode,
-  type EvolutionTree,
 } from '../api/scans';
-import { buildEChartsTree, sliceNodes, type EChartsTreeNode } from '../utils/buildTree';
+import { buildEChartsTree, type EChartsTreeNode } from '../utils/buildTree';
 import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS, MOCK_CODE_LOCATIONS } from '../api/mock';
 import { atlasLabel } from '../shared/constants';
 import { EChart } from '../components/EChart';
@@ -216,8 +215,6 @@ export function ReportPage() {
   const [codeLocationsExpanded, setCodeLocationsExpanded] = useState(false);
   const [evolutionMap, setEvolutionMap] = useState<Map<string, EvolutionNode[]>>(new Map());
   const [selectedTreeAtlas, setSelectedTreeAtlas] = useState<string>('');
-  const [stepMode, setStepMode] = useState(false);
-  const [stepIndex, setStepIndex] = useState(1);
   const treeDescCacheRef = useRef<Map<number, string>>(new Map());
   const treeDescLoadingRef = useRef<Set<number>>(new Set());
   const [, setTreeDescVersion] = useState(0);
@@ -294,7 +291,6 @@ export function ReportPage() {
           setEvolutionMap(map);
           const firstAtlas = cells[0]?.atlas_technique_id ?? '';
           setSelectedTreeAtlas(firstAtlas);
-          setVisibleCount(map.get(firstAtlas)?.length ?? 0);
         }
       })
       .catch(() => {
@@ -850,9 +846,8 @@ export function ReportPage() {
                 key={atlasId}
                 className={`${styles.treeTab} ${selectedTreeAtlas === atlasId ? styles.treeTabActive : ''}`}
                 onClick={() => {
-                  setStepMode(false);
-                  setStepIndex(1);
                   setSelectedTreeAtlas(atlasId);
+                  setTreeNodeTooltip(null);
                 }}
               >
                 {atlasLabel(atlasId)}
@@ -864,12 +859,7 @@ export function ReportPage() {
           <div className={styles.treeBody}>
             {(() => {
               const allNodes = evolutionMap.get(selectedTreeAtlas) ?? [];
-              const sortedNodes = [...allNodes].sort((a, b) =>
-                a.generation !== b.generation ? a.generation - b.generation : a.attempt_id - b.attempt_id
-              );
-              const visible = stepMode ? sliceNodes(allNodes, stepIndex) : allNodes;
-              const treeData = buildEChartsTree(visible);
-              const currentThinking = stepMode ? (sortedNodes[stepIndex - 1]?.improvement ?? '') : '';
+              const treeData = buildEChartsTree(allNodes);
               const option = {
                 tooltip: { show: false },
                 series: [{
@@ -898,7 +888,6 @@ export function ReportPage() {
                   ) : (
                     <div className={styles.treeChart} style={{ height: 340 }} />
                   )}
-
                   <div className={styles.treeLegend}>
                     <div className={styles.treeLegendGroup}>
                       {([
@@ -931,56 +920,6 @@ export function ReportPage() {
                       ))}
                     </div>
                   </div>
-
-                  <div className={styles.treeControls}>
-                    {!stepMode ? (
-                      <button
-                        className={styles.playBtn}
-                        onClick={() => { setStepMode(true); setStepIndex(1); }}
-                        disabled={allNodes.length === 0}
-                      >
-                        ▶ 단계별 보기
-                      </button>
-                    ) : (
-                      <>
-                        <button
-                          className={styles.playBtn}
-                          onClick={() => setStepIndex(i => Math.max(i - 1, 1))}
-                          disabled={stepIndex <= 1}
-                        >
-                          ◀ 이전
-                        </button>
-                        <span className={styles.stepIndicator}>
-                          {stepIndex} / {sortedNodes.length}
-                        </span>
-                        <button
-                          className={styles.playBtn}
-                          onClick={() => setStepIndex(i => Math.min(i + 1, sortedNodes.length))}
-                          disabled={stepIndex >= sortedNodes.length}
-                        >
-                          다음 ▶
-                        </button>
-                        <button className={styles.exitStepBtn} onClick={() => setStepMode(false)}>
-                          ✕ 종료
-                        </button>
-                      </>
-                    )}
-                  </div>
-
-                  {currentThinking && (
-                    <div className={styles.replayThinking}>
-                      <div className={styles.replayThinkingAvatar}>
-                        <img src="/logo.png" alt="Hackie" />
-                        <span className={styles.replayThinkingAvatarName}>Hackie</span>
-                      </div>
-                      <div className={styles.replayThinkingContent}>
-                        <span className={styles.replayThinkingLabel}>AI 사고 과정</span>
-                        <p key={currentThinking} className={styles.replayThinkingSentence}>
-                          › {currentThinking}
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </>
               );
             })()}
