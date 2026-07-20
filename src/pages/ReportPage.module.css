@@ -482,8 +482,13 @@
   background: var(--bg-title);
 }
 
+.treeControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .playBtn {
-  align-self: flex-start;
   font-family: var(--font-ui);
   font-size: 12px;
   padding: 6px 16px;
@@ -496,6 +501,28 @@
 }
 .playBtn:hover:not(:disabled) { background: var(--accent-dim); }
 .playBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.stepIndicator {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  color: var(--muted);
+  min-width: 52px;
+  text-align: center;
+}
+
+.exitStepBtn {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  margin-left: auto;
+  transition: color 0.15s;
+}
+.exitStepBtn:hover { color: var(--text); }
 
 .treeTooltip {
   position: fixed;

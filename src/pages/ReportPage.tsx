@@ -216,10 +216,8 @@ export function ReportPage() {
   const [codeLocationsExpanded, setCodeLocationsExpanded] = useState(false);
   const [evolutionMap, setEvolutionMap] = useState<Map<string, EvolutionNode[]>>(new Map());
   const [selectedTreeAtlas, setSelectedTreeAtlas] = useState<string>('');
-  const [visibleCount, setVisibleCount] = useState<number>(9999);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [replayThinking, setReplayThinking] = useState('');
-  const playTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const [stepMode, setStepMode] = useState(false);
+  const [stepIndex, setStepIndex] = useState(1);
   const treeDescCacheRef = useRef<Map<number, string>>(new Map());
   const treeDescLoadingRef = useRef<Set<number>>(new Set());
   const [, setTreeDescVersion] = useState(0);
@@ -322,8 +320,6 @@ export function ReportPage() {
     [findings],
   );
 
-  useEffect(() => () => { playTimersRef.current.forEach(clearTimeout); }, []);
-
   // Esc로 모달 닫기
   useEffect(() => {
     if (!modalTech && !modalFinding) return;
@@ -378,28 +374,6 @@ export function ReportPage() {
   }, [sevData, report?.stats.findings]);
 
   const breachedTechniques = heatmap.filter(t => t.status === 'breached');
-
-  const handlePlay = () => {
-    const allNodes = evolutionMap.get(selectedTreeAtlas) ?? [];
-    if (allNodes.length === 0) return;
-    // 기존 타이머 취소
-    playTimersRef.current.forEach(clearTimeout);
-    playTimersRef.current = [];
-    setIsPlaying(true);
-    setVisibleCount(0);
-    setReplayThinking('');
-    const sorted = [...allNodes].sort((a, b) =>
-      a.generation !== b.generation ? a.generation - b.generation : a.attempt_id - b.attempt_id
-    );
-    sorted.forEach((node, i) => {
-      const id = setTimeout(() => {
-        setVisibleCount(i + 1);
-        if (node.improvement) setReplayThinking(node.improvement);
-        if (i === sorted.length - 1) setIsPlaying(false);
-      }, i * 120);
-      playTimersRef.current.push(id);
-    });
-  };
 
   const treeOnEvents = useMemo(() => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -876,12 +850,9 @@ export function ReportPage() {
                 key={atlasId}
                 className={`${styles.treeTab} ${selectedTreeAtlas === atlasId ? styles.treeTabActive : ''}`}
                 onClick={() => {
-                  playTimersRef.current.forEach(clearTimeout);
-                  playTimersRef.current = [];
-                  setIsPlaying(false);
-                  setReplayThinking('');
+                  setStepMode(false);
+                  setStepIndex(1);
                   setSelectedTreeAtlas(atlasId);
-                  setVisibleCount(evolutionMap.get(atlasId)?.length ?? 0);
                 }}
               >
                 {atlasLabel(atlasId)}
@@ -893,8 +864,12 @@ export function ReportPage() {
           <div className={styles.treeBody}>
             {(() => {
               const allNodes = evolutionMap.get(selectedTreeAtlas) ?? [];
-              const visible = sliceNodes(allNodes, visibleCount);
+              const sortedNodes = [...allNodes].sort((a, b) =>
+                a.generation !== b.generation ? a.generation - b.generation : a.attempt_id - b.attempt_id
+              );
+              const visible = stepMode ? sliceNodes(allNodes, stepIndex) : allNodes;
               const treeData = buildEChartsTree(visible);
+              const currentThinking = stepMode ? (sortedNodes[stepIndex - 1]?.improvement ?? '') : '';
               const option = {
                 tooltip: { show: false },
                 series: [{
@@ -957,14 +932,42 @@ export function ReportPage() {
                     </div>
                   </div>
 
-                  <button
-                    className={styles.playBtn}
-                    onClick={handlePlay}
-                    disabled={isPlaying || allNodes.length === 0}
-                  >
-                    {isPlaying ? '재생 중...' : '▶ 재생'}
-                  </button>
-                  {replayThinking && (
+                  <div className={styles.treeControls}>
+                    {!stepMode ? (
+                      <button
+                        className={styles.playBtn}
+                        onClick={() => { setStepMode(true); setStepIndex(1); }}
+                        disabled={allNodes.length === 0}
+                      >
+                        ▶ 단계별 보기
+                      </button>
+                    ) : (
+                      <>
+                        <button
+                          className={styles.playBtn}
+                          onClick={() => setStepIndex(i => Math.max(i - 1, 1))}
+                          disabled={stepIndex <= 1}
+                        >
+                          ◀ 이전
+                        </button>
+                        <span className={styles.stepIndicator}>
+                          {stepIndex} / {sortedNodes.length}
+                        </span>
+                        <button
+                          className={styles.playBtn}
+                          onClick={() => setStepIndex(i => Math.min(i + 1, sortedNodes.length))}
+                          disabled={stepIndex >= sortedNodes.length}
+                        >
+                          다음 ▶
+                        </button>
+                        <button className={styles.exitStepBtn} onClick={() => setStepMode(false)}>
+                          ✕ 종료
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {currentThinking && (
                     <div className={styles.replayThinking}>
                       <div className={styles.replayThinkingAvatar}>
                         <img src="/logo.png" alt="Hackie" />
@@ -972,8 +975,8 @@ export function ReportPage() {
                       </div>
                       <div className={styles.replayThinkingContent}>
                         <span className={styles.replayThinkingLabel}>AI 사고 과정</span>
-                        <p key={replayThinking} className={styles.replayThinkingSentence}>
-                          › {replayThinking}
+                        <p key={currentThinking} className={styles.replayThinkingSentence}>
+                          › {currentThinking}
                         </p>
                       </div>
                     </div>
