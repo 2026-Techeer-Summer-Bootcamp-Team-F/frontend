@@ -262,8 +262,8 @@ export function RunScanPage() {
       } else if (eventType === 'seeds_retrieved') {
         const atlas = d.atlas as string;
         const count = d.count as number;
-        addLog(`[SEED] ${atlasLabel(atlas)} — corpus에서 씨앗 ${count}개 선택`);
-        setGlobalThinking(`${atlasLabel(atlas)}: corpus에서 씨앗 ${count}개를 선택했습니다. 0세대 발사를 시작합니다.`);
+        addLog(`[SEED] ${atlasLabel(atlas)} — 공격 데이터베이스에서 프롬프트 ${count}개 선택`);
+        setGlobalThinking(`${atlasLabel(atlas)}: 공격 데이터베이스에서 프롬프트 ${count}개를 선택했습니다. 0세대 발사를 시작합니다.`);
       } else if (eventType === 'attempt_started') {
         objectiveToAtlasRef.current.set(d.objective_id as number, d.atlas as string);
         setExchanges(prev => applyAttemptEvent(prev, d));

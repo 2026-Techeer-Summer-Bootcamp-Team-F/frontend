@@ -347,7 +347,7 @@ export function LiveAttackChat({
             ? <>진화 엔진 · <b>{answered.length}</b>회 시도 완료</>
             /* 진화 progress가 오기 전(씨앗 발사 중)엔 generation이 0 — 'gen 0'은 노출하지 않는다 */
             : generation === 0
-              ? <>진화 엔진 · <b>씨앗</b> 세대 발사 중</>
+              ? <>진화 엔진 · <b>초기 프롬프트</b> 발사 중</>
               : <>진화 엔진 · <b>gen {generation}</b> 진행 중</>}
         </span>
         <span className={styles.push}>
