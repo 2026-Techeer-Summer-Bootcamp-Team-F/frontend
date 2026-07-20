@@ -45,40 +45,57 @@ const MUTATION_LINE_COLOR: Record<string, string> = {
 };
 
 export function EvolutionTreePanel({ nodes, atlasId, atlasName, onThinking }: Props) {
-  const [visibleCount, setVisibleCount] = useState(nodes.length);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const playTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const [stepMode, setStepMode] = useState(false);
+  const [stepIndex, setStepIndex] = useState(1);
 
+  const sortedNodes = useMemo(() =>
+    [...nodes].sort((a, b) =>
+      a.generation !== b.generation ? a.generation - b.generation : a.attempt_id - b.attempt_id
+    ), [nodes]);
+
+  // 라이브 스캔 중 stepMode가 아니면 항상 전체 노드를 표시
   useEffect(() => {
-    if (!isPlaying) setVisibleCount(nodes.length);
-  }, [nodes.length, isPlaying]);
+    if (!stepMode) return;
+    // atlas 전환(nodes 교체)으로 stepIndex가 범위 밖으로 나가면 보정
+    setStepIndex(prev => Math.min(prev, Math.max(1, sortedNodes.length)));
+  }, [sortedNodes.length, stepMode]);
 
-  useEffect(() => () => { playTimersRef.current.forEach(clearTimeout); }, []);
+  const visibleNodes = useMemo(() =>
+    stepMode ? sliceNodes(nodes, stepIndex) : nodes,
+    [stepMode, stepIndex, nodes]);
 
-  const visibleNodes = useMemo(() => sliceNodes(nodes, visibleCount), [nodes, visibleCount]);
   const treeData = useMemo(() => buildEChartsTree(visibleNodes), [visibleNodes]);
+
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
   const descCacheRef = useRef<Map<number, string>>(new Map());
   const descLoadingRef = useRef<Set<number>>(new Set());
   const [, setDescVersion] = useState(0);
 
-  const handlePlay = () => {
-    if (nodes.length === 0) return;
-    playTimersRef.current.forEach(clearTimeout);
-    playTimersRef.current = [];
-    setIsPlaying(true);
-    setVisibleCount(0);
-    const sorted = [...nodes].sort((a, b) =>
-      a.generation !== b.generation ? a.generation - b.generation : a.attempt_id - b.attempt_id
-    );
-    sorted.forEach((node, i) => {
-      const id = setTimeout(() => {
-        setVisibleCount(i + 1);
-        if (node.improvement) onThinking?.(`${atlasLabel(atlasId)}: ${node.improvement}`);
-        if (i === sorted.length - 1) setIsPlaying(false);
-      }, i * 120);
-      playTimersRef.current.push(id);
-    });
+  const notify = (index: number) => {
+    const node = sortedNodes[index - 1];
+    if (node?.improvement) onThinking?.(`${atlasLabel(atlasId)}: ${node.improvement}`);
+  };
+
+  const enterStepMode = () => {
+    setStepMode(true);
+    setStepIndex(1);
+    notify(1);
+  };
+
+  const exitStepMode = () => {
+    setStepMode(false);
+  };
+
+  const goPrev = () => {
+    const next = Math.max(stepIndex - 1, 1);
+    setStepIndex(next);
+    notify(next);
+  };
+
+  const goNext = () => {
+    const next = Math.min(stepIndex + 1, sortedNodes.length);
+    setStepIndex(next);
+    notify(next);
   };
 
   const onEvents = useMemo(() => ({
@@ -182,13 +199,26 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName, onThinking }: Pr
           </div>
 
           <div className={styles.controls}>
-            <button
-              className={styles.playBtn}
-              onClick={handlePlay}
-              disabled={isPlaying}
-            >
-              {isPlaying ? '재생 중...' : '▶ 재생'}
-            </button>
+            {!stepMode ? (
+              <button className={styles.playBtn} onClick={enterStepMode}>
+                ▶ 단계별 보기
+              </button>
+            ) : (
+              <>
+                <button className={styles.stepBtn} onClick={goPrev} disabled={stepIndex <= 1}>
+                  ◀ 이전
+                </button>
+                <span className={styles.stepIndicator}>
+                  {stepIndex} / {sortedNodes.length}
+                </span>
+                <button className={styles.stepBtn} onClick={goNext} disabled={stepIndex >= sortedNodes.length}>
+                  다음 ▶
+                </button>
+                <button className={styles.exitBtn} onClick={exitStepMode}>
+                  ✕ 종료
+                </button>
+              </>
+            )}
           </div>
         </>
       )}
