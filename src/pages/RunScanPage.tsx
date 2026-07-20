@@ -12,7 +12,7 @@ import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
 import { atlasLabel } from '../shared/constants';
 import { LiveAttackChat, applyAttemptEvent, type ChatExchange } from '../components/scan/LiveAttackChat';
 import { AttackSessionList } from '../components/scan/AttackSessionList';
-import { EvolutionTreePanel } from '../components/scan/EvolutionTreePanel';
+import { TreeReplayPanel } from '../components/scan/TreeReplayPanel';
 import type { EvolutionNode } from '../api/scans';
 
 type Tab = 'log' | 'chat' | 'tree';
@@ -530,10 +530,11 @@ export function RunScanPage() {
         {/* 진화 트리 탭 */}
         {activeTab === 'tree' && (
           <div className={styles.treeTabLayout}>
-            <EvolutionTreePanel
+            <TreeReplayPanel
               nodes={treeNodes.get(treeSelectedAtlasId) ?? []}
               atlasId={treeSelectedAtlasId}
               atlasName={treeSelectedAtlasName}
+              status={status}
             />
             <AttackSessionList
               exchanges={exchanges}
