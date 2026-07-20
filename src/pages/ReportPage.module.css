@@ -437,43 +437,6 @@
 
 .treeBody { display: flex; flex-direction: column; gap: 8px; }
 
-.treeLegend {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--muted);
-}
-
-.treeLegendGroup {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-}
-
-.treeLegendItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.treeLegendDot {
-  display: block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.treeLegendLine {
-  display: block;
-  width: 14px;
-  height: 2px;
-  border-radius: 1px;
-  flex-shrink: 0;
-}
 
 .treeChart {
   width: 100%;

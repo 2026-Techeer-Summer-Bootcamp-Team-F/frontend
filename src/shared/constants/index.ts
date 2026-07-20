@@ -1,5 +1,30 @@
 export const SCAN_POLL_INTERVAL_MS = 3000;
 
+export const VERDICT_COLOR: Record<string, string> = {
+  breached:  '#e0525f',
+  safe:      '#4caf8a',
+  error:     '#888',
+  seed_pool: '#4a6a7a',
+};
+
+export const VERDICT_LABEL: Record<string, string> = {
+  breached:  '침투 성공',
+  safe:      '방어됨',
+  error:     '오류',
+  seed_pool: 'SEED POOL',
+};
+
+export const MUTATION_LINE_COLOR: Record<string, string> = {
+  seed:      '#4a6a7a',
+  expand:    '#5ba87a',
+  crossover: '#d48a3a',
+  rephrase:  '#7a6aaa',
+  translate: '#4a7aaa',
+  shorten:   '#aaaa4a',
+  inject:    '#aa4a4a',
+  jailbreak: '#cc5a3a',
+};
+
 // MITRE ATLAS 기법 코드 → 한국어 이름
 export const ATLAS_LABELS: Record<string, string> = {
   'AML.T0054':     'LLM Jailbreak',

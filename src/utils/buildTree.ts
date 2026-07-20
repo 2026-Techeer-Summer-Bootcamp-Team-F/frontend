@@ -1,4 +1,5 @@
 import type { EvolutionNode } from '../api/scans';
+import { VERDICT_COLOR, MUTATION_LINE_COLOR } from '../shared/constants';
 
 export interface EChartsTreeNode {
   id: string;
@@ -26,21 +27,6 @@ export interface EChartsTreeNode {
   };
 }
 
-const BREACH_COLOR = '#e0525f';
-const SAFE_COLOR   = '#4caf8a';
-const ERROR_COLOR  = '#888';
-
-// mutation_op → 엣지 색상
-const MUTATION_LINE_COLOR: Record<string, string> = {
-  seed:      '#4a6a7a',
-  expand:    '#5ba87a',
-  crossover: '#d48a3a',
-  rephrase:  '#7a6aaa',
-  translate: '#4a7aaa',
-  shorten:   '#aaaa4a',
-  inject:    '#aa4a4a',
-  jailbreak: '#cc5a3a',
-};
 
 function getMutationColor(op: string): string {
   return MUTATION_LINE_COLOR[op.toLowerCase()] ?? '#556';
@@ -57,9 +43,7 @@ function toEChartsNode(
   bestByGen: Map<number, number>,
 ): EChartsTreeNode {
   const isBest = node.score > 0 && node.score === bestByGen.get(node.generation);
-  const nodeColor = node.verdict === 'breached' ? BREACH_COLOR
-    : node.verdict === 'error' ? ERROR_COLOR
-    : SAFE_COLOR;
+  const nodeColor = VERDICT_COLOR[node.verdict] ?? VERDICT_COLOR.safe;
 
   const label = `Gen${node.generation} · ${Math.min(100, Math.round(node.score * 100))}% · ${node.mutation_op || '—'}`;
   const tooltipLines = [label, node.prompt_preview || '(빈 프롬프트)'].join('<br/>');

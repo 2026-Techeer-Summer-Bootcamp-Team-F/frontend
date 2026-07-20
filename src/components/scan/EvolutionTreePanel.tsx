@@ -3,6 +3,8 @@ import { EChart } from '../EChart';
 import { buildEChartsTree, type EChartsTreeNode } from '../../utils/buildTree';
 import type { EvolutionNode } from '../../api/scans';
 import { describePrompt } from '../../api/scans';
+import { VERDICT_COLOR, VERDICT_LABEL } from '../../shared/constants';
+import { TreeLegend } from './TreeLegend';
 import styles from './EvolutionTreePanel.module.css';
 
 interface Props {
@@ -16,31 +18,6 @@ interface TooltipState {
   y: number;
   node: EChartsTreeNode;
 }
-
-const VERDICT_LABEL: Record<string, string> = {
-  breached: '침투 성공',
-  safe: '방어됨',
-  error: '오류',
-  seed_pool: 'SEED POOL',
-};
-
-const VERDICT_COLOR: Record<string, string> = {
-  breached: '#e0525f',
-  safe: '#4caf8a',
-  error: '#888',
-  seed_pool: '#4a6a7a',
-};
-
-const MUTATION_LINE_COLOR: Record<string, string> = {
-  seed:      '#4a6a7a',
-  expand:    '#5ba87a',
-  crossover: '#d48a3a',
-  rephrase:  '#7a6aaa',
-  translate: '#4a7aaa',
-  shorten:   '#aaaa4a',
-  inject:    '#aa4a4a',
-  jailbreak: '#cc5a3a',
-};
 
 export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
   const treeData = useMemo(() => buildEChartsTree(nodes), [nodes]);
@@ -124,30 +101,7 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
             ? <EChart option={option} onEvents={onEvents} className={styles.chart} notMerge={false} />
             : <div className={styles.chart} />
           }
-
-          <div className={styles.legend}>
-            <div className={styles.legendGroup}>
-              {([
-                { color: VERDICT_COLOR.seed_pool, label: 'SEED POOL' },
-                { color: VERDICT_COLOR.breached,  label: '침투 성공' },
-                { color: VERDICT_COLOR.safe,       label: '방어됨' },
-                { color: VERDICT_COLOR.error,      label: '오류' },
-              ] as const).map(({ color, label }) => (
-                <span key={label} className={styles.legendItem}>
-                  <i className={styles.legendDot} style={{ background: color }} />
-                  {label}
-                </span>
-              ))}
-            </div>
-            <div className={styles.legendGroup}>
-              {Object.entries(MUTATION_LINE_COLOR).map(([op, color]) => (
-                <span key={op} className={styles.legendItem}>
-                  <i className={styles.legendLine} style={{ background: color }} />
-                  {op}
-                </span>
-              ))}
-            </div>
-          </div>
+          <TreeLegend />
         </>
       )}
 
