@@ -200,3 +200,13 @@ export async function fetchEvolution(scanId: number, atlasId: string): Promise<E
   );
   return data;
 }
+
+export async function describePrompt(prompt: string): Promise<string> {
+  if (!prompt.trim()) return '';
+  try {
+    const { data } = await apiClient.post<{ description: string }>('/scans/describe-prompt', { prompt });
+    return data.description ?? '';
+  } catch {
+    return '';
+  }
+}

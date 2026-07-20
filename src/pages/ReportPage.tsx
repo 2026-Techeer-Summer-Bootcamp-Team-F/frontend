@@ -10,6 +10,7 @@ import {
   getScan,
   getCodeLocations,
   fetchEvolution,
+  describePrompt,
   type ScanReport,
   type HeatmapTechnique,
   type Finding,
@@ -19,7 +20,7 @@ import {
   type EvolutionNode,
   type EvolutionTree,
 } from '../api/scans';
-import { buildEChartsTree, sliceNodes } from '../utils/buildTree';
+import { buildEChartsTree, sliceNodes, type EChartsTreeNode } from '../utils/buildTree';
 import { MOCK_REPORT, MOCK_HEATMAP, MOCK_FINDINGS, MOCK_CODE_LOCATIONS } from '../api/mock';
 import { atlasLabel } from '../shared/constants';
 import { EChart } from '../components/EChart';
@@ -218,6 +219,10 @@ export function ReportPage() {
   const [visibleCount, setVisibleCount] = useState<number>(9999);
   const [isPlaying, setIsPlaying] = useState(false);
   const playTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const treeDescCacheRef = useRef<Map<number, string>>(new Map());
+  const treeDescLoadingRef = useRef<Set<number>>(new Set());
+  const [, setTreeDescVersion] = useState(0);
+  const [treeNodeTooltip, setTreeNodeTooltip] = useState<{ x: number; y: number; meta: EChartsTreeNode['_meta'] } | null>(null);
 
   const tutorial = useTutorial('report', [
     {
@@ -392,6 +397,29 @@ export function ReportPage() {
       playTimersRef.current.push(id);
     });
   };
+
+  const treeOnEvents = useMemo(() => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    mouseover: (params: any) => {
+      const meta = params.data?._meta;
+      if (!meta) return;
+      setTreeNodeTooltip({ x: params.event.event.clientX, y: params.event.event.clientY, meta });
+      if (
+        meta.verdict !== 'seed_pool' &&
+        meta.prompt_preview &&
+        !treeDescCacheRef.current.has(meta.attempt_id) &&
+        !treeDescLoadingRef.current.has(meta.attempt_id)
+      ) {
+        treeDescLoadingRef.current.add(meta.attempt_id);
+        describePrompt(meta.prompt_preview).then(desc => {
+          treeDescLoadingRef.current.delete(meta.attempt_id);
+          treeDescCacheRef.current.set(meta.attempt_id, desc);
+          setTreeDescVersion(v => v + 1);
+        });
+      }
+    },
+    mouseout: () => setTreeNodeTooltip(null),
+  }), []);
 
   if (loading) return <LoadingState />;
   if (error) return <p className={styles.error}>{error}</p>;
@@ -864,11 +892,7 @@ export function ReportPage() {
               const visible = sliceNodes(allNodes, visibleCount);
               const treeData = buildEChartsTree(visible);
               const option = {
-                tooltip: {
-                  trigger: 'item',
-                  formatter: (p: { data: { tooltip?: { formatter?: string } } }) =>
-                    p.data?.tooltip?.formatter ?? '',
-                },
+                tooltip: { show: false },
                 series: [{
                   type: 'tree',
                   data: treeData,
@@ -888,6 +912,7 @@ export function ReportPage() {
                     <EChart
                       option={option}
                       notMerge={false}
+                      onEvents={treeOnEvents}
                       className={styles.treeChart}
                       style={{ height: 340 }}
                     />
@@ -908,6 +933,33 @@ export function ReportPage() {
           </div>
         </section>
       )}
+
+      {/* ── 진화 트리 노드 커스텀 툴팁 ── */}
+      {treeNodeTooltip && (() => {
+        const m = treeNodeTooltip.meta;
+        const VERDICT_LABEL: Record<string, string> = { breached: '침투 성공', safe: '방어됨', error: '오류', seed_pool: 'SEED POOL' };
+        const VERDICT_COLOR: Record<string, string> = { breached: '#e0525f', safe: '#4caf8a', error: '#888', seed_pool: '#4a6a7a' };
+        const isLoading = treeDescLoadingRef.current.has(m.attempt_id);
+        const desc = treeDescCacheRef.current.get(m.attempt_id);
+        return (
+          <div className={styles.treeTooltip} style={{ left: treeNodeTooltip.x + 14, top: treeNodeTooltip.y + 14 }}>
+            <div className={styles.treeTooltipHeader}>
+              <span className={styles.treeTooltipVerdict} style={{ background: VERDICT_COLOR[m.verdict] ?? '#888' }}>
+                {VERDICT_LABEL[m.verdict] ?? m.verdict}
+              </span>
+              {m.verdict !== 'seed_pool' && (
+                <span className={styles.treeTooltipMeta}>
+                  Gen {m.generation} · {Math.min(100, Math.round(m.score * 100))}% · {m.mutation_op}
+                </span>
+              )}
+            </div>
+            {m.verdict === 'seed_pool' && <p className={styles.treeTooltipDesc}>{m.improvement}</p>}
+            {m.verdict === 'seed_pool' && m.prompt_preview && <p className={styles.treeTooltipDesc}>{m.prompt_preview}</p>}
+            {m.verdict !== 'seed_pool' && isLoading && <p className={styles.treeTooltipDesc} style={{ opacity: 0.5 }}>분석 중...</p>}
+            {m.verdict !== 'seed_pool' && !isLoading && desc && <p className={styles.treeTooltipDesc}>{desc}</p>}
+          </div>
+        );
+      })()}
 
       {/* ── 스캔 버전 관리 진입 (PDF에선 제외) ── */}
       {scanMeta?.target_id != null && (

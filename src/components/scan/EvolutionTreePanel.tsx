@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { EChart } from '../EChart';
 import { buildEChartsTree, type EChartsTreeNode } from '../../utils/buildTree';
 import type { EvolutionNode } from '../../api/scans';
+import { describePrompt } from '../../api/scans';
 import styles from './EvolutionTreePanel.module.css';
 
 interface Props {
@@ -33,6 +34,9 @@ const VERDICT_COLOR: Record<string, string> = {
 export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
   const treeData = useMemo(() => buildEChartsTree(nodes), [nodes]);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
+  const descCacheRef = useRef<Map<number, string>>(new Map());
+  const descLoadingRef = useRef<Set<number>>(new Set());
+  const [, setDescVersion] = useState(0);
 
   const onEvents = useMemo(() => ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,6 +48,19 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
         y: params.event.event.clientY,
         node: params.data as EChartsTreeNode,
       });
+      if (
+        meta.verdict !== 'seed_pool' &&
+        meta.prompt_preview &&
+        !descCacheRef.current.has(meta.attempt_id) &&
+        !descLoadingRef.current.has(meta.attempt_id)
+      ) {
+        descLoadingRef.current.add(meta.attempt_id);
+        describePrompt(meta.prompt_preview).then(desc => {
+          descLoadingRef.current.delete(meta.attempt_id);
+          descCacheRef.current.set(meta.attempt_id, desc);
+          setDescVersion(v => v + 1);
+        });
+      }
     },
     mouseout: () => setTooltip(null),
   }), []);
@@ -115,9 +132,16 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName }: Props) {
           {meta.verdict === 'seed_pool' && (
             <p className={styles.tooltipPrompt}>{meta.improvement}</p>
           )}
-          {meta.prompt_preview && (
+          {meta.verdict === 'seed_pool' && meta.prompt_preview && (
             <p className={styles.tooltipPrompt}>{meta.prompt_preview}</p>
           )}
+          {meta.verdict !== 'seed_pool' && (() => {
+            const isLoading = descLoadingRef.current.has(meta.attempt_id);
+            const desc = descCacheRef.current.get(meta.attempt_id);
+            if (isLoading) return <p className={styles.tooltipPrompt} style={{ opacity: 0.5 }}>분석 중...</p>;
+            if (desc) return <p className={styles.tooltipPrompt}>{desc}</p>;
+            return null;
+          })()}
         </div>
       )}
 

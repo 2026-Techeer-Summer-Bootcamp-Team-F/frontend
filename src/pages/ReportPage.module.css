@@ -459,6 +459,47 @@
 .playBtn:hover:not(:disabled) { background: var(--accent-dim); }
 .playBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+.treeTooltip {
+  position: fixed;
+  z-index: 9999;
+  min-width: 180px;
+  max-width: 280px;
+  background: #1a1e2a;
+  border: 1px solid rgba(94, 203, 138, 0.2);
+  border-radius: 6px;
+  padding: 8px 10px;
+  pointer-events: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+.treeTooltipHeader { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.treeTooltipVerdict {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.treeTooltipMeta {
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.treeTooltipDesc {
+  font-size: 11px;
+  color: var(--text);
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-line;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .treeDetail {
   border: 1px solid var(--accent-border);
   border-radius: 6px;
