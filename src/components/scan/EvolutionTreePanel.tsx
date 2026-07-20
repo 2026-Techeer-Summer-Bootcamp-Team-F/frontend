@@ -152,7 +152,10 @@ export function EvolutionTreePanel({ nodes, atlasId, atlasName, onThinking }: Pr
         </p>
       ) : (
         <>
-          <EChart option={option} onEvents={onEvents} className={styles.chart} notMerge={false} />
+          {treeData.length > 0
+            ? <EChart option={option} onEvents={onEvents} className={styles.chart} notMerge={false} />
+            : <div className={styles.chart} />
+          }
 
           <div className={styles.legend}>
             <div className={styles.legendGroup}>
