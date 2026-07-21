@@ -211,6 +211,8 @@ export function RunScanPage() {
         onAttemptEvent: e => {
           objectiveToAtlasRef.current.set(e.objective_id, e.atlas);
           setExchanges(prev => applyAttemptEvent(prev, e));
+          // 데모는 finding SSE가 없으므로 완료줄 카운트를 위해 여기서 돌파를 집계(#51)
+          if (e.event === 'attempt' && e.verdict === 'breach') setBreachCount(c => c + 1);
         },
         onObjectiveDone: id => {
           setObjectives(prev => ({ ...prev, done: prev.done + 1 }));

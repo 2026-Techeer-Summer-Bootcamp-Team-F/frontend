@@ -237,20 +237,18 @@ export function simulateScan(callbacks: ScanCallbacks): () => void {
     });
   }
 
+  // 데모 나레이션 — 순화 로그(용어 노출 없음). 대본(T0056 돌파 / T0057 방어)에 맞춘 흐름. — #51
   const logs: [string, string][] = [
-    ['Initializing attack modules...', 'info'],
-    ['Loading Prompt Injection module', 'info'],
-    ['Loading Jailbreak module', 'info'],
-    ['Target endpoint: http://localhost:8080/chat', 'warn'],
-    ['Starting genetic algorithm (population=8, max_gen=5)', 'info'],
-    ['Generation 1 — Evaluating 8 candidates', 'info'],
-    ['Best candidate score: 0.231', 'info'],
-    ['Generation 2 — Evaluating 8 candidates', 'info'],
-    ['High-confidence attack found: score=0.654', 'warn'],
-    ['Generation 3 — Refining top candidates', 'info'],
-    ['Generation 4 — Converging...', 'info'],
-    ['Generation 5 — Final evaluation', 'info'],
-    ['Scan complete. Generating report...', 'info'],
+    ['정찰 완료 — 연동 도구 없음, 방어 장치 없음', 'info'],
+    ['공격 목표 2개 확인 — 공격 시작', 'info'],
+    ['▶ 시스템 프롬프트 유출 방어 테스트 시작 · AML.T0056', 'head'],
+    ['공격 데이터베이스에서 기본 공격 8개 선택', 'info'],
+    ['1세대 변이 — 최고 위험도 94%', 'gen'],
+    ['→ 시스템 프롬프트 유출 테스트 완료: 취약점 발견', 'breach'],
+    ['▶ 데이터 유출 방어 테스트 시작 · AML.T0057', 'head'],
+    ['공격 데이터베이스에서 기본 공격 8개 선택', 'info'],
+    ['→ 데이터 유출 테스트 완료: 방어 성공', 'result'],
+    ['스캔 완료 — 리포트 생성 중', 'info'],
   ];
 
   logs.forEach(([msg, level], i) => {
