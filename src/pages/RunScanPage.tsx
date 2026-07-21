@@ -55,7 +55,9 @@ export function RunScanPage() {
   const [exchanges, setExchanges] = useState<ChatExchange[]>([]);
   const [recon, setRecon] = useState<{ tools: string[]; defenses: string[] } | null>(null);
   const [objectives, setObjectives] = useState({ done: 0, total: 0 });
-  const [breachCount, setBreachCount] = useState(0);
+  // 돌파된 목표(유형) id 집합 — "취약점 M건"·"방어 유형 수" 산출용. finding 건수가 아니라
+  // 목표 단위로 중복 없이 센다(한 유형에 여러 시도가 breach여도 1건). — #51 리뷰
+  const [breachedObjIds, setBreachedObjIds] = useState<Set<number>>(new Set());
   const [loadingStart, setLoadingStart] = useState(false);
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<number | null>(null);
   const [newObjectiveIds, setNewObjectiveIds] = useState<Set<number>>(new Set());
@@ -212,7 +214,9 @@ export function RunScanPage() {
           objectiveToAtlasRef.current.set(e.objective_id, e.atlas);
           setExchanges(prev => applyAttemptEvent(prev, e));
           // 데모는 finding SSE가 없으므로 완료줄 카운트를 위해 여기서 돌파를 집계(#51)
-          if (e.event === 'attempt' && e.verdict === 'breach') setBreachCount(c => c + 1);
+          if (e.event === 'attempt' && e.verdict === 'breach') {
+            setBreachedObjIds(prev => new Set(prev).add(e.objective_id));
+          }
         },
         onObjectiveDone: id => {
           setObjectives(prev => ({ ...prev, done: prev.done + 1 }));
@@ -325,6 +329,7 @@ export function RunScanPage() {
           foldKey: `${method}|${vkind}|${risk}`,
           raw: `${atlasLabel(d.atlas)}${rawOp} ${verdict} (${scoreRaw}%)${errDetail}`,
         });
+        if (vkind === 'breach') setBreachedObjIds(prev => new Set(prev).add(d.objective_id as number));
         if (d.improvement) setGlobalThinking(`${atlasLabel(d.atlas as string)}: ${d.improvement as string}`);
         const node: EvolutionNode = {
           attempt_id: d.attempt_id,
@@ -343,13 +348,16 @@ export function RunScanPage() {
           return next;
         });
       } else if (eventType === 'finding') {
-        const sevKo = d.severity === 'critical' ? '심각' : d.severity === 'medium' ? '보통' : '높음';
+        const sevKo = d.severity === 'critical' ? '심각'
+          : d.severity === 'medium' ? '보통'
+          : d.severity === 'low' ? '낮음'
+          : '높음';
         addText(
           `⚠ 취약점 발견: ${atlasTermLabel(d.atlas)} (심각도: ${sevKo})`,
           `⚠ 취약점 발견: ${atlasLabel(d.atlas)} (심각도: ${d.severity ?? 'high'})`,
           'breach',
         );
-        setBreachCount(c => c + 1);
+        // 돌파 집계는 attempt(breach)에서 objective_id 기준으로 이미 처리 — 여기서 중복 집계 안 함.
       } else if (eventType === 'done') {
         setStatus(d.status === 'done' ? 'done' : 'failed');
         setGlobalThinking('모든 공격 분석을 종료했습니다.');
@@ -382,7 +390,7 @@ export function RunScanPage() {
     setExchanges([]);
     setRecon(null);
     setObjectives({ done: 0, total: 0 });
-    setBreachCount(0);
+    setBreachedObjIds(new Set());
     setSelectedObjectiveId(null);
     setNewObjectiveIds(new Set());
     seenObjectivesRef.current = new Set();
@@ -583,7 +591,7 @@ export function RunScanPage() {
               )}
               {status === 'done' && (
                 <p className={`${styles.logLine} ${styles.done}`}>
-                  ✓ 스캔 완료 — {Math.max(objectives.total - breachCount, 0)}개 유형 방어, 취약점 {breachCount}건
+                  ✓ 스캔 완료 — {Math.max(objectives.total - breachedObjIds.size, 0)}개 유형 방어, 취약점 {breachedObjIds.size}건
                 </p>
               )}
               <div ref={logEndRef} />
