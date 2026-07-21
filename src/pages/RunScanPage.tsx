@@ -9,7 +9,7 @@ import { getToken } from '../utils/auth';
 import styles from './RunScanPage.module.css';
 import { useTutorial } from '../hooks/useTutorial';
 import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
-import { atlasLabel } from '../shared/constants';
+import { atlasLabel, atlasKoName } from '../shared/constants';
 import { LiveAttackChat, applyAttemptEvent, type ChatExchange } from '../components/scan/LiveAttackChat';
 import { AttackSessionList } from '../components/scan/AttackSessionList';
 import { EvolutionTreePanel } from '../components/scan/EvolutionTreePanel';
@@ -262,6 +262,7 @@ export function RunScanPage() {
       } else if (eventType === 'seeds_retrieved') {
         const atlas = d.atlas as string;
         const count = d.count as number;
+        addLog(`[${atlasKoName(atlas)}] 공격을 시작`);
         addLog(`[SEED] ${atlasLabel(atlas)} — 공격 데이터베이스에서 프롬프트 ${count}개 선택`);
         setGlobalThinking(`${atlasLabel(atlas)}: 공격 데이터베이스에서 프롬프트 ${count}개를 선택했습니다. 0세대 발사를 시작합니다.`);
       } else if (eventType === 'attempt_started') {
