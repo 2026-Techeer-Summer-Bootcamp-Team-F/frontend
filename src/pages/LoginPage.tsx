@@ -2,6 +2,12 @@ import { useNavigate } from 'react-router-dom';
 import { Brand } from '../components/Brand';
 import styles from './LoginPage.module.css';
 
+/**
+ * 온보딩(로그인) 페이지.
+ *
+ * 히어로(마스코트·헤드라인·CTA)와 시스템 상태 터미널을 보여주고,
+ * GitHub 로그인 시 가이드 화면(`/guide`)으로 이동한다.
+ */
 export function LoginPage() {
   const navigate = useNavigate();
 
@@ -14,6 +20,8 @@ export function LoginPage() {
         <Brand to="/" />
       </nav>
 
+      {/* ── 뷰포트 남은 높이의 세로 중앙에 배치 (히어로 + quickstart) ── */}
+      <main className={styles.main}>
       {/* ── Hero ── */}
       <section className={styles.hero}>
         {/* Raccoon mascot */}
@@ -33,7 +41,7 @@ export function LoginPage() {
           </p>
 
           <h1 className={styles.headline}>
-            실제 공격으로 AI <span className={styles.accent}>취약점</span>을 찾아냅니다
+            해커보다 먼저, <span className={styles.accent}>당신의 AI</span>를 공격합니다
           </h1>
 
           <p className={styles.description}>
@@ -100,6 +108,7 @@ export function LoginPage() {
           </div>
         </div>
       </section>
+      </main>
     </div>
   );
 }
