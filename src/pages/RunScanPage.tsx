@@ -82,6 +82,8 @@ export function RunScanPage() {
   /** 하단 고정 여부. 사용자가 위로 스크롤해 과거를 보는 중이면 false → 강제로 내리지 않는다.
       리렌더가 필요 없어 state가 아닌 ref로 둔다(#53) */
   const stickToBottom = useRef(true);
+  /** 마지막 스크롤 위치. 탭 전환으로 termBody가 unmount됐다 돌아올 때 복원한다(#53 리뷰) */
+  const savedScrollTop = useRef(0);
   const esRef = useRef<EventSource | null>(null);
   const cancelMockRef = useRef<(() => void) | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -152,13 +154,22 @@ export function RunScanPage() {
     if (el) el.scrollTop = el.scrollHeight;
   }, []);
 
-  /** 스크롤할 때마다 하단 고정 여부 갱신 — 하단으로 돌아오면 점프 버튼도 거둔다 */
+  /** 스크롤할 때마다 하단 고정 여부·위치를 갱신 — 하단으로 돌아오면 점프 버튼도 거둔다 */
   const handleLogScroll = useCallback(() => {
     const el = termBodyRef.current;
     if (!el) return;
+    savedScrollTop.current = el.scrollTop;
     const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= LOG_BOTTOM_EPSILON;
     stickToBottom.current = atBottom;
     if (atBottom) setHasNewLog(false);
+  }, []);
+
+  /** termBody 콜백 ref — 탭 전환으로 remount될 때 이전 스크롤 위치를 복원한다(#53 리뷰).
+   *  하단 고정 중이었으면 맨 아래로, 아니면 사용자가 보던 위치로. */
+  const setTermBodyRef = useCallback((el: HTMLDivElement | null) => {
+    termBodyRef.current = el;
+    if (!el) return;
+    el.scrollTop = stickToBottom.current ? el.scrollHeight : savedScrollTop.current;
   }, []);
 
   const jumpToLatestLog = useCallback(() => {
@@ -601,7 +612,7 @@ export function RunScanPage() {
                 {showRaw ? '간단히 보기' : '상세 로그'}
               </button>
             </div>
-            <div className={styles.termBody} ref={termBodyRef} onScroll={handleLogScroll}>
+            <div className={styles.termBody} ref={setTermBodyRef} onScroll={handleLogScroll}>
               {logs.length === 0 && (
                 <p className={styles.termEmpty}>스캔을 시작하면 실시간 로그가 표시됩니다.</p>
               )}
