@@ -64,6 +64,7 @@ export function RunScanPage() {
   const [selectedAtlasName, setSelectedAtlasName] = useState('');
   const [elapsed, setElapsed] = useState(0);
   const [activeTab, setActiveTab] = useState<Tab>('log');
+  const [showRaw, setShowRaw] = useState(false); // 상세 로그(원본 기술 로그) 토글 — #51
   const [globalThinking, setGlobalThinking] = useState('스캔을 시작하면 AI 사고 과정이 표시됩니다.');
 
   // 트리 탭 전용 세션 선택 (채팅 탭과 독립)
@@ -535,28 +536,43 @@ export function RunScanPage() {
                 <span className={`${styles.dot} ${styles.gr}`} />
               </div>
               <span>redi@console — Live Analysis Log</span>
+              <button
+                type="button"
+                className={styles.rawToggle}
+                onClick={() => setShowRaw(v => !v)}
+                aria-pressed={showRaw}
+              >
+                {showRaw ? '간단히 보기' : '상세 로그'}
+              </button>
             </div>
             <div className={styles.termBody}>
               {logs.length === 0 && (
                 <p className={styles.termEmpty}>스캔을 시작하면 실시간 로그가 표시됩니다.</p>
               )}
-              {foldedLogs.map(({ line, dup }) => (
-                <p key={line.id} className={`${styles.logLine} ${styles[line.level] ?? ''}`}>
-                  <span className={styles.logPrompt}>›</span>{' '}
-                  {line.attempt ? (
-                    <span>
-                      {line.attempt.method} →{' '}
-                      <span className={`${styles.verdict} ${styles[`v_${line.attempt.verdict}`] ?? ''}`}>
-                        {VERDICT_WORD[line.attempt.verdict]}
-                      </span>
-                      {line.attempt.risk != null && ` · 위험도 ${line.attempt.risk}%`}
-                    </span>
-                  ) : (
-                    line.text
-                  )}
-                  {dup > 0 && <span className={styles.foldNote}> (외 {dup}회 동일)</span>}
-                </p>
-              ))}
+              {showRaw
+                ? /* 상세 로그: 전문가용 원본 기술 로그(AML 코드·op·점수 원문). 접기 없이 전부. */
+                  logs.map(line => (
+                    <p key={line.id} className={`${styles.logLine} ${styles.rawLine}`}>
+                      <span className={styles.logPrompt}>›</span> {line.raw}
+                    </p>
+                  ))
+                : foldedLogs.map(({ line, dup }) => (
+                    <p key={line.id} className={`${styles.logLine} ${styles[line.level] ?? ''}`}>
+                      <span className={styles.logPrompt}>›</span>{' '}
+                      {line.attempt ? (
+                        <span>
+                          {line.attempt.method} →{' '}
+                          <span className={`${styles.verdict} ${styles[`v_${line.attempt.verdict}`] ?? ''}`}>
+                            {VERDICT_WORD[line.attempt.verdict]}
+                          </span>
+                          {line.attempt.risk != null && ` · 위험도 ${line.attempt.risk}%`}
+                        </span>
+                      ) : (
+                        line.text
+                      )}
+                      {dup > 0 && <span className={styles.foldNote}> (외 {dup}회 동일)</span>}
+                    </p>
+                  ))}
               {status === 'running' && (
                 <p className={styles.logLine}>
                   <span className={styles.logPrompt}>›</span>

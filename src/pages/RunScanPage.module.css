@@ -462,6 +462,28 @@
 /* 연속 동일 시도 접기 표기 (#51) */
 .foldNote { color: #6b7482; }
 
+/* 상세 로그 토글 버튼 (#51) */
+.rawToggle {
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--accent-border);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.rawToggle:hover { color: var(--accent); border-color: var(--accent); }
+
+/* 상세 로그(원본 기술 로그) 줄 — 원문 그대로 mono 표기 */
+.rawLine {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
 .logPrompt { color: var(--accent); margin-right: 6px; }
 
 .cursor {
