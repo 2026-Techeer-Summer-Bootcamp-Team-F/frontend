@@ -14,6 +14,8 @@ export function LoginPage() {
         <Brand to="/" />
       </nav>
 
+      {/* ── 뷰포트 남은 높이의 세로 중앙에 배치 (히어로 + quickstart) ── */}
+      <main className={styles.main}>
       {/* ── Hero ── */}
       <section className={styles.hero}>
         {/* Raccoon mascot */}
@@ -100,6 +102,7 @@ export function LoginPage() {
           </div>
         </div>
       </section>
+      </main>
     </div>
   );
 }
