@@ -35,7 +35,7 @@ export function LoginPage() {
           </p>
 
           <h1 className={styles.headline}>
-            실제 공격으로 AI <span className={styles.accent}>취약점</span>을 찾아냅니다
+            해커보다 먼저, <span className={styles.accent}>당신의 AI</span>를 공격합니다
           </h1>
 
           <p className={styles.description}>
