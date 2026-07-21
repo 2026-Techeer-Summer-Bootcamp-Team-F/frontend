@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Brand } from '../components/Brand';
 import styles from './LoginPage.module.css';
 
+/** 온보딩(로그인) 페이지 — 히어로·CTA·시스템 상태 터미널을 보여주고, GitHub 로그인 시 가이드 화면으로 이동한다. */
 export function LoginPage() {
   const navigate = useNavigate();
 
