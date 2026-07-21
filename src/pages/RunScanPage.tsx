@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { listAttackTypes, getProject, type AttackType, type Project } from '../api/projects';
 import { startScan, cancelScan, type ScanConfig } from '../api/scans';
@@ -17,6 +17,9 @@ import { EvolutionTreePanel } from '../components/scan/EvolutionTreePanel';
 import type { EvolutionNode } from '../api/scans';
 
 type Tab = 'log' | 'chat' | 'tree';
+
+/** 터미널 로그 하단 판정 여유(px) — 이 이내면 "하단에 붙어 있다"로 본다(#53) */
+const LOG_BOTTOM_EPSILON = 40;
 
 // 터미널 로그 한 줄. — #51
 // - text: 단순 라인 순화문(정찰/목표시작/세대/결과 등)
@@ -67,6 +70,7 @@ export function RunScanPage() {
   const [elapsed, setElapsed] = useState(0);
   const [activeTab, setActiveTab] = useState<Tab>('log');
   const [showRaw, setShowRaw] = useState(false); // 상세 로그(원본 기술 로그) 토글 — #51
+  const [hasNewLog, setHasNewLog] = useState(false); // 위로 스크롤 중 새 로그 도착 → 점프 버튼 — #53
   const [globalThinking, setGlobalThinking] = useState('스캔을 시작하면 AI 사고 과정이 표시됩니다.');
 
   // 트리 탭 전용 세션 선택 (채팅 탭과 독립)
@@ -74,7 +78,10 @@ export function RunScanPage() {
   const [treeSelectedAtlasId, setTreeSelectedAtlasId] = useState('');
   const [treeSelectedAtlasName, setTreeSelectedAtlasName] = useState('');
 
-  const logEndRef = useRef<HTMLDivElement>(null);
+  const termBodyRef = useRef<HTMLDivElement>(null);
+  /** 하단 고정 여부. 사용자가 위로 스크롤해 과거를 보는 중이면 false → 강제로 내리지 않는다.
+      리렌더가 필요 없어 state가 아닌 ref로 둔다(#53) */
+  const stickToBottom = useRef(true);
   const esRef = useRef<EventSource | null>(null);
   const cancelMockRef = useRef<(() => void) | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -138,9 +145,39 @@ export function RunScanPage() {
       });
   }, [projectId]);
 
+  /** 터미널 로그 컨테이너만 즉시 하단으로. scrollIntoView 대신 scrollTop을 쓰는 이유:
+   *  조상 스크롤 컨테이너까지 함께 움직여 페이지가 튀는 것을 막는다(LiveAttackChat과 동일 근거). */
+  const scrollLogToBottom = useCallback(() => {
+    const el = termBodyRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, []);
+
+  /** 스크롤할 때마다 하단 고정 여부 갱신 — 하단으로 돌아오면 점프 버튼도 거둔다 */
+  const handleLogScroll = useCallback(() => {
+    const el = termBodyRef.current;
+    if (!el) return;
+    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= LOG_BOTTOM_EPSILON;
+    stickToBottom.current = atBottom;
+    if (atBottom) setHasNewLog(false);
+  }, []);
+
+  const jumpToLatestLog = useCallback(() => {
+    stickToBottom.current = true;
+    setHasNewLog(false);
+    scrollLogToBottom();
+  }, [scrollLogToBottom]);
+
+  // 새 로그가 쌓이거나 완료줄이 붙을 때: 하단에 붙어 있으면 따라 내려가고, 위로 올라가
+  // 과거를 보는 중이면 위치를 유지하고 점프 버튼만 띄운다(#53).
   useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [logs]);
+    if (logs.length === 0) {
+      stickToBottom.current = true;
+      setHasNewLog(false);
+      return;
+    }
+    if (stickToBottom.current) scrollLogToBottom();
+    else setHasNewLog(true);
+  }, [logs, status, scrollLogToBottom]);
 
   const toggleAttack = (key: string) => {
     setSelected(prev => {
@@ -555,7 +592,7 @@ export function RunScanPage() {
                 {showRaw ? '간단히 보기' : '상세 로그'}
               </button>
             </div>
-            <div className={styles.termBody}>
+            <div className={styles.termBody} ref={termBodyRef} onScroll={handleLogScroll}>
               {logs.length === 0 && (
                 <p className={styles.termEmpty}>스캔을 시작하면 실시간 로그가 표시됩니다.</p>
               )}
@@ -594,8 +631,12 @@ export function RunScanPage() {
                   ✓ 스캔 완료 — {Math.max(objectives.total - breachedObjIds.size, 0)}개 유형 방어, 취약점 {breachedObjIds.size}건
                 </p>
               )}
-              <div ref={logEndRef} />
             </div>
+            {hasNewLog && (
+              <button type="button" className={styles.jump} onClick={jumpToLatestLog}>
+                새 로그 ↓
+              </button>
+            )}
           </section>
         )}
 

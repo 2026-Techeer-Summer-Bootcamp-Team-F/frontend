@@ -383,6 +383,7 @@
 }
 
 .terminal {
+  position: relative; /* 점프 버튼(.jump) 절대배치 기준 — #53 */
   border: 1px solid var(--accent-border);
   border-radius: 10px;
   overflow: hidden;
@@ -391,6 +392,26 @@
   height: 100%;
   min-height: 0;
 }
+
+/* 위로 스크롤해 과거 로그를 보는 중 새 로그 도착 시 노출되는 점프 버튼 — #53 */
+.jump {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(94, 203, 138, 0.42);
+  background: rgba(94, 203, 138, 0.12);
+  backdrop-filter: blur(4px);
+  color: var(--accent);
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+}
+.jump:hover { background: rgba(94, 203, 138, 0.2); }
 
 .dots { display: flex; gap: 6px; }
 .dot { display: block; width: 12px; height: 12px; border-radius: 50%; }
