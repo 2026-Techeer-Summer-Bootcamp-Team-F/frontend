@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { listAttackTypes, getProject, type AttackType, type Project } from '../api/projects';
 import { startScan, cancelScan, type ScanConfig } from '../api/scans';
@@ -403,6 +403,21 @@ export function RunScanPage() {
     if (tab === 'chat') setNewObjectiveIds(new Set());
   };
 
+  // 연속 동일 시도 접기(#51): 같은 foldKey가 연달아 오면 첫 줄만 남기고 "(외 N회 동일)"로 축약.
+  // 원본 logs는 그대로 두고 렌더 시점에만 축약(상세 로그·데이터 보존).
+  const foldedLogs = useMemo(() => {
+    const out: { line: LogLine; dup: number }[] = [];
+    for (const line of logs) {
+      const last = out[out.length - 1];
+      if (line.foldKey && last && last.line.foldKey === line.foldKey) {
+        last.dup += 1;
+      } else {
+        out.push({ line, dup: 0 });
+      }
+    }
+    return out;
+  }, [logs]);
+
   const aiThinkingLines = globalThinking
     .split(/(?<=[.。!?])\s+|[\n]/)
     .map(s => s.trim())
@@ -525,7 +540,7 @@ export function RunScanPage() {
               {logs.length === 0 && (
                 <p className={styles.termEmpty}>스캔을 시작하면 실시간 로그가 표시됩니다.</p>
               )}
-              {logs.map(line => (
+              {foldedLogs.map(({ line, dup }) => (
                 <p key={line.id} className={`${styles.logLine} ${styles[line.level] ?? ''}`}>
                   <span className={styles.logPrompt}>›</span>{' '}
                   {line.attempt ? (
@@ -539,6 +554,7 @@ export function RunScanPage() {
                   ) : (
                     line.text
                   )}
+                  {dup > 0 && <span className={styles.foldNote}> (외 {dup}회 동일)</span>}
                 </p>
               ))}
               {status === 'running' && (

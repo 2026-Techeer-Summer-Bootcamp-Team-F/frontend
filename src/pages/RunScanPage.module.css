@@ -459,6 +459,9 @@
 .verdict.v_breach { color: var(--red); }
 .verdict.v_error  { color: var(--text-muted); }
 
+/* 연속 동일 시도 접기 표기 (#51) */
+.foldNote { color: #6b7482; }
+
 .logPrompt { color: var(--accent); margin-right: 6px; }
 
 .cursor {
