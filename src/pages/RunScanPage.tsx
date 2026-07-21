@@ -10,7 +10,7 @@ import styles from './RunScanPage.module.css';
 import { useTutorial } from '../hooks/useTutorial';
 import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
 import { atlasLabel, atlasKoName } from '../shared/constants';
-import { opLabel, atlasTermLabel, VERDICT_WORD, riskPct } from '../shared/logReadable';
+import { opLabel, atlasTermLabel, VERDICT_WORD, riskPct, logMessageReadable } from '../shared/logReadable';
 import { LiveAttackChat, applyAttemptEvent, type ChatExchange } from '../components/scan/LiveAttackChat';
 import { AttackSessionList } from '../components/scan/AttackSessionList';
 import { EvolutionTreePanel } from '../components/scan/EvolutionTreePanel';
@@ -291,7 +291,8 @@ export function RunScanPage() {
 
       if (eventType === 'log') {
         const m = (d.message ?? d.msg ?? '') as string;
-        addText(m, m, d.level ?? 'info');
+        // 간단히 보기엔 순화문, 상세 로그엔 원문(raw) — raw 토큰이 사용자용에 새지 않게(#53)
+        addText(logMessageReadable(m), m, d.level ?? 'info');
       } else if (eventType === 'progress') {
         setProgress(prev => ({
           generation: d.generation ?? prev?.generation ?? 0,
