@@ -322,9 +322,15 @@ export function RunScanPage() {
           addText(`${gen}세대 변이 — 최고 위험도 ${riskPct(best)}%`, `[GEN ${gen}] 최고 점수 ${(best * 100).toFixed(1)}%`, 'gen');
         } else if (d.phase === 'objective_done') {
           const breached = d.status === 'breached';
-          const doneAtlas = (d.current_attack as { atlas?: string } | null)?.atlas ?? '';
+          // 완료 이벤트엔 기법 정보가 없다 → objective_id로 추적해 둔 실제 기법명을 쓴다(#53).
+          // seeds_retrieved·attempt에서 채운 objectiveToAtlasRef를 조회, 못 구하면 current_attack,
+          // 그래도 없으면 "알 수 없는" 대신 중립어 "공격"으로 폴백.
+          const doneAtlas = objectiveToAtlasRef.current.get(d.objective_id as number)
+            ?? (d.current_attack as { atlas?: string } | null)?.atlas
+            ?? '';
+          const techWord = doneAtlas ? atlasTermLabel(doneAtlas) : '공격';
           addText(
-            `→ ${atlasTermLabel(doneAtlas)} 테스트 완료: ${breached ? '취약점 발견' : '방어 성공'}`,
+            `→ ${techWord} 테스트 완료: ${breached ? '취약점 발견' : '방어 성공'}`,
             `[OBJECTIVE] 완료 — ${d.status ?? ''}`,
             breached ? 'breach' : 'result',
           );
@@ -338,6 +344,8 @@ export function RunScanPage() {
       } else if (eventType === 'seeds_retrieved') {
         const atlas = d.atlas as string;
         const count = d.count as number;
+        // 완료줄 기법명 추적(#53): 공격이 한 건도 발사되지 않은 목표도 여기서 기법을 기록해 둔다.
+        objectiveToAtlasRef.current.set(d.objective_id as number, atlas);
         pushLine({
           level: 'head',
           text: `▶ ${atlasTermLabel(atlas)} 방어 테스트 시작 · ${atlas}`,
