@@ -10,6 +10,7 @@ import styles from './RunScanPage.module.css';
 import { useTutorial } from '../hooks/useTutorial';
 import { TutorialOverlay } from '../components/tutorial/TutorialOverlay';
 import { atlasLabel, atlasKoName } from '../shared/constants';
+import { opLabel, atlasTermLabel, VERDICT_WORD, riskPct } from '../shared/logReadable';
 import { LiveAttackChat, applyAttemptEvent, type ChatExchange } from '../components/scan/LiveAttackChat';
 import { AttackSessionList } from '../components/scan/AttackSessionList';
 import { EvolutionTreePanel } from '../components/scan/EvolutionTreePanel';
@@ -17,7 +18,19 @@ import type { EvolutionNode } from '../api/scans';
 
 type Tab = 'log' | 'chat' | 'tree';
 
-interface LogLine { id: number; msg: string; level: string }
+// 터미널 로그 한 줄. — #51
+// - text: 단순 라인 순화문(정찰/목표시작/세대/결과 등)
+// - attempt: 공격 시도 라인(방식→판정·위험도)을 세그먼트로 렌더(판정어만 색 강조)
+// - raw: 원본 기술 로그(상세 로그 토글에서 표시). readable 데이터는 버리지 않는다.
+interface AttemptLine { method: string; verdict: 'safe' | 'breach' | 'error'; risk: number | null }
+interface LogLine {
+  id: number;
+  level: string;
+  raw: string;
+  text?: string;
+  attempt?: AttemptLine;
+  foldKey?: string;
+}
 interface ProgressData {
   generation: number;
   evaluated: number;
@@ -42,6 +55,7 @@ export function RunScanPage() {
   const [exchanges, setExchanges] = useState<ChatExchange[]>([]);
   const [recon, setRecon] = useState<{ tools: string[]; defenses: string[] } | null>(null);
   const [objectives, setObjectives] = useState({ done: 0, total: 0 });
+  const [breachCount, setBreachCount] = useState(0);
   const [loadingStart, setLoadingStart] = useState(false);
   const [selectedObjectiveId, setSelectedObjectiveId] = useState<number | null>(null);
   const [newObjectiveIds, setNewObjectiveIds] = useState<Set<number>>(new Set());
@@ -180,18 +194,18 @@ export function RunScanPage() {
       const result = await startScan(Number(projectId), config);
       setScanId(result.scan_id);
       setStatus('running');
-      setLogs([{ id: 0, msg: 'Attack modules loading...', level: 'info' }]);
+      setLogs([{ id: 0, level: 'info', text: '스캔 시작 — 공격 모듈 로딩 중', raw: 'Attack modules loading...' }]);
       subscribeSSE(result.scan_id);
     } catch {
       setStatus('running');
-      setLogs([{ id: 0, msg: 'Attack modules loading... (demo mode)', level: 'info' }]);
+      setLogs([{ id: 0, level: 'info', text: '스캔 시작 — 공격 모듈 로딩 중 (데모)', raw: 'Attack modules loading... (demo mode)' }]);
       const mockScanId = 9999;
       setScanId(mockScanId);
       setRecon(MOCK_RECON);
       setObjectives({ done: 0, total: MOCK_OBJECTIVE_COUNT });
       cancelMockRef.current = simulateScan({
         onLog: (msg, level) =>
-          setLogs(prev => [...prev, { id: prev.length, msg, level }]),
+          setLogs(prev => [...prev, { id: prev.length, level, text: msg, raw: msg }]),
         onProgress: data => setProgress(data),
         onAttemptEvent: e => {
           objectiveToAtlasRef.current.set(e.objective_id, e.atlas);
@@ -221,15 +235,19 @@ export function RunScanPage() {
     const es = new EventSource(`${base}/scans/${id}/stream?token=${token}`);
     esRef.current = es;
 
-    const addLog = (msg: string, level = 'info') =>
-      setLogs(prev => [...prev, { id: prev.length, msg, level }]);
+    // 순화문(text/attempt)과 원본 기술문(raw)을 함께 쌓는다 — 상세 로그 토글이 raw를 쓴다.
+    const pushLine = (line: Omit<LogLine, 'id'>) =>
+      setLogs(prev => [...prev, { id: prev.length, ...line }]);
+    const addText = (text: string, raw: string, level = 'info') =>
+      pushLine({ level, text, raw });
 
     es.onmessage = (e: MessageEvent) => {
       const d = JSON.parse(e.data as string);
       const eventType = d.event as string;
 
       if (eventType === 'log') {
-        addLog(d.message ?? d.msg ?? '', d.level ?? 'info');
+        const m = (d.message ?? d.msg ?? '') as string;
+        addText(m, m, d.level ?? 'info');
       } else if (eventType === 'progress') {
         setProgress(prev => ({
           generation: d.generation ?? prev?.generation ?? 0,
@@ -240,19 +258,32 @@ export function RunScanPage() {
           summary: d.summary ?? prev?.summary ?? null,
         }));
         if (d.phase === 'recon') {
-          addLog(`[RECON] 정찰 완료 — tools: ${(d.tools ?? []).join(', ') || '없음'}, defenses: ${(d.defenses ?? []).join(', ') || '없음'}`);
+          const tools = (d.tools ?? []) as string[];
+          const defenses = (d.defenses ?? []) as string[];
+          addText(
+            `정찰 완료 — 연동 도구 ${tools.length ? tools.join('·') : '없음'}, 방어 장치 ${defenses.length ? defenses.join('·') : '없음'}`,
+            `[RECON] 정찰 완료 — tools: ${tools.join(', ') || '없음'}, defenses: ${defenses.join(', ') || '없음'}`,
+          );
           setRecon({ tools: d.tools ?? [], defenses: d.defenses ?? [] });
           setGlobalThinking('표적을 정찰합니다. 방어 수단과 취약점을 분석 중입니다.');
         } else if (d.phase === 'start') {
-          addLog(`[SCAN] 목표 ${d.objectives ?? 0}개 확인, 진화 루프 시작`);
-          setObjectives({ done: 0, total: d.objectives ?? 0 });
-          setGlobalThinking(`${d.objectives ?? 0}개 공격 목표를 확인했습니다. 진화 루프를 시작합니다.`);
+          const objs = d.objectives ?? 0;
+          addText(`공격 목표 ${objs}개 확인 — 공격 시작`, `[SCAN] 목표 ${objs}개 확인, 진화 루프 시작`);
+          setObjectives({ done: 0, total: objs });
+          setGlobalThinking(`${objs}개 공격 목표를 확인했습니다. 진화 루프를 시작합니다.`);
         } else if (d.phase === 'evolve') {
-          addLog(`[GEN ${d.generation}] 최고 점수 ${((d.best_score ?? 0) * 100).toFixed(1)}%`);
+          const gen = d.generation ?? 0;
+          const best = d.best_score ?? 0;
+          addText(`${gen}세대 변이 — 최고 위험도 ${riskPct(best)}%`, `[GEN ${gen}] 최고 점수 ${(best * 100).toFixed(1)}%`, 'gen');
         } else if (d.phase === 'objective_done') {
-          addLog(`[OBJECTIVE] 완료 — ${d.status ?? ''}`, d.status === 'breached' ? 'error' : 'info');
-          setObjectives(prev => ({ ...prev, done: prev.done + 1 }));
+          const breached = d.status === 'breached';
           const doneAtlas = (d.current_attack as { atlas?: string } | null)?.atlas ?? '';
+          addText(
+            `→ ${atlasTermLabel(doneAtlas)} 테스트 완료: ${breached ? '취약점 발견' : '방어 성공'}`,
+            `[OBJECTIVE] 완료 — ${d.status ?? ''}`,
+            breached ? 'breach' : 'result',
+          );
+          setObjectives(prev => ({ ...prev, done: prev.done + 1 }));
           if (doneAtlas) {
             const resultMsg = d.status === 'breached' ? '취약점을 발견했습니다.' : '방어에 성공했습니다.';
             const msg = `${atlasLabel(doneAtlas)}: ${resultMsg} 이 기법의 공격을 종료합니다.`;
@@ -262,8 +293,12 @@ export function RunScanPage() {
       } else if (eventType === 'seeds_retrieved') {
         const atlas = d.atlas as string;
         const count = d.count as number;
-        addLog(`[${atlasKoName(atlas)}] 공격을 시작`);
-        addLog(`[SEED] ${atlasLabel(atlas)} — 공격 데이터베이스에서 프롬프트 ${count}개 선택`);
+        pushLine({
+          level: 'head',
+          text: `▶ ${atlasTermLabel(atlas)} 방어 테스트 시작 · ${atlas}`,
+          raw: `[${atlasKoName(atlas)}] 공격을 시작 · ${atlas}`,
+        });
+        addText(`공격 데이터베이스에서 기본 공격 ${count}개 선택`, `[SEED] ${atlasLabel(atlas)} — 프롬프트 ${count}개 선택`);
         setGlobalThinking(`${atlasLabel(atlas)}: 공격 데이터베이스에서 프롬프트 ${count}개를 선택했습니다. 0세대 발사를 시작합니다.`);
       } else if (eventType === 'attempt_started') {
         objectiveToAtlasRef.current.set(d.objective_id as number, d.atlas as string);
@@ -272,15 +307,21 @@ export function RunScanPage() {
         objectiveToAtlasRef.current.set(d.objective_id as number, d.atlas as string);
         setExchanges(prev => applyAttemptEvent(prev, d));
         const verdict = d.verdict as string;
-        const score = ((d.score ?? 0) * 100).toFixed(1);
-        const op = d.mutation_op ? ` [${d.mutation_op}]` : '';
+        const scoreRaw = ((d.score ?? 0) * 100).toFixed(1);
+        const rawOp = d.mutation_op ? ` [${d.mutation_op}]` : '';
         const errDetail = verdict === 'error'
           ? ` — ${d.error ?? '대상 서버 응답 없음'}`
           : '';
-        addLog(
-          `${atlasLabel(d.atlas)}${op} ${verdict} (${score}%)${errDetail}`,
-          verdict === 'breach' ? 'error' : verdict === 'error' ? 'warn' : 'info',
-        );
+        const vkind: AttemptLine['verdict'] =
+          verdict === 'breach' ? 'breach' : verdict === 'error' ? 'error' : 'safe';
+        const method = opLabel(d.mutation_op as string | undefined);
+        const risk = vkind === 'error' ? null : riskPct(d.score);
+        pushLine({
+          level: vkind === 'breach' ? 'breach' : vkind === 'error' ? 'info' : 'ok',
+          attempt: { method, verdict: vkind, risk },
+          foldKey: `${method}|${vkind}|${risk}`,
+          raw: `${atlasLabel(d.atlas)}${rawOp} ${verdict} (${scoreRaw}%)${errDetail}`,
+        });
         if (d.improvement) setGlobalThinking(`${atlasLabel(d.atlas as string)}: ${d.improvement as string}`);
         const node: EvolutionNode = {
           attempt_id: d.attempt_id,
@@ -299,7 +340,13 @@ export function RunScanPage() {
           return next;
         });
       } else if (eventType === 'finding') {
-        addLog(`⚠ 취약점 발견: ${atlasLabel(d.atlas)} (심각도: ${d.severity ?? 'high'})`, 'error');
+        const sevKo = d.severity === 'critical' ? '심각' : d.severity === 'medium' ? '보통' : '높음';
+        addText(
+          `⚠ 취약점 발견: ${atlasTermLabel(d.atlas)} (심각도: ${sevKo})`,
+          `⚠ 취약점 발견: ${atlasLabel(d.atlas)} (심각도: ${d.severity ?? 'high'})`,
+          'breach',
+        );
+        setBreachCount(c => c + 1);
       } else if (eventType === 'done') {
         setStatus(d.status === 'done' ? 'done' : 'failed');
         setGlobalThinking('모든 공격 분석을 종료했습니다.');
@@ -332,6 +379,7 @@ export function RunScanPage() {
     setExchanges([]);
     setRecon(null);
     setObjectives({ done: 0, total: 0 });
+    setBreachCount(0);
     setSelectedObjectiveId(null);
     setNewObjectiveIds(new Set());
     seenObjectivesRef.current = new Set();
@@ -479,7 +527,18 @@ export function RunScanPage() {
               )}
               {logs.map(line => (
                 <p key={line.id} className={`${styles.logLine} ${styles[line.level] ?? ''}`}>
-                  <span className={styles.logPrompt}>›</span> {line.msg}
+                  <span className={styles.logPrompt}>›</span>{' '}
+                  {line.attempt ? (
+                    <span>
+                      {line.attempt.method} →{' '}
+                      <span className={`${styles.verdict} ${styles[`v_${line.attempt.verdict}`] ?? ''}`}>
+                        {VERDICT_WORD[line.attempt.verdict]}
+                      </span>
+                      {line.attempt.risk != null && ` · 위험도 ${line.attempt.risk}%`}
+                    </span>
+                  ) : (
+                    line.text
+                  )}
                 </p>
               ))}
               {status === 'running' && (
@@ -489,7 +548,9 @@ export function RunScanPage() {
                 </p>
               )}
               {status === 'done' && (
-                <p className={`${styles.logLine} ${styles.done}`}>✓ 스캔 완료</p>
+                <p className={`${styles.logLine} ${styles.done}`}>
+                  ✓ 스캔 완료 — {Math.max(objectives.total - breachCount, 0)}개 유형 방어, 취약점 {breachCount}건
+                </p>
               )}
               <div ref={logEndRef} />
             </div>

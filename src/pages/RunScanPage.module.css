@@ -443,8 +443,21 @@
 }
 .logLine.error   { color: var(--red); }
 .logLine.warn    { color: var(--orange); }
-.logLine.done    { color: var(--accent); }
+.logLine.done    { color: var(--accent); font-weight: 700; }
 .logLine.finding { color: var(--red); font-weight: 700; }
+
+/* 순화 로그 level (#51): 목표 시작/준비/방어 성공/세대 변이/목표 결과/돌파 */
+.logLine.head   { color: #cfe6d8; font-weight: 600; margin-top: 6px; }
+.logLine.info   { color: var(--text-muted); }
+.logLine.ok     { color: var(--text-muted); }
+.logLine.gen    { color: var(--orange); }
+.logLine.result { color: var(--accent); font-weight: 600; }
+.logLine.breach { color: var(--red); font-weight: 600; }
+
+/* 판정어만 색 강조 — 방어=그린 / 취약점=붉은색 / 오류=muted */
+.verdict.v_safe   { color: var(--accent); }
+.verdict.v_breach { color: var(--red); }
+.verdict.v_error  { color: var(--text-muted); }
 
 .logPrompt { color: var(--accent); margin-right: 6px; }
 
