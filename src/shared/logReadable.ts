@@ -118,6 +118,22 @@ export function atlasTermLabel(code: string | null | undefined): string {
   return ATLAS_TERM_LABELS[base] ?? code;
 }
 
+// ── 백엔드 log 이벤트 메시지 → 사용자용 문구 순화 ── (#53)
+// tasks.py `_log`·code_scanner `on_log`가 내는 진행 메시지. 대부분 이미 자연스러운 한글이라
+// 그대로 두고, 기술 표현("recon"·"진화 루프")이 남은 것만 순화한다. 매핑에 없으면 원문 유지
+// (원문은 상세 로그에 그대로 노출되므로 raw 토큰이 사용자용에 새지 않는다).
+const LOG_MESSAGE_LABELS: Record<string, string> = {
+  'recon 완료 — 진화 루프 시작': '정찰 완료 — 공격 시작',
+};
+
+/**
+ * 백엔드 log 메시지를 사용자용 문구로 순화. 매핑에 없으면 원문 그대로 반환.
+ * raw 원문은 호출부에서 상세 로그용으로 따로 보존한다(간단히 보기만 순화문 사용).
+ */
+export function logMessageReadable(msg: string): string {
+  return LOG_MESSAGE_LABELS[msg] ?? msg;
+}
+
 // 판정(verdict) → 한글 결과 문구
 export const VERDICT_WORD: Record<string, string> = {
   safe: '방어 성공',
