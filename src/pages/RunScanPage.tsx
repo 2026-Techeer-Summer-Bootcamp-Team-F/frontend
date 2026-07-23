@@ -52,7 +52,7 @@ export function RunScanPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [targetModel, setTargetModel] = useState('current');
   const [scanId, setScanId] = useState<number | null>(null);
-  const [status, setStatus] = useState<'idle' | 'running' | 'done' | 'failed'>('idle');
+  const [status, setStatus] = useState<'idle' | 'pending' | 'running' | 'done' | 'failed'>('idle');
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [exchanges, setExchanges] = useState<ChatExchange[]>([]);
@@ -240,8 +240,10 @@ export function RunScanPage() {
       };
       const result = await startScan(Number(projectId), config);
       setScanId(result.scan_id);
-      setStatus('running');
-      setLogs([{ id: 0, level: 'info', text: '스캔 시작 — 공격 모듈 로딩 중', raw: 'Attack modules loading...' }]);
+      // 접수 직후엔 '대기(pending)'. 워커가 스캔을 집어 첫 이벤트가 오면 subscribeSSE에서 'running'으로 전환.
+      setStatus('pending');
+      setLogs([{ id: 0, level: 'info', text: '대기 중 — 다른 스캔이 진행 중이면 순서가 되는 대로 자동 시작됩니다', raw: 'Queued — waiting for a free worker slot...' }]);
+      setGlobalThinking('대기열에서 순서를 기다리고 있습니다...');
       subscribeSSE(result.scan_id);
     } catch {
       setStatus('running');
@@ -293,6 +295,8 @@ export function RunScanPage() {
       pushLine({ level, text, raw });
 
     es.onmessage = (e: MessageEvent) => {
+      // 첫 실제 이벤트 = 워커가 스캔을 집었다는 신호 → 대기 중이었다면 진행 중으로 전환.
+      setStatus(s => (s === 'pending' ? 'running' : s));
       const d = JSON.parse(e.data as string);
       const eventType = d.event as string;
 
@@ -508,6 +512,7 @@ export function RunScanPage() {
         <div className={styles.titleRow}>
           <h1 className={styles.title}>
             {project?.project_name ?? '분석 설정'}
+            {status === 'pending' && <span className={styles.pendingBadge}> QUEUED</span>}
             {status === 'running' && <span className={styles.runningBadge}> RUNNING</span>}
             {status === 'done' && <span className={styles.doneBadge}> DONE</span>}
           </h1>
@@ -522,7 +527,7 @@ export function RunScanPage() {
                 {loadingStart ? '시작 중...' : '›_ Start Scan'}
               </button>
             )}
-            {status === 'running' && (
+            {(status === 'running' || status === 'pending') && (
               <button className={styles.cancelBtn} onClick={handleCancel}>
                 ▪ 스캔 취소
               </button>
@@ -572,6 +577,12 @@ export function RunScanPage() {
 
         <div className={styles.tabSpacer} />
 
+        {status === 'pending' && (
+          <span className={styles.tabStatus}>
+            <span className={styles.blink}>⏳</span>
+            <span className={styles.tabTimer}>대기 중</span>
+          </span>
+        )}
         {status === 'running' && (
           <span className={styles.tabStatus}>
             <span className={styles.blink}>█</span>
@@ -611,6 +622,11 @@ export function RunScanPage() {
             <div className={styles.termBody} ref={setTermBodyRef} onScroll={handleLogScroll}>
               {logs.length === 0 && (
                 <p className={styles.termEmpty}>스캔을 시작하면 실시간 로그가 표시됩니다.</p>
+              )}
+              {status === 'pending' && (
+                <p className={styles.termPending}>
+                  <span className={styles.cursor} /> 대기 중 — 앞선 스캔이 진행 중입니다. 순서가 되면 자동으로 시작됩니다…
+                </p>
               )}
               {showRaw
                 ? /* 상세 로그: 전문가용 원본 기술 로그(AML 코드·op·점수 원문). 접기 없이 전부. */
@@ -661,7 +677,7 @@ export function RunScanPage() {
           <div className={styles.chatTabLayout}>
             <LiveAttackChat
               exchanges={exchanges}
-              status={status}
+              status={status === 'pending' ? 'idle' : status}
               targetName={project?.project_name ?? '표적'}
               recon={recon}
               generation={progress?.generation ?? 0}
@@ -683,7 +699,7 @@ export function RunScanPage() {
                 }
               }}
               newSessions={newObjectiveIds}
-              status={status}
+              status={status === 'pending' ? 'idle' : status}
             />
           </div>
         )}
@@ -710,7 +726,7 @@ export function RunScanPage() {
                 }
               }}
               newSessions={newObjectiveIds}
-              status={status}
+              status={status === 'pending' ? 'idle' : status}
             />
           </div>
         )}
