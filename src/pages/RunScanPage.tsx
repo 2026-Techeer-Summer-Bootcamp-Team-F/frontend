@@ -106,27 +106,23 @@ export function RunScanPage() {
     },
   ]);
 
-  // 새 세션 등장 시 자동 선택 + 첫 세션이면 채팅 탭으로 전환
+  // 새 세션 등장 시 자동 선택 (탭 자동 전환은 하지 않음 — 채팅 탭 배지로만 알림)
   useEffect(() => {
     if (exchanges.length === 0) return;
     const last = exchanges[exchanges.length - 1];
     if (!seenObjectivesRef.current.has(last.objectiveId)) {
-      const isFirst = seenObjectivesRef.current.size === 0;
       seenObjectivesRef.current.add(last.objectiveId);
       if (!userSelectedRef.current) {
         setSelectedObjectiveId(last.objectiveId);
         setSelectedAtlasId(last.atlas);
         setSelectedAtlasName(last.atlasName ?? '');
-      } else {
-        setNewObjectiveIds(prev => new Set([...prev, last.objectiveId]));
       }
+      // 채팅 탭을 보고 있지 않으면 새 세션을 배지로 알림(자동 전환 금지)
+      setNewObjectiveIds(prev => new Set([...prev, last.objectiveId]));
       if (!treeUserSelectedRef.current) {
         setTreeSelectedObjectiveId(last.objectiveId);
         setTreeSelectedAtlasId(last.atlas);
         setTreeSelectedAtlasName(last.atlasName ?? '');
-      }
-      if (isFirst && !userChangedTabRef.current) {
-        setActiveTab('chat');
       }
     }
   }, [exchanges]);
