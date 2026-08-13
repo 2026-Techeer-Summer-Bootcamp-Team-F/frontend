@@ -219,6 +219,9 @@ export function RegisterTargetPage() {
               <div className={`${styles.field} ${styles.spanFull}`}>
                 <label className={styles.fieldLabel}>엔드포인트 URL <span className={styles.required}>*</span></label>
                 <input className={styles.input} type="url" placeholder="https://your-app.example.com/chat" value={form.url} onChange={set('url')} required />
+                <p className={styles.fieldHelp}>
+                  💡 공개적으로 접속 가능한 <b>배포된 앱의 URL</b>이어야 해요. 로컬에서 돌리는 앱이면 <code className={styles.code}>ngrok</code>·<code className={styles.code}>cloudflared</code> 터널 주소를 넣으세요.
+                </p>
                 {isLocalUrl(form.url) && (
                   <p className={styles.urlWarn}>
                     ⚠ 로컬 주소예요. 배포된 REDI는 여러분 PC의 <code>localhost</code>에 닿지 못해요 —
